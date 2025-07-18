@@ -187,7 +187,7 @@ class MemoriesApi {
         } : {})
       };
       
-      const response = await fetch(`${this.baseUrl}/cloudinary/create-memory`, {
+      const response = await fetch(`${this.baseUrl}/cloudinary/memory`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
