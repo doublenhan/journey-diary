@@ -1,0 +1,79 @@
+/* Card Components */
+.memory-card {
+  @apply rounded-2xl border shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden transform hover:scale-105;
+}
+
+.event-card {
+  @apply rounded-xl border-2 p-4 transition-all duration-300 hover:shadow-lg transform hover:scale-102;
+}
+
+.timeline-node {
+  @apply w-6 h-6 rounded-full border-4 flex items-center justify-center relative z-10;
+}
+
+.timeline-line {
+  @apply absolute left-1/2 transform -translate-x-1/2 w-1 h-full rounded-full;
+}
+
+/* Button Components */
+.btn-primary {
+  @apply px-4 py-2 text-white rounded-lg transition-all duration-300 hover:shadow-lg transform hover:scale-105 font-medium;
+}
+
+.btn-secondary {
+  @apply px-4 py-2 rounded-lg border transition-all duration-300 hover:shadow-md transform hover:scale-105 font-medium;
+}
+
+.btn-icon {
+  @apply p-2 rounded-xl shadow-lg border transition-all duration-300 hover:shadow-xl transform hover:scale-105;
+}
+
+/* Form Components */
+.form-input {
+  @apply w-full px-3 py-2 border rounded-lg focus:ring-2 focus:outline-none transition-all duration-300;
+}
+
+.form-label {
+  @apply block text-sm font-medium mb-1;
+}
+
+.form-group {
+  @apply space-y-2;
+}
+
+/* Layout Components */
+.sidebar {
+  @apply fixed lg:static inset-y-0 left-0 z-40 w-64 border-r shadow-sm transition-all duration-500 ease-in-out;
+}
+
+.main-content {
+  @apply flex-1 lg:ml-0;
+}
+
+.content-wrapper {
+  @apply p-6 lg:p-8 pt-20 lg:pt-8;
+}
+
+/* Utility Classes */
+.glass-effect {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #ec4899, #db2777);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hover-lift {
+  @apply transform transition-all duration-300 hover:scale-105 hover:shadow-lg;
+}
+
+/* Custom utilities layer for Tailwind */
+@layer utilities {
+  .scale-102 {
+    transform: scale(1.02);
+  }
+}
