@@ -1,7 +1,13 @@
+
+
 /* =================================
    CREATE MEMORY PAGE STYLES
    ================================= */
-
+.form-label-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 /* Base Layout */
 .create-memory-page {
   min-height: 100vh;

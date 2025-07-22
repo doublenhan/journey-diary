@@ -1,16 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { Heart, Calendar, ArrowLeft, X, ChevronLeft, ChevronRight, Loader } from 'lucide-react';
-import { cloudinaryApi, type SavedMemory } from './api/cloudinaryGalleryApi';
+import { useState, useEffect } from 'react';
+import { useMemoriesCache } from './hooks/useMemoriesCache';
+import { Heart, Calendar, ArrowLeft, ChevronLeft, ChevronRight, Loader } from 'lucide-react';
+// import { cloudinaryApi, type SavedMemory } from './api/cloudinaryGalleryApi';
+import { useCurrentUserId } from './hooks/useCurrentUserId';
 import './styles/ViewMemory.css';
 
 // Update Memory interface to match SavedMemory from the API
+interface MemoryImage {
+  public_id: string;
+  secure_url: string;
+  width: number;
+  height: number;
+  format: string;
+  created_at: string;
+  tags: string[];
+}
+
 interface Memory {
   id: string;
   title: string;
   date: string;
   text: string;
   location?: string;
-  photos: string[];
+  images: MemoryImage[];
+  created_at?: string;
+  tags?: string[];
+  folder?: string;
 }
 
 interface MemoriesByYear {
@@ -19,84 +34,53 @@ interface MemoriesByYear {
 
 interface ViewMemoryProps {
   onBack?: () => void;
+  currentTheme: 'happy' | 'calm' | 'romantic';
 }
 
-function ViewMemory({ onBack }: ViewMemoryProps) {
-  const [memoriesByYear, setMemoriesByYear] = useState<MemoriesByYear>({});
-  const [years, setYears] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const themes = {
+  happy: {
+    background: 'linear-gradient(135deg, #FFFDE4 0%, #FFF 50%, #FEF08A 100%)',
+    cardBg: '#fff',
+    textPrimary: '#78350f',
+    border: '#FEF08A',
+  },
+  calm: {
+    background: 'linear-gradient(135deg, #EEF2FF 0%, #FFF 50%, #E0E7FF 100%)',
+    cardBg: '#fff',
+    textPrimary: '#3730a3',
+    border: '#E0E7FF',
+  },
+  romantic: {
+    background: 'linear-gradient(135deg, #FDF2F8 0%, #FFF 50%, #FCE7F3 100%)',
+    cardBg: '#fff',
+    textPrimary: '#831843',
+    border: '#FCE7F3',
+  }
+};
+function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
+  // All hooks must come first
+  const { userId, loading } = useCurrentUserId();
+  const { memoriesByYear, years, isLoading, error } = useMemoriesCache(userId, loading);
+  // Remove unused floatingHearts state
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number>(0);
   const [allPhotos, setAllPhotos] = useState<string[]>([]);
-  const [floatingHearts, setFloatingHearts] = useState<Array<{ id: number; x: number; y: number }>>([]);
+  const theme = themes[currentTheme];
+
+  // Log all memory images for debugging after fetching
+  useEffect(() => {
+    if (Object.keys(memoriesByYear).length > 0) {
+      Object.entries(memoriesByYear).forEach(([year, memories]) => {
+        (memories as any[]).forEach((memory: any) => {
+          console.log('Images for memory:', memory.title, memory.images);
+        });
+      });
+    }
+  }, [memoriesByYear]);
 
   // Fetch memories from Cloudinary
-  useEffect(() => {
-    const fetchMemories = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        // Fetch memories from the API
-        const response = await cloudinaryApi.getMemories();
-        const fetchedMemories = response.memories;
-        
-        // Transform API response to match our Memory interface
-        const transformedMemories: Memory[] = fetchedMemories.map((memory: SavedMemory) => ({
-          id: memory.id,
-          title: memory.title,
-          date: memory.date,
-          text: memory.text,
-          location: memory.location || undefined,
-          // Map the Cloudinary images to their URLs
-          photos: memory.images.map(img => img.secure_url)
-        }));
-        
-        // Group memories by year
-        const groupedMemories: MemoriesByYear = {};
-        
-        transformedMemories.forEach((memory: Memory) => {
-          const year = new Date(memory.date).getFullYear().toString();
-          
-          if (!groupedMemories[year]) {
-            groupedMemories[year] = [];
-          }
-          
-          groupedMemories[year].push(memory);
-        });
-        
-        // Sort memories within each year by date (newest first)
-        Object.keys(groupedMemories).forEach(year => {
-          groupedMemories[year].sort((a, b) => 
-            new Date(b.date).getTime() - new Date(a.date).getTime()
-          );
-        });
-        
-        // Get sorted years (newest first)
-        const sortedYears = Object.keys(groupedMemories).sort((a, b) => parseInt(b) - parseInt(a));
-        
-        setMemoriesByYear(groupedMemories);
-        setYears(sortedYears);
-        
-        // Collect all photos for lightbox navigation
-        const photos = transformedMemories.flatMap((memory: Memory) => memory.photos);
-        setAllPhotos(photos);
-      } catch (err) {
-        console.error('Failed to fetch memories:', err);
-        setError('Failed to load memories. Please try again later.');
-        
-        // Set empty states
-        setMemoriesByYear({});
-        setYears([]);
-        setAllPhotos([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchMemories();
-  }, []);
+  // TODO: Add useEffect here to fetch memories from the API if needed
+
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -107,10 +91,7 @@ function ViewMemory({ onBack }: ViewMemoryProps) {
     });
   };
 
-  const openLightbox = (photo: string) => {
-    setSelectedPhoto(photo);
-    setSelectedPhotoIndex(allPhotos.indexOf(photo));
-  };
+  // Removed unused openLightbox function
 
   const closeLightbox = () => {
     setSelectedPhoto(null);
@@ -130,22 +111,10 @@ function ViewMemory({ onBack }: ViewMemoryProps) {
     setSelectedPhoto(allPhotos[index]);
   };
 
-  const createFloatingHeart = (e: React.MouseEvent) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    const heartId = Date.now() + Math.random();
-    setFloatingHearts(prev => [...prev, { id: heartId, x, y }]);
-    
-    // Remove heart after animation
-    setTimeout(() => {
-      setFloatingHearts(prev => prev.filter(heart => heart.id !== heartId));
-    }, 2000);
-  };
+  // Removed unused createFloatingHeart function
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50">
+    <div className="view-memory-page" style={{ background: theme.background, color: theme.textPrimary }}>
       {/* Header */}
       <header className="bg-white/95 backdrop-blur-sm border-b border-pink-100 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -192,7 +161,7 @@ function ViewMemory({ onBack }: ViewMemoryProps) {
             <div className="dashboard-card bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
               <Heart className="w-8 h-8 text-pink-500 mb-2" />
               <div className="dashboard-number text-2xl font-bold">{
-                Object.values(memoriesByYear).reduce((total, arr) => total + arr.length, 0)
+                (Object.values(memoriesByYear) as any[][]).reduce((total, arr) => total + (Array.isArray(arr) ? arr.length : 0), 0)
               }</div>
               <div className="dashboard-label text-sm text-gray-500">Memories</div>
             </div>
@@ -206,7 +175,7 @@ function ViewMemory({ onBack }: ViewMemoryProps) {
                 📷
               </span>
               <div className="dashboard-number text-2xl font-bold">{
-                Object.values(memoriesByYear).reduce((total, arr) => total + arr.reduce((p, m) => p + m.photos.length, 0), 0)
+                (Object.values(memoriesByYear) as any[][]).reduce((total, arr) => total + (Array.isArray(arr) ? arr.reduce((p, m) => p + (Array.isArray(m.images) ? m.images.length : 0), 0) : 0), 0)
               }</div>
               <div className="dashboard-label text-sm text-gray-500">Photos</div>
             </div>
@@ -216,7 +185,7 @@ function ViewMemory({ onBack }: ViewMemoryProps) {
               </span>
               <div className="dashboard-number text-base font-bold">{
                 (() => {
-                  const allMemories = years.flatMap(y => memoriesByYear[y] || []);
+                  const allMemories = years.flatMap((y: string) => memoriesByYear[y] || []);
                   if (allMemories.length === 0) return '--';
                   const firstDate = allMemories[allMemories.length - 1]?.date;
                   const lastDate = allMemories[0]?.date;
@@ -254,7 +223,7 @@ function ViewMemory({ onBack }: ViewMemoryProps) {
         {/* Memories by Year */}
         {!isLoading && !error && years.length > 0 && (
           <div className="memories-by-year">
-            {years.map(year => (
+            {years.map((year: string) => (
               <div key={year} className="year-section">
                 {/* Year Header */}
                 <div className="year-header">
@@ -264,7 +233,7 @@ function ViewMemory({ onBack }: ViewMemoryProps) {
 
                 {/* Memories for this year */}
                 <div className="memory-timeline">
-                  {memoriesByYear[year].map((memory, memoryIndex) => (
+                  {memoriesByYear[year].map((memory: any, memoryIndex: number) => (
                     <div 
                       key={memory.id} 
                       className="memory-card animate-fade-in"
@@ -304,29 +273,43 @@ function ViewMemory({ onBack }: ViewMemoryProps) {
                             {memory.text}
                           </p>
 
-                          {/* Photos Grid */}
-                          {memory.photos.length > 0 && (
+                          {/* Images Grid */}
+                          {Array.isArray(memory.images) && memory.images.length > 0 && (
                             <div className="relative">
                               <div className="photo-grid">
-                                {memory.photos.map((photo, photoIndex) => (
+                                {memory.images.slice(0, 3).map((image: any, imageIndex: number) => (
                                   <div
-                                    key={photoIndex}
-                                    className="photo-item transform hover:scale-105 transition-all duration-300"
-                                    onClick={(e) => {
-                                      createFloatingHeart(e);
-                                      setAllPhotos(memory.photos);
-                                      setSelectedPhoto(photo);
-                                      setSelectedPhotoIndex(photoIndex);
+                                    key={image.public_id}
+                                    className="gradient-border-image-rounded transform hover:scale-105 transition-all duration-300"
+                                    onClick={() => {
+                                      setAllPhotos(memory.images.map((img: any) => img.secure_url));
+                                      setSelectedPhoto(image.secure_url);
+                                      setSelectedPhotoIndex(imageIndex);
                                     }}
                                   >
-                                    <img
-                                      src={photo}
-                                      alt={`${memory.title || "Memory"} ${photoIndex + 1}`}
-                                      className="photo-img"
-                                    />
-                                    <div className="photo-overlay" />
+                                    <div className="gradient-border-inner">
+                                      <img
+                                        src={image.secure_url}
+                                        alt={`${memory.title || "Memory"} ${imageIndex + 1}`}
+                                        className="photo-img enhanced-photo-img"
+                                        onError={e => { e.currentTarget.style.display = 'none'; }}
+                                      />
+                                    </div>
                                   </div>
                                 ))}
+                                {memory.images.length > 3 && (
+                                  <button
+                                    className="view-all-photos-btn"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setAllPhotos(memory.images.map((img: any) => img.secure_url));
+                                      setSelectedPhoto(memory.images[3].secure_url);
+                                      setSelectedPhotoIndex(3);
+                                    }}
+                                  >
+                                    +{memory.images.length - 3} ảnh
+                                  </button>
+                                )}
                               </div>
                             </div>
                           )}
@@ -340,83 +323,80 @@ function ViewMemory({ onBack }: ViewMemoryProps) {
           </div>
         )}
 
-        {/* Empty State */}
-        {!isLoading && !error && years.length === 0 && (
-          <div className="empty-state">
-            <Heart className="empty-state-icon" />
-            <h3 className="empty-state-title">No memories yet</h3>
-            <p className="empty-state-text">Start creating beautiful memories together!</p>
+        {/* Lightbox Modal - only render once at the root level */}
+        {selectedPhoto && (
+          <div 
+            className="lightbox-overlay animate-fade-in"
+            tabIndex={0}
+            onBlur={e => {
+              // Only close if focus moves outside the lightbox
+              if (!e.currentTarget.contains(e.relatedTarget)) closeLightbox();
+            }}
+            onClick={e => {
+              // Only close if click is on the overlay, not the image or its children
+              if (e.target === e.currentTarget) closeLightbox();
+            }}
+            style={{ outline: 'none' }}
+          >
+            <div className="lightbox-container">
+              {/* Navigation Buttons */}
+              {allPhotos.length > 1 && (
+                <>
+                  <button
+                    onClick={() => navigatePhoto('prev')}
+                    className="lightbox-nav lightbox-nav-prev"
+                  >
+                    <ChevronLeft className="w-8 h-8" />
+                  </button>
+                  <button
+                    onClick={() => navigatePhoto('next')}
+                    className="lightbox-nav lightbox-nav-next"
+                  >
+                    <ChevronRight className="w-8 h-8" />
+                  </button>
+                </>
+              )}
+
+              {/* Main Image (medium size) */}
+              <div className="lightbox-image-container">
+                <div className="lightbox-image-inner">
+                  <img
+                    src={selectedPhoto}
+                    alt="Memory"
+                    className="animate-zoom-in lightbox-main-img"
+                  />
+                </div>
+              </div>
+              {/* Photo Counter */}
+              {allPhotos.length > 1 && (
+                <div className="lightbox-counter">
+                  {selectedPhotoIndex + 1} of {allPhotos.length}
+                </div>
+              )}
+              {/* Thumbnails Gallery */}
+              {allPhotos.length > 1 && (
+                <div className="lightbox-thumbnails-container">
+                  <div className="lightbox-thumbnails">
+                    {allPhotos.map((photo, index) => (
+                      <div 
+                        key={index}
+                        className={`lightbox-thumbnail ${selectedPhotoIndex === index ? 'active' : ''}`}
+                        onClick={() => navigateToPhoto(index)}
+                      >
+                        <img 
+                          src={photo} 
+                          alt={`Thumbnail ${index + 1}`}
+                          className="thumbnail-img"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </main>
-
-      {/* Lightbox Modal */}
-      {selectedPhoto && (
-        <div className="lightbox-overlay animate-fade-in">
-          <div className="lightbox-container">
-            {/* Close Button */}
-            <button
-              onClick={closeLightbox}
-              className="lightbox-close"
-            >
-              <X className="w-8 h-8" />
-            </button>
-
-            {/* Navigation Buttons */}
-            {allPhotos.length > 1 && (
-              <>
-                <button
-                  onClick={() => navigatePhoto('prev')}
-                  className="lightbox-nav lightbox-nav-prev"
-                >
-                  <ChevronLeft className="w-8 h-8" />
-                </button>
-                <button
-                  onClick={() => navigatePhoto('next')}
-                  className="lightbox-nav lightbox-nav-next"
-                >
-                  <ChevronRight className="w-8 h-8" />
-                </button>
-              </>
-            )}
-
-            {/* Main Image */}
-            <img
-              src={selectedPhoto}
-              alt="Memory"
-              className="lightbox-image animate-zoom-in"
-            />
-
-            {/* Photo Counter */}
-            {allPhotos.length > 1 && (
-              <div className="lightbox-counter">
-                {selectedPhotoIndex + 1} of {allPhotos.length}
-              </div>
-            )}
-
-            {/* Thumbnails Gallery */}
-            {allPhotos.length > 1 && (
-              <div className="lightbox-thumbnails-container">
-                <div className="lightbox-thumbnails">
-                  {allPhotos.map((photo, index) => (
-                    <div 
-                      key={index}
-                      className={`lightbox-thumbnail ${selectedPhotoIndex === index ? 'active' : ''}`}
-                      onClick={() => navigateToPhoto(index)}
-                    >
-                      <img 
-                        src={photo} 
-                        alt={`Thumbnail ${index + 1}`}
-                        className="thumbnail-img"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

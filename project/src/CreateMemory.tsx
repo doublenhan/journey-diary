@@ -1,17 +1,45 @@
 import React, { useState } from 'react';
+import { useCurrentUserId } from './hooks/useCurrentUserId';
+import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { Heart, Camera, Calendar, Save, ArrowLeft, X, Upload, MapPin, Type, CheckCircle, AlertCircle } from 'lucide-react';
 import { cloudinaryApi, type MemoryData } from './api/cloudinaryGalleryApi';
 import './styles/CreateMemory.css';
 
 interface CreateMemoryProps {
   onBack?: () => void;
+  currentTheme: 'happy' | 'calm' | 'romantic';
 }
 
-function CreateMemory({ onBack }: CreateMemoryProps) {
+const themes = {
+  happy: {
+    background: 'linear-gradient(135deg, #FFFDE4 0%, #FFF 50%, #FEF08A 100%)',
+    cardBg: '#fff',
+    textPrimary: '#78350f',
+    border: '#FEF08A',
+  },
+  calm: {
+    background: 'linear-gradient(135deg, #EEF2FF 0%, #FFF 50%, #E0E7FF 100%)',
+    cardBg: '#fff',
+    textPrimary: '#3730a3',
+    border: '#E0E7FF',
+  },
+  romantic: {
+    background: 'linear-gradient(135deg, #FDF2F8 0%, #FFF 50%, #FCE7F3 100%)',
+    cardBg: '#fff',
+    textPrimary: '#831843',
+    border: '#FCE7F3',
+  }
+};
+
+function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
+  const { userId, loading } = useCurrentUserId();
+  useMemoriesCache(userId, loading);
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
   const [memoryText, setMemoryText] = useState('');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDay, setSelectedDay] = useState<number>(new Date().getDate());
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1); // 1-based
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -39,57 +67,53 @@ function CreateMemory({ onBack }: CreateMemoryProps) {
   };
 
   const handleSave = async () => {
+    // Invalidate cache after save
     setValidationAttempted(true);
-    
     if (!isFormValid) return;
-
     setIsLoading(true);
     setSaveMessage(null);
-
     try {
       // Add debug console log
       console.log('Starting memory save with data:', {
         title: title.trim(),
         location: location.trim() || undefined,
         text: `${memoryText.trim().substring(0, 50)}...`,
-        date: selectedDate,
+        date: `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`,
         imageCount: uploadedImages.length
       });
-
-      const memoryData: MemoryData = {
+      const memoryData: MemoryData & { userId?: string } = {
         title: title.trim(),
         location: location.trim() || undefined,
         text: memoryText.trim(),
-        date: selectedDate,
-        tags: ['memory', 'love-journal']
+        date: `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`,
+        tags: ['memory', 'love-journal'],
+        userId: userId || undefined
       };
-
       // Log API URL
       console.log(`Sending request to: ${cloudinaryApi.getApiUrl()}/memory`);
-      
       const response = await cloudinaryApi.saveMemory(memoryData, uploadedImages);
-      
       console.log('Memory saved successfully:', response.memory);
-      
       setSaveMessage({
         type: 'success',
         text: `Memory "${title}" saved successfully! 💕`
       });
-
       // Clear form after successful save
       setTimeout(() => {
         setTitle('');
         setLocation('');
         setMemoryText('');
-        setSelectedDate(new Date().toISOString().split('T')[0]);
+        setSelectedDay(new Date().getDate());
+        setSelectedMonth(new Date().getMonth() + 1);
+        setSelectedYear(new Date().getFullYear());
         setUploadedImages([]);
         setImagePreviews([]);
         setSaveMessage(null);
+        setValidationAttempted(false);
+        // Remove cache so next view reloads from API
+        if (userId) localStorage.removeItem(`memoriesCache_${userId}`);
       }, 2000);
-
     } catch (error) {
       console.error('Failed to save memory:', error);
-      
       // Enhanced error reporting
       if (error instanceof Error) {
         setSaveMessage({
@@ -111,11 +135,12 @@ function CreateMemory({ onBack }: CreateMemoryProps) {
     title.trim().length > 0 && 
     location.trim().length > 0 && 
     memoryText.trim().length > 0 && 
-    selectedDate && 
+    selectedDay > 0 && selectedMonth > 0 && selectedYear > 1900 && 
     uploadedImages.length > 0;
 
+  const theme = themes[currentTheme];
   return (
-    <div className="create-memory-page">
+    <div className="create-memory-page" style={{ background: theme.background, color: theme.textPrimary }}>  
       {/* Header */}
       <header className="create-memory-header">
         <div className="create-memory-header-container">
@@ -160,8 +185,10 @@ function CreateMemory({ onBack }: CreateMemoryProps) {
             {/* Title */}
             <div className="form-section">
               <label className="form-label">
-                <Type className="w-5 h-5 form-label-icon" />
-                <span>Give this memory a title <span className="required-field">*</span></span>
+                <span className="form-label-row">
+                  <Type className="w-5 h-5 form-label-icon" />
+                  Give this memory a title <span className="required-field">*</span>
+                </span>
               </label>
               <input
                 type="text"
@@ -176,8 +203,10 @@ function CreateMemory({ onBack }: CreateMemoryProps) {
             {/* Location */}
             <div className="form-section">
               <label className="form-label">
-                <MapPin className="w-5 h-5 form-label-icon" />
-                <span>Where did this happen? <span className="required-field">*</span></span>
+                <span className="form-label-row">
+                  <MapPin className="w-5 h-5 form-label-icon" />
+                  Where did this happen? <span className="required-field">*</span>
+                </span>
               </label>
               <input
                 type="text"
@@ -189,26 +218,36 @@ function CreateMemory({ onBack }: CreateMemoryProps) {
               />
             </div>
 
-            {/* Date Selection */}
+            {/* Date Selection - manual dropdowns */}
             <div className="form-section">
               <label className="form-label">
-                <Calendar className="w-5 h-5 form-label-icon" />
-                <span>When did this happen? <span className="required-field">*</span></span>
+                <span className="form-label-row">
+                  <Calendar className="w-5 h-5 form-label-icon" />
+                  When did this happen? <span className="required-field">*</span>
+                </span>
               </label>
               <input
                 type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="form-input"
+                value={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`}
+                onChange={e => {
+                  const [year, month, day] = e.target.value.split('-').map(Number);
+                  setSelectedYear(year);
+                  setSelectedMonth(month);
+                  setSelectedDay(day);
+                }}
+                className="form-input date-select"
                 required
+                max={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`}
               />
             </div>
 
             {/* Memory Text */}
             <div className="form-section">
               <label className="form-label">
-                <Heart className="w-5 h-5 form-label-icon" />
-                <span>Tell your story <span className="required-field">*</span></span>
+                <span className="form-label-row">
+                  <Heart className="w-5 h-5 form-label-icon" />
+                  Tell your story <span className="required-field">*</span>
+                </span>
               </label>
               <textarea
                 value={memoryText}
@@ -226,8 +265,10 @@ function CreateMemory({ onBack }: CreateMemoryProps) {
             {/* Image Upload */}
             <div className="upload-section">
               <label className="form-label">
-                <Camera className="w-5 h-5 form-label-icon" />
-                <span>Add photos <span className="required-field">*</span></span>
+                <span className="form-label-row">
+                  <Camera className="w-5 h-5 form-label-icon" />
+                  Add photos <span className="required-field">*</span>
+                </span>
               </label>
               
               {/* Upload Area */}
@@ -313,7 +354,9 @@ function CreateMemory({ onBack }: CreateMemoryProps) {
                     {title.trim().length === 0 && <li>• Add a title for your memory</li>}
                     {location.trim().length === 0 && <li>• Specify the location</li>}
                     {memoryText.trim().length === 0 && <li>• Write your memory text</li>}
-                    {!selectedDate && <li>• Select a date</li>}
+                    {selectedDay <= 0 && <li>• Select a valid day</li>}
+                    {selectedMonth <= 0 && <li>• Select a valid month</li>}
+                    {selectedYear <= 1900 && <li>• Select a valid year</li>}
                     {uploadedImages.length === 0 && <li>• Upload at least one photo</li>}
                   </ul>
                 </div>

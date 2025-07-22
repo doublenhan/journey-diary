@@ -1,9 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import app from './firebase/firebaseConfig';
-import { Heart, Mail, Lock, Eye, EyeOff, BookHeart, Calendar } from 'lucide-react';
+import { Heart, Mail, Lock, Eye, EyeOff, BookHeart, Calendar, Phone } from 'lucide-react';
 import './styles/LoginPage.css';
+
 
 const loveQuotes = [
   "Love is not just looking at each other, it's looking in the same direction.",
@@ -29,17 +30,47 @@ const FloatingHeart = ({ delay = 0, size = 'small' }) => (
   </div>
 );
 
+
 interface LoginPageProps {
-  onLogin?: (email: string, password: string) => void;
+  currentTheme?: 'happy' | 'calm' | 'romantic';
 }
 
-export default function LoginPage({ onLogin }: LoginPageProps) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const themes = {
+  happy: {
+    background: 'linear-gradient(135deg, #FFFDE4 0%, #FFF 50%, #FEF08A 100%)',
+    cardBg: '#fff',
+    textPrimary: '#78350f',
+    border: '#FEF08A',
+  },
+  calm: {
+    background: 'linear-gradient(135deg, #EEF2FF 0%, #FFF 50%, #E0E7FF 100%)',
+    cardBg: '#fff',
+    textPrimary: '#3730a3',
+    border: '#E0E7FF',
+  },
+  romantic: {
+    background: 'linear-gradient(135deg, #FDF2F8 0%, #FFF 50%, #FCE7F3 100%)',
+    cardBg: '#fff',
+    textPrimary: '#831843',
+    border: '#FCE7F3',
+  }
+};
+
+function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
+  const theme = themes[currentTheme];
+  const navigate = useNavigate();
+  const [email, setEmail] = useState(() => localStorage.getItem('rememberEmail') || '');
+  const [password, setPassword] = useState(() => localStorage.getItem('rememberPassword') || '');
+  const [rememberMe, setRememberMe] = useState(true);
+  const [phone, setPhone] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [currentQuote, setCurrentQuote] = useState(0);
   const [error, setError] = useState('');
+  const [isRegister, setIsRegister] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
+  // Registration method: 'email' or 'phone', default to 'email'
+  const [registerMethod, setRegisterMethod] = useState<'email' | 'phone'>('email');
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -64,20 +95,112 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!email || !password) {
-      setError('Please fill in all fields to continue your love journey 💕');
-      return;
-    }
-    setIsLoading(true);
-    // Use Firebase Auth
-    const result = await loginWithFirebase(email, password);
-    setIsLoading(false);
-    if (result.success) {
-      if (onLogin) {
-        onLogin(email, password);
+    setSuccessMsg('');
+    if (isRegister) {
+      // Registration validation
+      if (registerMethod === 'phone') {
+        if (!phone) {
+          setError('Please enter your phone number to register.');
+          return;
+        }
+      } else {
+        if (!email) {
+          setError('Please enter your email to register.');
+          return;
+        }
+      }
+      // Validate password requirements
+      const passwordRequirements = [
+        { regex: /.{6,}/, message: 'Password must be at least 6 characters.' },
+        { regex: /[A-Z]/, message: 'Password must contain an uppercase letter.' },
+        { regex: /[a-z]/, message: 'Password must contain a lowercase letter.' },
+        { regex: /[0-9]/, message: 'Password must contain a number.' },
+        { regex: /[^A-Za-z0-9]/, message: 'Password must contain a special character.' },
+      ];
+      for (const req of passwordRequirements) {
+        if (!req.regex.test(password)) {
+          setError(req.message);
+          return;
+        }
       }
     } else {
-      setError(result.message || 'Login failed. Please try again.');
+      if (!email || !password) {
+        setError('Please fill in all fields to continue your love journey 💕');
+        return;
+      }
+    }
+    setIsLoading(true);
+    if (isRegister) {
+      // Sign Up
+      let result;
+      if (registerMethod === 'phone') {
+        result = await registerWithPhoneFirebase(phone);
+      } else {
+        result = await registerWithEmailFirebase(email, password);
+      }
+      setIsLoading(false);
+      if (result.success) {
+        setSuccessMsg('Tạo tài khoản thành công!');
+        setIsRegister(false);
+        setPhone('');
+        setEmail('');
+        setPassword('');
+      } else {
+        setError(result.message || 'Registration failed. Please try again.');
+      }
+    } else {
+      // Login
+      const result = await loginWithFirebase(email, password);
+      setIsLoading(false);
+      if (result.success) {
+        if (rememberMe) {
+          localStorage.setItem('rememberEmail', email);
+          localStorage.setItem('rememberPassword', password);
+        } else {
+          localStorage.removeItem('rememberEmail');
+          localStorage.removeItem('rememberPassword');
+        }
+        navigate('/landing');
+      } else {
+        setError(result.message || 'Login failed. Please try again.');
+      }
+    }
+  };
+
+  // Firebase Auth register (sign up) with phone number (OTP)
+  const registerWithPhoneFirebase = async (phone: string) => {
+    try {
+      const { getAuth, RecaptchaVerifier, signInWithPhoneNumber } = await import('firebase/auth');
+      const auth = getAuth(app);
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(
+          auth,
+          'recaptcha-container',
+          {
+            size: 'invisible',
+          }
+        );
+      }
+      const appVerifier = window.recaptchaVerifier;
+      const confirmationResult = await signInWithPhoneNumber(auth, phone, appVerifier);
+      const code = window.prompt('Enter the verification code sent to your phone:');
+      if (!code) return { success: false, message: 'Verification code is required.' };
+      await confirmationResult.confirm(code);
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, message: err.message };
+    }
+  };
+
+  // Firebase Auth register (sign up) with email/password
+  const registerWithEmailFirebase = async (email: string, password: string) => {
+    try {
+      const { getAuth, createUserWithEmailAndPassword } = await import('firebase/auth');
+      const auth = getAuth(app);
+      await createUserWithEmailAndPassword(auth, email, password);
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, message: err.message };
     }
   };
 
@@ -121,24 +244,92 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="login-form">
-            {/* Email Field */}
-            <div className="form-group">
-              <label htmlFor="email" className="form-label">
-                Email Address
-              </label>
-              <div className="input-container">
-                <Mail className="input-icon" />
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="form-input"
-                  placeholder="your.email@example.com"
-                  required
-                />
+            {/* Registration Method Selector (only show when registering) */}
+            {isRegister && (
+              <div className="register-method-toggle">
+                <label>
+                  <input
+                    type="radio"
+                    name="register-method"
+                    value="email"
+                    checked={registerMethod === 'email'}
+                    onChange={() => setRegisterMethod('email')}
+                  />{' '}
+                  Register with Email
+                </label>
+                <label style={{ marginLeft: '1.5em' }}>
+                  <input
+                    type="radio"
+                    name="register-method"
+                    value="phone"
+                    checked={registerMethod === 'phone'}
+                    onChange={() => setRegisterMethod('phone')}
+                  />{' '}
+                  Register with Phone
+                </label>
               </div>
-            </div>
+            )}
+
+            {/* Email/Phone Field */}
+            {isRegister ? (
+              registerMethod === 'phone' ? (
+                <div className="form-group">
+                  <label htmlFor="phone" className="form-label">
+                    Phone Number
+                  </label>
+                  <div className="input-container">
+                    <Phone className="input-icon" />
+                    <input
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="form-input"
+                      placeholder="+84xxxxxxxxx"
+                      required
+                    />
+                  </div>
+                  {/* Recaptcha container for phone auth */}
+                  <div id="recaptcha-container" />
+                </div>
+              ) : (
+                <div className="form-group">
+                  <label htmlFor="email" className="form-label">
+                    Email
+                  </label>
+                  <div className="input-container">
+                    <Mail className="input-icon" />
+                    <input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="form-input"
+                      placeholder="Enter your email"
+                      required
+                    />
+                  </div>
+                </div>
+              )
+            ) : (
+              <div className="form-group">
+                <label htmlFor="email" className="form-label">
+                  Email
+                </label>
+                <div className="input-container">
+                  <Mail className="input-icon" />
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="form-input"
+                    placeholder="Enter your email"
+                    required
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Password Field */}
             <div className="form-group">
@@ -171,14 +362,34 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               </div>
             </div>
 
-            {/* Error Message */}
+            {/* Remember Me Checkbox */}
+            <div className="form-group remember-me-row">
+              <label htmlFor="rememberMe" className="remember-me-label">
+                <input
+                  type="checkbox"
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onChange={e => setRememberMe(e.target.checked)}
+                  className="remember-me-checkbox"
+                />
+                <span className="remember-me-text">Remember Me</span>
+              </label>
+            </div>
+
+
+            {/* Error & Success Message */}
             {error && (
               <div className="error-message">
                 {error}
               </div>
             )}
+            {successMsg && (
+              <div className="success-message">
+                {successMsg}
+              </div>
+            )}
 
-            {/* Login Button */}
+            {/* Login/Register Button */}
             <button
               type="submit"
               disabled={isLoading}
@@ -187,12 +398,12 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               {isLoading ? (
                 <>
                   <Heart className="login-button-icon loading fill-current" />
-                  <span>Signing you in...</span>
+                  <span>{isRegister ? 'Creating account...' : 'Signing you in...'}</span>
                 </>
               ) : (
                 <>
                   <Heart className="login-button-icon fill-current" />
-                  <span>Continue Love Journey</span>
+                  <span>{isRegister ? 'Create Account' : 'Continue Love Journey'}</span>
                 </>
               )}
             </button>
@@ -221,10 +432,37 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           {/* Footer Links */}
           <div className="footer-links">
             <p className="footer-text">
-              New to Love Journey?{' '}
-              <button className="footer-link">
-                Create Account
-              </button>
+              {isRegister ? (
+                <>
+                  Already have an account?{' '}
+                  <button
+                    type="button"
+                    className="footer-link"
+                    onClick={() => {
+                      setIsRegister(false);
+                      setError('');
+                      setSuccessMsg('');
+                    }}
+                  >
+                    Login
+                  </button>
+                </>
+              ) : (
+                <>
+                  New to Love Journey?{' '}
+                  <button
+                    type="button"
+                    className="footer-link"
+                    onClick={() => {
+                      setIsRegister(true);
+                      setError('');
+                      setSuccessMsg('');
+                    }}
+                  >
+                    Create Account
+                  </button>
+                </>
+              )}
             </p>
             <button className="footer-link">
               Forgot Password?
@@ -244,3 +482,5 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     </div>
   );
 }
+
+export default LoginPage;

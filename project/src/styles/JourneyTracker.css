@@ -1,3 +1,30 @@
+/* Gallery grid for milestone photos */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 8px;
+  max-width: 320px;
+}
+
+.gallery-photo {
+  width: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.gallery-photo-count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f3f3;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: #d97706;
+}
 /* =================================
    JOURNEY TRACKER PAGE STYLES
    ================================= */

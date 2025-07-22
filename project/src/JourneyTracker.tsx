@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Heart, Calendar, ArrowLeft, Star, Gift, Camera, MapPin, Sparkles, Award, Crown, Coffee, Plane, Home, BellRing as Ring } from 'lucide-react';
 import { memoriesApi, Milestone as ApiMilestone } from './api/memoriesApi';
+import { cloudinaryApi, SavedMemory } from './api/cloudinaryGalleryApi';
+import { useCurrentUserId } from './hooks/useCurrentUserId';
+import { useMemoriesCache } from './hooks/useMemoriesCache';
 import './styles/JourneyTracker.css';
 
 // Extended milestone interface for the component with React elements
 interface Milestone extends Omit<ApiMilestone, 'iconType' | 'achievement'> {
+  id: string;
   icon: React.ReactNode;
   achievement?: {
     title: string;
@@ -15,16 +19,40 @@ interface Milestone extends Omit<ApiMilestone, 'iconType' | 'achievement'> {
 
 interface JourneyTrackerProps {
   onBack?: () => void;
+  currentTheme: 'happy' | 'calm' | 'romantic';
 }
 
-function JourneyTracker({ onBack }: JourneyTrackerProps) {
+const themes = {
+  happy: {
+    background: 'linear-gradient(135deg, #FFFDE4 0%, #FFF 50%, #FEF08A 100%)',
+    cardBg: '#fff',
+    textPrimary: '#78350f',
+    border: '#FEF08A',
+  },
+  calm: {
+    background: 'linear-gradient(135deg, #EEF2FF 0%, #FFF 50%, #E0E7FF 100%)',
+    cardBg: '#fff',
+    textPrimary: '#3730a3',
+    border: '#E0E7FF',
+  },
+  romantic: {
+    background: 'linear-gradient(135deg, #FDF2F8 0%, #FFF 50%, #FCE7F3 100%)',
+    cardBg: '#fff',
+    textPrimary: '#831843',
+    border: '#FCE7F3',
+  }
+};
+
+function JourneyTracker({ onBack, currentTheme }: JourneyTrackerProps) {
+  const { userId, loading } = useCurrentUserId();
   const [selectedPhotos, setSelectedPhotos] = useState<string[] | null>(null);
   const [activePhoto, setActivePhoto] = useState<string | null>(null);  
   const [milestones, setMilestones] = useState<Milestone[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [journeyLoading, setJourneyLoading] = useState<boolean>(true);
+  const [journeyError, setJourneyError] = useState<string | null>(null);
   const [celebrationActive, setCelebrationActive] = useState<string | null>(null);
-  const [floatingElements, setFloatingElements] = useState<Array<{ id: number; x: number; y: number; type: 'heart' | 'star' | 'sparkle' }>>([]);
+  const [floatingElements, setFloatingElements] = useState<Array<{ id: string; x: number; y: number; type: 'heart' | 'star' | 'sparkle' }>>([]);
+  // Remove local memories state, use cache hook
 
   // Convert API milestone to component milestone with React elements
   const convertToComponentMilestone = (apiMilestone: ApiMilestone): Milestone => {
@@ -95,32 +123,32 @@ function JourneyTracker({ onBack }: JourneyTrackerProps) {
     };
   };
 
-  // Fetch data from API
+  // Fetch milestones và memories (ảnh)
   useEffect(() => {
     const fetchMilestones = async () => {
-      setLoading(true);
-      setError(null);
+      setJourneyLoading(true);
+      setJourneyError(null);
       try {
         const data = await memoriesApi.getJourneyMilestones();
-        // Convert API milestones to component milestones with React elements
         const componentMilestones = data.map(convertToComponentMilestone);
-        // Sort by date
         const sortedMilestones = componentMilestones.sort(
           (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
         );
         setMilestones(sortedMilestones);
       } catch (error) {
         console.error('Failed to fetch milestones:', error);
-        setError('Unable to load your journey milestones. Please try again later.');
-        // Set empty milestones array if there's an error
+        setJourneyError('Unable to load your journey milestones. Please try again later.');
         setMilestones([]);
       } finally {
-        setLoading(false);
+        setJourneyLoading(false);
       }
     };
 
     fetchMilestones();
-  }, []);
+    // Memories are now handled by useMemoriesCache
+  }, [userId]);
+  // Use cache hook for memories
+  const { memoriesByYear, years, isLoading: memoriesLoading, error: memoriesError } = useMemoriesCache(userId, journeyLoading);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -131,16 +159,19 @@ function JourneyTracker({ onBack }: JourneyTrackerProps) {
     });
   };
 
-  const getMoodEmoji = (mood: string) => {
-    const moodMap = {
-      ecstatic: '🥰',
-      happy: '😊',
-      romantic: '💕',
-      nostalgic: '🥺',
-      excited: '🤩',
-      peaceful: '😌'
-    };
-    return moodMap[mood as keyof typeof moodMap] || '😊';
+  const moodMap = [
+    { key: 'ecstatic', emoji: '🥰', text: 'Ecstatic' },
+    { key: 'happy', emoji: '😊', text: 'Happy' },
+    { key: 'romantic', emoji: '💕', text: 'Romantic' },
+    { key: 'nostalgic', emoji: '🥺', text: 'Nostalgic' },
+    { key: 'excited', emoji: '🤩', text: 'Excited' },
+    { key: 'peaceful', emoji: '😌', text: 'Peaceful' }
+  ];
+
+  // Hàm lấy mood random cho mỗi milestone
+  const getRandomMood = () => {
+    const idx = Math.floor(Math.random() * moodMap.length);
+    return moodMap[idx];
   };
 
   const getMoodColor = (mood: string) => {
@@ -164,7 +195,7 @@ function JourneyTracker({ onBack }: JourneyTrackerProps) {
     
     for (let i = 0; i < 15; i++) {
       elements.push({
-        id: Date.now() + i,
+        id: `${milestone.id}-${Date.now()}-${i}-${Math.random()}`,
         x: rect.left + Math.random() * rect.width,
         y: rect.top + Math.random() * rect.height,
         type: ['heart', 'star', 'sparkle'][Math.floor(Math.random() * 3)] as 'heart' | 'star' | 'sparkle'
@@ -188,8 +219,9 @@ function JourneyTracker({ onBack }: JourneyTrackerProps) {
     return diffDays;
   };
 
+  const theme = themes[currentTheme];
   return (
-    <div className="journey-tracker-page">
+    <div className="journey-tracker-page" style={{ background: theme.background, color: theme.textPrimary }}>
       {/* Header */}
       <header className="journey-header">
         <div className="journey-header-container">
@@ -229,16 +261,16 @@ function JourneyTracker({ onBack }: JourneyTrackerProps) {
 
         {/* Journey Timeline */}
         <div className="timeline-container">
-          {loading ? (
+          {journeyLoading ? (
             <div className="loading-container">
               <div className="loading-spinner"></div>
               <p>Loading your beautiful journey...</p>
             </div>
-          ) : error ? (
+          ) : journeyError ? (
             <div className="error-container">
               <div className="error-icon">❌</div>
               <h3>Something went wrong</h3>
-              <p>{error}</p>
+              <p>{journeyError}</p>
               <button 
                 className="error-retry-btn"
                 onClick={() => window.location.reload()}
@@ -291,8 +323,13 @@ function JourneyTracker({ onBack }: JourneyTrackerProps) {
                   </div>
                   
                   <div className="mood-indicator">
-                    <span className="mood-emoji">{getMoodEmoji(milestone.mood)}</span>
-                    <span className="mood-text">{milestone.mood}</span>
+                    {(() => {
+                      const mood = getRandomMood();
+                      return <>
+                        <span className="mood-emoji">{mood.emoji}</span>
+                        <span className="mood-text">{mood.text}</span>
+                      </>;
+                    })()}
                   </div>
                 </div>
 
@@ -301,28 +338,37 @@ function JourneyTracker({ onBack }: JourneyTrackerProps) {
                   <h3 className="milestone-title">{milestone.title}</h3>
                   <p className="milestone-description">{milestone.description}</p>
                   
-                  {/* Photos */}
-                  {milestone.photos && milestone.photos.length > 0 && (
-                    <div className="milestone-photos">
-                      {milestone.photos.slice(0, 3).map((photo, photoIndex) => (
-                        <img
-                          key={photoIndex}
-                          src={photo}
-                          alt={`${milestone.title} photo ${photoIndex + 1}`}
-                          className="milestone-photo"
-                           onClick={() => {
-                            setSelectedPhotos(milestone.photos || []);
-                            setActivePhoto(photo);
-                          }}
-                        />
-                      ))}
-                      {milestone.photos.length > 3 && (
-                        <div className="photo-count">
-                          +{milestone.photos.length - 3}
+                  {/* Photos đúng cho từng milestone theo memory */}
+                  {(() => {
+                    // Tìm memory khớp milestone (theo date hoặc id, tuỳ backend)
+                    // Find memory by date from cache
+                    const allMemories: any[] = years.flatMap((y: string) => memoriesByYear[y] || []);
+                    const memory = allMemories.find((mem: any) => mem.date === milestone.date);
+                    if (memory && memory.images.length > 0) {
+                      return (
+                        <div className="milestone-photos gallery-grid">
+                          {memory.images.slice(0, 3).map((img: any, idx: number) => (
+                            <img
+                              key={idx}
+                              src={img.secure_url}
+                              alt={`Memory photo ${idx + 1}`}
+                              className="milestone-photo gallery-photo"
+                              onClick={() => {
+                                setSelectedPhotos(memory.images.map((i: any) => i.secure_url));
+                                setActivePhoto(img.secure_url);
+                              }}
+                            />
+                          ))}
+                          {memory.images.length > 3 && (
+                            <div className="photo-count gallery-photo-count">
+                              +{memory.images.length - 3}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  )}
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
 
                 {/* Achievement Badge */}
@@ -368,7 +414,12 @@ function JourneyTracker({ onBack }: JourneyTrackerProps) {
                 <Calendar className="w-8 h-8 text-blue-500" />
               </div>
               <div className="stat-number">
-                {Math.floor((new Date().getTime() - new Date(milestones[0]?.date || '').getTime()) / (1000 * 60 * 60 * 24))}
+                {(() => {
+                  if (!milestones.length || !milestones[0]?.date) return '--';
+                  const firstDate = new Date(milestones[0].date);
+                  if (isNaN(firstDate.getTime())) return '--';
+                  return Math.floor((new Date().getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24));
+                })()}
               </div>
               <div className="stat-label">Days Together</div>
             </div>

@@ -1,3 +1,6 @@
+// Simple in-memory cache for getCloudinaryMemories (per userId)
+const memoriesCache = new Map();
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 import express from 'express';
 import cors from 'cors';
 import multer from 'multer';
@@ -40,10 +43,17 @@ const groupByMemoryId = (resources) => {
   const memoriesMap = new Map();
   
   for (const resource of resources) {
-    if (resource.context && resource.context.custom && resource.context.custom.memory_id) {
-      const memoryId = resource.context.custom.memory_id;
-      const context = resource.context.custom;
-      
+    // Always extract context.custom if available
+    let context = {};
+    if (resource.context && resource.context.custom) {
+      context = resource.context.custom;
+    }
+    // Fallback: if context.custom not available, try context directly (legacy)
+    else if (resource.context) {
+      context = resource.context;
+    }
+    if (context.memory_id) {
+      const memoryId = context.memory_id;
       if (!memoriesMap.has(memoryId)) {
         memoriesMap.set(memoryId, {
           id: memoryId,
@@ -57,8 +67,7 @@ const groupByMemoryId = (resources) => {
           folder: resource.folder || 'memories'
         });
       }
-      
-      // Add this image to the memory
+      // Add this image to the memory, always attach context for filtering
       memoriesMap.get(memoryId).images.push({
         public_id: resource.public_id,
         secure_url: resource.secure_url,
@@ -67,7 +76,8 @@ const groupByMemoryId = (resources) => {
         format: resource.format,
         created_at: resource.created_at,
         tags: resource.tags || [],
-        folder: resource.folder
+        folder: resource.folder,
+        context: context // always attach context for userId filtering
       });
     }
   }
@@ -328,7 +338,7 @@ app.get('/api/health', (req, res) => {
  */
 app.post('/api/cloudinary/memory', upload.array('images', 10), async (req, res) => {
   try {
-    const { title, location, text, date, tags = 'memory' } = req.body;
+    const { title, location, text, date, tags = 'memory', userId } = req.body;
     
     // Validate required fields
     if (!title || !text || !date || !location) {
@@ -368,21 +378,25 @@ app.post('/api/cloudinary/memory', upload.array('images', 10), async (req, res) 
         // Upload images to Cloudinary
         const memoryId = `memory-${Date.now()}`;
         const uploadPromises = req.files.map(async (file, index) => {
-          const uploadOptions = {
-            resource_type: 'auto',
-            quality: 'auto',
-            fetch_format: 'auto',
-            folder,
-            tags: ['memory', 'love-journal'], // Keep only basic tags
-            context: { // Store memory metadata in context
-              title: title,
-              location: location || '',
-              memory_date: date,
-              memory_text: text.substring(0, 255), // First 255 chars only for context
-              memory_id: memoryId
-            },
-            public_id: `memory-${Date.now()}-${index}`
-          };
+        const uploadOptions = {
+          resource_type: 'auto',
+          quality: 'auto',
+          fetch_format: 'auto',
+          folder,
+          tags: ['memory', 'love-journal'], // Keep only basic tags
+          context: {
+            title: title,
+            location: location || '',
+            memory_date: date,
+            memory_text: text.substring(0, 255), // First 255 chars only for context
+            memory_id: memoryId,
+            // Always save userId in custom.userId for Cloudinary compatibility
+            custom: {
+              userId: userId || ''
+            }
+          },
+          public_id: `memory-${Date.now()}-${index}`
+        };
 
           return new Promise((resolve, reject) => {
             cloudinary.uploader.upload_stream(
@@ -469,36 +483,39 @@ app.get('/api/cloudinary/memories', async (req, res) => {
         message: 'Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables'
       });
     }
-    
-    console.log('Fetching memories from Cloudinary...');
-    
-    try {
-      // Use the improved getCloudinaryMemories function
-      const memories = await getCloudinaryMemories();
-      console.log(`Retrieved ${memories.length} memories`);
-      
-      return res.json({ memories });
-    } catch (cloudinaryError) {
-      console.error('Error with Cloudinary API:', cloudinaryError);
-      
-      // Fallback to searching by tag if the first method fails
-      console.log('Falling back to tag-based search...');
-      
-      const result = await cloudinary.api.resources_by_tag('memory', {
-        tags: true,
-        context: true,
-        max_results: 500
-      });
-      
-      if (!result || !result.resources) {
-        return res.json({ memories: [] });
+
+    const userId = req.query.userId;
+    const cacheKey = userId ? `memories_${userId}` : 'memories_all';
+    const now = Date.now();
+    // Check cache
+    if (memoriesCache.has(cacheKey)) {
+      const { memories, timestamp } = memoriesCache.get(cacheKey);
+      if (memories && Array.isArray(memories) && timestamp && now - timestamp < CACHE_TTL) {
+        console.log(`[CACHE] Returning cached memories for ${cacheKey}`);
+        return res.json({ memories });
       }
-      
-      const memories = groupByMemoryId(result.resources);
-      console.log(`Retrieved ${memories.length} memories using fallback method`);
-      
-      return res.json({ memories });
     }
+    // Not cached or expired, fetch from Cloudinary
+    let memories = await getCloudinaryMemories();
+    if (userId) {
+      memories = memories.filter(mem => {
+        return mem.images.some(img => {
+          if (img.context) {
+            if (img.context.custom && img.context.custom.userId) {
+              return img.context.custom.userId === userId;
+            }
+            if (img.context.userId) {
+              return img.context.userId === userId;
+            }
+          }
+          return false;
+        });
+      });
+    }
+    // Save to cache
+    memoriesCache.set(cacheKey, { memories, timestamp: now });
+    console.log(`[CACHE] Saved memories for ${cacheKey}`);
+    return res.json({ memories });
   } catch (error) {
     console.error('Error fetching memories:', error);
     return res.status(500).json({ error: 'Failed to fetch memories' });
