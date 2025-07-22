@@ -24,7 +24,8 @@ export default defineConfig({
           if (id.includes('html2canvas')) return 'html2canvas';
         }
       }
-    }
+    },
+    outDir: 'dist',
   },
   optimizeDeps: {
     exclude: ['lucide-react'],
