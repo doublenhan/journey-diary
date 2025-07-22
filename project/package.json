@@ -10,8 +10,7 @@
     "build": "vite build",
     "build:watch": "vite build --watch",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "start": "vercel dev"
+    "preview": "vite preview"
   },
   "engines": {
   "node": "22.x"
