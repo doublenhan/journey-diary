@@ -272,13 +272,13 @@ class CloudinaryGalleryApi {
   }
 
   /**
-   * Get all memories from the backend
+   * Get all memories from the backend, optionally filtered by userId
    */
-  async getMemories(): Promise<{ memories: SavedMemory[] }> {
+  async getMemories(userId?: string): Promise<{ memories: SavedMemory[] }> {
     try {
-      console.log(`Fetching memories from ${this.baseUrl}/memories`);
-      
-      const response = await fetch(`${this.baseUrl}/memories`, {
+      const url = userId ? `${this.baseUrl}/memories?userId=${encodeURIComponent(userId)}` : `${this.baseUrl}/memories`;
+      console.log(`Fetching memories from ${url}`);
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -286,15 +286,10 @@ class CloudinaryGalleryApi {
         credentials: 'include',
         cache: 'no-cache',
       });
-
       console.log(`Response status: ${response.status} ${response.statusText}`);
-
       if (!response.ok) {
         let errorMessage = `Failed to fetch memories: ${response.statusText}`;
-        // Check the content type first
         const contentType = response.headers.get('content-type');
-        
-        // Only attempt to parse JSON if the content type is JSON
         if (contentType && contentType.includes('application/json')) {
           try {
             const errorData = await response.json();
@@ -306,13 +301,10 @@ class CloudinaryGalleryApi {
             console.error('Could not parse error response:', jsonError);
           }
         } else {
-          // For non-JSON responses (like HTML), just log the status
           console.error('Received non-JSON error response with content-type:', contentType);
         }
-        
         throw new Error(errorMessage);
       }
-
       const data = await response.json();
       console.log(`Retrieved ${data.memories?.length || 0} memories`);
       return data;

@@ -1,9 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sun, Moon, Heart, Sparkles, Palette, CalendarDays, User, Menu, X, Clock, Calendar } from 'lucide-react';
+import { auth } from './firebase/firebaseConfig';
+import { onAuthStateChanged } from 'firebase/auth';
+import { saveUserTheme, getUserTheme } from './api/userThemeApi';
+
 import EventsPageComponent from './components/EventsPage';
 import EventModal from './components/EventModal';
 import VisualEffects from './components/VisualEffects';
+import ProfileInformation from './ProfileInformation';
+import MoodTracking from './MoodTracking';
 import './styles/SettingPage.css';
+import { useMemoriesCache } from './hooks/useMemoriesCache';
+import { useCurrentUserId } from './hooks/useCurrentUserId';
 
 type MenuItemType = 'effects' | 'mood' | 'account' | 'events';
 type MoodTheme = 'happy' | 'calm' | 'romantic';
@@ -11,6 +19,8 @@ type GalleryMode = 'memories' | 'journey';
 
 interface SettingPageProps {
   onBack?: () => void;
+  currentTheme: MoodTheme;
+  setCurrentTheme: (theme: MoodTheme) => void;
 }
 
 interface MenuItem {
@@ -57,7 +67,7 @@ interface Event {
   type: 'dating' | 'wedding' | 'birthday' | 'child_birth' | 'child_birthday' | 'anniversary' | 'custom';
   description?: string;
   location?: string;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   color: string;
 }
 
@@ -182,10 +192,23 @@ const sampleMemories: Memory[] = [
   }
 ];
 
-function SettingPage({ onBack }: SettingPageProps) {
+function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps) {
+  // Use cache for real memories/photos
+  const { userId: cacheUserId, loading: cacheLoading } = useCurrentUserId();
+  const { memoriesByYear, years, isLoading: memoriesLoading, error: memoriesError } = useMemoriesCache(cacheUserId, cacheLoading);
+  // Restore icons for events after initialization
+  useEffect(() => {
+    setEvents(prevEvents => prevEvents.map(event => {
+      if (!event.icon && (event.type === 'dating' || event.type === 'wedding')) {
+        return { ...event, icon: <Heart className="w-5 h-5" /> };
+      }
+      return event;
+    }));
+    // Only run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [activeMenuItem, setActiveMenuItem] = useState<MenuItemType>('mood');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState<MoodTheme>('romantic');
   const [galleryMode, setGalleryMode] = useState<GalleryMode>('memories');
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
@@ -198,7 +221,6 @@ function SettingPage({ onBack }: SettingPageProps) {
       type: 'dating',
       description: 'The day we became official and started our beautiful journey together',
       location: 'Central Park, New York',
-      icon: <Heart className="w-5 h-5" />,
       color: '#ec4899'
     },
     {
@@ -208,10 +230,15 @@ function SettingPage({ onBack }: SettingPageProps) {
       type: 'wedding',
       description: 'The most magical day of our lives, surrounded by family and friends',
       location: 'Malibu Beach, CA',
-      icon: <Heart className="w-5 h-5" />,
       color: '#f59e0b'
     }
   ]);
+
+  // --- Mood Theme Persistence State ---
+  const [userId, setUserId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedTheme, setSavedTheme] = useState<MoodTheme | null>(null);
+  const isSaveEnabled = savedTheme !== currentTheme;
   const [effectsEnabled, setEffectsEnabled] = useState({
     particles: true,
     hearts: false,
@@ -222,6 +249,24 @@ function SettingPage({ onBack }: SettingPageProps) {
   });
 
   const theme = themes[currentTheme];
+
+  // Apply theme globally to document body
+  useEffect(() => {
+    if (!theme) return;
+    document.body.style.background = theme.colors.background;
+    document.body.style.fontFamily = theme.fontFamily;
+    // Optionally set other CSS variables for global use
+    document.body.style.setProperty('--primary-color', theme.colors.primary);
+    document.body.style.setProperty('--secondary-color', theme.colors.secondary);
+    document.body.style.setProperty('--accent-color', theme.colors.accent);
+    document.body.style.setProperty('--card-bg', theme.colors.cardBg);
+    document.body.style.setProperty('--text-primary', theme.colors.textPrimary);
+    document.body.style.setProperty('--text-secondary', theme.colors.textSecondary);
+    document.body.style.setProperty('--border-color', theme.colors.border);
+    document.body.style.setProperty('--gradient', theme.colors.gradient);
+    document.body.style.setProperty('--button-gradient', theme.colors.buttonGradient);
+    document.body.style.setProperty('--hover-bg', theme.colors.hoverBg);
+  }, [theme]);
 
   const menuItems: MenuItem[] = [
     {
@@ -246,9 +291,52 @@ function SettingPage({ onBack }: SettingPageProps) {
     }
   ];
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setUserId(user.uid);
+        const fetchedTheme = await getUserTheme(user.uid);
+        if (fetchedTheme && ["happy","calm","romantic"].includes(fetchedTheme)) {
+          setCurrentTheme(fetchedTheme as MoodTheme);
+          setSavedTheme(fetchedTheme as MoodTheme);
+        }
+      } else {
+        setUserId(null);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   const handleThemeChange = (newTheme: MoodTheme) => {
     setCurrentTheme(newTheme);
   };
+
+  // Save theme to Firestore
+  const handleSaveTheme = async () => {
+    if (!userId) return;
+    setIsSaving(true);
+    try {
+      await saveUserTheme(userId, currentTheme);
+      setSavedTheme(currentTheme);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Get userId and load theme from Firestore on mount
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setUserId(user.uid);
+        const fetchedTheme = await getUserTheme(user.uid);
+        if (fetchedTheme && ["happy","calm","romantic"].includes(fetchedTheme)) {
+          setCurrentTheme(fetchedTheme as MoodTheme);
+          setSavedTheme(fetchedTheme as MoodTheme);
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Function to toggle visual effects
   const handleEffectToggle = (effectType: keyof typeof effectsEnabled) => {
@@ -297,47 +385,69 @@ function SettingPage({ onBack }: SettingPageProps) {
   };
 
   const renderMemoriesLayout = () => {
-    const memoriesByYear = groupMemoriesByYear(sampleMemories);
-    
+    // Use cached memories
     return (
       <div className="space-y-8">
-        {Object.entries(memoriesByYear)
-          .sort(([a], [b]) => parseInt(b) - parseInt(a))
-          .map(([year, memories]) => (
-            <div key={year}>
-              <h3 className="text-2xl font-bold mb-6 flex items-center" style={{ color: theme.colors.textPrimary }}>
-                <Calendar className="w-6 h-6 mr-2" style={{ color: theme.colors.primary }} />
-                {year}
-              </h3>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {memories.map((memory) => (
-                  <div
-                    key={memory.id}
-                    className="memory-card"
-                    style={{
-                      backgroundColor: theme.colors.cardBg,
-                      borderColor: theme.colors.border
-                    }}
-                  >
-                    {/* Image Gallery */}
-                    <div className="relative h-48 bg-gray-100">
+        {memoriesLoading && <div>Loading memories...</div>}
+        {memoriesError && <div className="text-red-500">{memoriesError}</div>}
+        {!memoriesLoading && !memoriesError && years.length > 0 && (
+          Object.entries(memoriesByYear)
+            .sort(([a], [b]) => parseInt(b) - parseInt(a))
+            .map(([year, memories]) => (
+              <div key={year}>
+                <h3 className="text-2xl font-bold mb-6 flex items-center" style={{ color: theme.colors.textPrimary }}>
+                  <Calendar className="w-6 h-6 mr-2" style={{ color: theme.colors.primary }} />
+                  {year}
+                </h3>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {(memories as any[]).map((memory: any) => (
+                    <div
+                      key={memory.id}
+                      className="memory-card"
+                      style={{
+                        backgroundColor: theme.colors.cardBg,
+                        borderColor: theme.colors.border
+                      }}
+                    >
+                      {/* Image Gallery */}
+                      <div className="relative h-48 bg-gray-100">
+                        {Array.isArray(memory.images) && memory.images.length > 0 && (
+                          <div className="memory-images grid grid-cols-2 gap-2 mt-2">
+                            {memory.images.map((img: any, idx: number) => (
+                              <img
+                                key={idx}
+                                src={img.secure_url || img}
+                                alt={`Memory ${idx + 1}`}
+                                className="rounded-lg shadow"
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      {/* Content */}
+                      <div className="p-4">
+                        <div className="memory-title font-bold text-lg mb-2">{memory.title}</div>
+                        <div className="memory-date text-xs text-pink-500 mb-2">
+                          <Calendar className="w-4 h-4 inline-block mr-1" />
+                          {memory.date}
+                        </div>
+                        <div className="memory-location text-xs text-gray-500 mb-2">{memory.location}</div>
+                        <div className="memory-description mb-2">{memory.description || memory.text}</div>
+                      </div>
                     </div>
-                    
-                    {/* Content */}
-                    <div className="p-4">
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+        )}
       </div>
     );
   };
 
   const renderJourneyLayout = () => {
-    const sortedMemories = [...sampleMemories].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    
+    // Use cached memories for journey layout
+    const allMemories: any[] = years.flatMap((y: string) => memoriesByYear[y] || []);
+    const sortedMemories = allMemories.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     return (
       <div className="relative">
         {/* Timeline Line */}
@@ -347,7 +457,7 @@ function SettingPage({ onBack }: SettingPageProps) {
         />
         
         <div className="space-y-12">
-          {sortedMemories.map((memory, index) => (
+          {sortedMemories.map((memory: any, index: number) => (
             <div key={memory.id} className={`flex items-center ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'}`}>
               {/* Content Card */}
               <div className={`w-5/12 ${index % 2 === 0 ? 'pr-8' : 'pl-8'}`}>
@@ -358,6 +468,25 @@ function SettingPage({ onBack }: SettingPageProps) {
                     borderColor: theme.colors.border
                   }}
                 >
+                  <div className="memory-title font-bold text-lg mb-2">{memory.title}</div>
+                  <div className="memory-date text-xs text-pink-500 mb-2">
+                    <Calendar className="w-4 h-4 inline-block mr-1" />
+                    {memory.date}
+                  </div>
+                  <div className="memory-location text-xs text-gray-500 mb-2">{memory.location}</div>
+                  <div className="memory-description mb-2">{memory.description || memory.text}</div>
+                  {Array.isArray(memory.images) && memory.images.length > 0 && (
+                    <div className="memory-images grid grid-cols-2 gap-2 mt-2">
+                      {memory.images.map((img: any, idx: number) => (
+                        <img
+                          key={idx}
+                          src={img.secure_url || img}
+                          alt={`Memory ${idx + 1}`}
+                          className="rounded-lg shadow"
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
               
@@ -379,6 +508,7 @@ function SettingPage({ onBack }: SettingPageProps) {
                   style={{ background: theme.colors.buttonGradient }}
                 >
                   <Clock className="w-4 h-4 inline mr-2" />
+                  {memory.date}
                 </div>
               </div>
             </div>
@@ -475,111 +605,18 @@ function SettingPage({ onBack }: SettingPageProps) {
       
       case 'mood':
         return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold mb-2" style={{ color: theme.colors.textPrimary }}>
-                Mood Tracking & Gallery Display
-              </h2>
-              <p style={{ color: theme.colors.textSecondary }}>
-                Choose your mood theme and customize how your love memories are displayed.
-              </p>
-            </div>
-            
-            {/* Theme Selection */}
-            <div 
-              className="p-6 rounded-2xl border"
-              style={{ 
-                background: theme.colors.cardBg,
-                borderColor: theme.colors.border
-              }}
-            >
-              <h3 className="font-semibold mb-4" style={{ color: theme.colors.textPrimary }}>
-                Mood Themes
-              </h3>
-              <div className="grid gap-4 md:grid-cols-3">
-                {Object.entries(themes).map(([moodKey, moodTheme]) => (
-                  <div
-                    key={moodKey}
-                    className={`p-4 rounded-xl cursor-pointer transition-all duration-300 hover:shadow-md ${
-                      currentTheme === moodKey ? 'ring-2' : ''
-                    }`}
-                    style={{
-                      background: moodTheme.colors.gradient,
-                      borderColor: moodTheme.colors.border,
-                      '--tw-ring-color': moodTheme.colors.primary
-                    } as React.CSSProperties}
-                    onClick={() => handleThemeChange(moodKey as MoodTheme)}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center">
-                        <span className="mr-2">{moodTheme.emoji}</span>
-                        <span style={{ color: moodTheme.colors.textPrimary }}>{moodTheme.name}</span>
-                      </div>
-                      {moodTheme.icon}
-                    </div>
-                    
-                    <div className="flex space-x-2 mt-2">
-                      {['primary', 'secondary', 'accent'].map(colorKey => (
-                        <div
-                          key={colorKey}
-                          className="w-6 h-6 rounded-full"
-                          style={{ backgroundColor: moodTheme.colors[colorKey as keyof typeof moodTheme.colors] }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Gallery Display Mode Toggle */}
-            <div 
-              className="p-6 rounded-2xl border"
-              style={{ 
-                background: theme.colors.cardBg,
-                borderColor: theme.colors.border
-              }}
-            >
-              <h3 className="font-semibold mb-4" style={{ color: theme.colors.textPrimary }}>
-                Gallery Display Mode
-              </h3>
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <span className="font-medium" style={{ color: theme.colors.textPrimary }}>
-                    {galleryMode === 'memories' ? 'Photo Grid' : 'Journey Timeline'}
-                  </span>
-                  <p className="text-sm" style={{ color: theme.colors.textSecondary }}>
-                    {galleryMode === 'memories' 
-                      ? 'View memories organized by year' 
-                      : 'View your relationship as a timeline journey'}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setGalleryMode(galleryMode === 'memories' ? 'journey' : 'memories')}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2`}
-                  style={{ 
-                    backgroundColor: galleryMode === 'journey' ? theme.colors.primary : theme.colors.border,
-                    '--tw-ring-color': theme.colors.primary + '33'
-                  } as React.CSSProperties}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${
-                      galleryMode === 'journey' ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-              
-              {/* Gallery Preview */}
-              <div className="border rounded-xl p-4" style={{ borderColor: theme.colors.border }}>
-                <h4 className="font-medium mb-4" style={{ color: theme.colors.textPrimary }}>
-                  Preview:                 </h4>
-                <div className="max-h-96 overflow-y-auto">
-                  {galleryMode === 'memories' ? renderMemoriesLayout() : renderJourneyLayout()}
-                </div>
-              </div>
-            </div>
-          </div>
+          <MoodTracking
+            theme={{ ...theme, allThemes: themes }}
+            currentTheme={currentTheme as string}
+            handleThemeChange={handleThemeChange as (theme: string) => void}
+            galleryMode={galleryMode as string}
+            setGalleryMode={setGalleryMode as (mode: string) => void}
+            renderMemoriesLayout={renderMemoriesLayout}
+            renderJourneyLayout={renderJourneyLayout}
+            onSaveTheme={handleSaveTheme}
+            isSaveEnabled={isSaveEnabled}
+            isSaving={isSaving}
+          />
         );
 
       case 'events':
@@ -594,117 +631,7 @@ function SettingPage({ onBack }: SettingPageProps) {
         );
       
       case 'account':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold mb-2" style={{ color: theme.colors.textPrimary }}>
-                Account Settings
-              </h2>
-              <p style={{ color: theme.colors.textSecondary }}>
-                Manage your profile and preferences.
-              </p>
-            </div>
-            
-            <div 
-              className="p-6 rounded-2xl border"
-              style={{ 
-                background: theme.colors.cardBg,
-                borderColor: theme.colors.border
-              }}
-            >
-              <h3 className="font-semibold mb-4" style={{ color: theme.colors.textPrimary }}>
-                Profile Information
-              </h3>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4">
-                  <div 
-                    className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-xl"
-                    style={{ backgroundColor: theme.colors.gradient }}
-                  >
-                    S&M
-                  </div>
-                  <div>
-                    <h4 className="font-medium" style={{ color: theme.colors.textPrimary }}>
-                      Sarah & Michael
-                    </h4>
-                    <p className="text-sm" style={{ color: theme.colors.textSecondary }}>
-                      Together since April 15, 2023
-                    </p>
-                  </div>
-                </div>
-                <div>
-                  <input 
-                    type="text" 
-                    defaultValue="Sarah & Michael" 
-                    className="form-input"
-                    style={{ 
-                      borderColor: theme.colors.border,
-                      '--tw-ring-color': theme.colors.primary + '33'
-                    } as React.CSSProperties}
-                  />
-                </div>
-                <div>
-                  <input 
-                    type="email" 
-                    defaultValue="sarah.michael@lovejournal.com" 
-                    className="form-input"
-                    style={{ 
-                      borderColor: theme.colors.border,
-                      '--tw-ring-color': theme.colors.primary + '33'
-                    } as React.CSSProperties}
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div 
-              className="p-6 rounded-2xl border"
-              style={{ 
-                background: theme.colors.cardBg,
-                borderColor: theme.colors.border
-              }}
-            >
-              <h3 className="font-semibold mb-4" style={{ color: theme.colors.textPrimary }}>
-                Preferences
-              </h3>
-              <div className="space-y-4">
-                {[
-                  { label: 'Memory Reminders', desc: 'Get notified about anniversaries and special dates', checked: true },
-                  { label: 'Photo Backup', desc: 'Automatically backup your love memories to cloud', checked: true },
-                  { label: 'Mood Insights', desc: 'Receive weekly insights about your relationship mood', checked: false },
-                  { label: 'Share Memories', desc: 'Allow sharing memories with friends and family', checked: false }
-                ].map((pref, index) => (
-                  <div 
-                    key={index} 
-                    className="flex items-center justify-between"
-                  >
-                    <div>
-                      <h4 className="font-medium" style={{ color: theme.colors.textPrimary }}>
-                        {pref.label}
-                      </h4>
-                      <p className="text-sm" style={{ color: theme.colors.textSecondary }}>
-                        {pref.desc}
-                      </p>
-                    </div>
-                    <button
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2`}
-                      style={{ 
-                        backgroundColor: pref.checked ? theme.colors.primary : theme.colors.border,
-                        '--tw-ring-color': theme.colors.primary + '33'
-                      } as React.CSSProperties}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${
-                          pref.checked ? 'translate-x-6' : 'translate-x-1'
-                        }`}
-                      />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
+        return <ProfileInformation theme={theme} />;
       
       default:
         return <div>Select a menu item</div>;

@@ -8,7 +8,7 @@ interface Event {
   type: 'dating' | 'wedding' | 'birthday' | 'child_birth' | 'child_birthday' | 'anniversary' | 'custom';
   description?: string;
   location?: string;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   color: string;
 }
 

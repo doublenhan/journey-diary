@@ -22,6 +22,7 @@ interface UseCloudinaryReturn {
   generateThumbnailUrl: (publicId: string, size?: 'small' | 'medium' | 'large') => string;
   clearError: () => void;
   clearImages: () => void;
+  fetchMemories: (userId?: string) => Promise<any[]>;
 }
 
 export const useCloudinary = (): UseCloudinaryReturn => {
@@ -112,6 +113,17 @@ export const useCloudinary = (): UseCloudinaryReturn => {
     return cloudinaryApi.generateThumbnailUrl(publicId, size);
   }, []);
 
+  // Add fetchMemories method for fetching memories from Cloudinary
+  const fetchMemories = useCallback(async (userId?: string) => {
+    try {
+      const res = await cloudinaryApi.getMemories(userId || undefined);
+      return res.memories || [];
+    } catch (e) {
+      console.error('Failed to fetch memories:', e);
+      return [];
+    }
+  }, []);
+
   return {
     // State
     images,
@@ -128,6 +140,7 @@ export const useCloudinary = (): UseCloudinaryReturn => {
     generateThumbnailUrl,
     clearError,
     clearImages,
+    fetchMemories,
   };
 };
 

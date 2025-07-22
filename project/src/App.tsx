@@ -1,5 +1,9 @@
-import { useState } from 'react';
+
+import { useState, useEffect, useRef } from 'react';
 import { Heart, BookOpen, Camera, Bell, Download as Download2, FileText, Menu, X, Instagram, Twitter, Facebook, Mail, Phone, MapPin } from 'lucide-react';
+import cloudinaryApi from './api/cloudinaryGalleryApi';
+import { useMemoriesCache } from './hooks/useMemoriesCache';
+import { useCurrentUserId } from './hooks/useCurrentUserId';
 import CreateMemory from './CreateMemory';
 import ViewMemory from './ViewMemory';
 import JourneyTracker from './JourneyTracker';
@@ -8,11 +12,46 @@ import PDFExport from './PDFExport';
 import SettingPage from './SettingPage';
 import LoginPage from './LoginPage';
 import './styles/App.css';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 
+type MoodTheme = 'happy' | 'calm' | 'romantic';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<'login' | 'landing' | 'create-memory' | 'view-memory' | 'journey-tracker' | 'anniversary-reminders' | 'pdf-export' | 'setting-page'>('login');
+  const navigate = useNavigate();
+  const { userId, loading } = useCurrentUserId();
+
+  // Redirect to login only when loading is false and userId is empty
+  useEffect(() => {
+    if (loading) return;
+    const currentPath = window.location.pathname;
+    const isLoginPage = currentPath === '/' || currentPath === '/login';
+    // Check session in localStorage
+    const session = localStorage.getItem('userIdSession');
+    let sessionUserId = null;
+    if (session) {
+      try {
+        const { userId, expires } = JSON.parse(session);
+        if (userId && expires && Date.now() < expires) {
+          sessionUserId = userId;
+        }
+      } catch {}
+    }
+    if (!userId && !sessionUserId && !isLoginPage) {
+      navigate('/');
+    }
+  }, [userId, loading, navigate]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // Global theme state with localStorage persistence
+  const [currentTheme, setCurrentThemeState] = useState<MoodTheme>(() => {
+    const stored = localStorage.getItem('currentTheme');
+    return (stored === 'happy' || stored === 'calm' || stored === 'romantic') ? stored : 'romantic';
+  });
+
+  // Wrap setCurrentTheme to also update localStorage
+  const setCurrentTheme = (theme: MoodTheme) => {
+    setCurrentThemeState(theme);
+    localStorage.setItem('currentTheme', theme);
+  };
   const features = [
     {
       icon: <BookOpen className="w-8 h-8" />,
@@ -46,47 +85,332 @@ function App() {
     }
   ];
 
-  const galleryImages = [
-    "https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=400",
-    "https://images.pexels.com/photos/1024956/pexels-photo-1024956.jpeg?auto=compress&cs=tinysrgb&w=400",
-    "https://images.pexels.com/photos/1024970/pexels-photo-1024970.jpeg?auto=compress&cs=tinysrgb&w=400",
-    "https://images.pexels.com/photos/1024975/pexels-photo-1024975.jpeg?auto=compress&cs=tinysrgb&w=400",
-  ];
+  // Gallery state for Cloudinary images
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [carouselIndex, setCarouselIndex] = useState(0);
+  // Use cache hook for hero images
+  const [heroIndex, setHeroIndex] = useState(0);
+  const getImagesPerPage = () => {
+    if (window.innerWidth <= 600) return 1;
+    if (window.innerWidth <= 900) return 2;
+    return 3;
+  };
+  const [imagesPerPage, setImagesPerPage] = useState(getImagesPerPage());
 
-  // Show LoginPage as the entry point
-  if (currentPage === 'login') {
-    return <LoginPage onLogin={() => setCurrentPage('landing')} />;
-  }
+  // Update imagesPerPage on resize
+  useEffect(() => {
+    const handleResize = () => setImagesPerPage(getImagesPerPage());
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  const carouselRef = useRef<HTMLDivElement>(null);
 
-  if (currentPage === 'create-memory') {
-    return <CreateMemory onBack={() => setCurrentPage('landing')} />;
-  }
+  // userId is already declared above, remove duplicate
 
-  if (currentPage === 'view-memory') {
-    return <ViewMemory onBack={() => setCurrentPage('landing')} />;
-  }
+  // Use cached memories for hero images
+  const { memoriesByYear, years, isLoading: heroLoading, error: heroError } = useMemoriesCache(userId, loading);
+  const heroImages = years.flatMap((y: string) => (memoriesByYear[y] || []).flatMap((mem: any) => Array.isArray(mem.images) ? mem.images.map((img: any) => img.secure_url) : []));
 
-  if (currentPage === 'journey-tracker') {
-    return <JourneyTracker onBack={() => setCurrentPage('landing')} />;
-  }
+  // Auto-change hero image
+  useEffect(() => {
+    if (!heroImages.length) return;
+    const interval = setInterval(() => {
+      setHeroIndex((prev) => (prev + 1 >= heroImages.length ? 0 : prev + 1));
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [heroImages]);
 
-  if (currentPage === 'anniversary-reminders') {
-    return <AnniversaryReminders onBack={() => setCurrentPage('landing')} />;
-  }
+  // Fetch images from Cloudinary on mount
+  useEffect(() => {
+    async function fetchImages() {
+      try {
+        const res = await cloudinaryApi.fetchImages({ maxResults: 20 });
+        setGalleryImages(res.resources.map(img => img.secure_url));
+      } catch (e) {
+        setGalleryImages([]);
+      }
+    }
+    fetchImages();
+  }, []);
 
-  if (currentPage === 'pdf-export') {
-    return <PDFExport onBack={() => setCurrentPage('landing')} />;
-  }
+  // Auto-scroll effect
+  useEffect(() => {
+    if (!galleryImages.length) return;
+    const maxIndex = Math.max(0, Math.ceil(galleryImages.length / imagesPerPage) - 1);
+    const interval = setInterval(() => {
+      setCarouselIndex((prev) => (prev + 1 > maxIndex ? 0 : prev + 1));
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [galleryImages, imagesPerPage]);
 
-  if (currentPage === 'setting-page') {
-    return <SettingPage onBack={() => setCurrentPage('landing')} />;
-  }
-
-  // ...existing code...
   return (
-    <div className="landing-page">
-      {/* ...existing code... */}
-    </div>
+    <Routes>
+      <Route path="/" element={<LoginPage currentTheme={currentTheme} />} />
+      <Route path="/landing" element={
+        (() => {
+          const themes = {
+            happy: {
+              background: 'linear-gradient(135deg, #FFFDE4 0%, #FFF 50%, #FEF08A 100%)',
+              textPrimary: '#78350f',
+            },
+            calm: {
+              background: 'linear-gradient(135deg, #EEF2FF 0%, #FFF 50%, #E0E7FF 100%)',
+              textPrimary: '#3730a3',
+            },
+            romantic: {
+              background: 'linear-gradient(135deg, #FDF2F8 0%, #FFF 50%, #FCE7F3 100%)',
+              textPrimary: '#831843',
+            }
+          };
+          const theme = themes[currentTheme];
+          return (
+            <div className="landing-page" style={{ background: theme.background, color: theme.textPrimary }}>
+          <header className="header">
+            <div className="header-container">
+              <div className="header-content">
+                <div className="logo">
+                  <Heart className="logo-icon" />
+                  <span className="logo-text">Love Journey</span>
+                </div>
+                <nav className="nav-desktop">
+                  <a href="/create-memory" className="nav-link">Create Memory</a>
+                  <a href="/view-memory" className="nav-link">View Memories</a>
+                  <a href="/journey-tracker" className="nav-link">Journey Tracker</a>
+                  <a href="/anniversary-reminders" className="nav-link">Anniversary Reminders</a>
+                  {/* <a href="/pdf-export" className="nav-link">PDF Export</a> */}
+                  <a href="/setting-page" className="nav-link">Settings</a>
+                </nav>
+                {/* Hamburger button for mobile */}
+                <button className="mobile-menu-button" onClick={() => setMobileMenuOpen(true)} aria-label="Open menu">
+                  <Menu size={28} />
+                </button>
+              </div>
+            </div>
+            {/* Mobile Sidebar Menu */}
+            {mobileMenuOpen && (
+              <div className="mobile-menu">
+                <div className="mobile-menu-content">
+                  <button className="mobile-menu-button" onClick={() => setMobileMenuOpen(false)} aria-label="Close menu">
+                    <X size={28} />
+                  </button>
+                  <a href="/create-memory" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
+                    <span className="mobile-menu-link-row">
+                      <BookOpen size={20} className="mobile-menu-link-icon" />
+                      Create Memory
+                    </span>
+                  </a>
+                  <a href="/view-memory" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
+                    <span className="mobile-menu-link-row">
+                      <Camera size={20} className="mobile-menu-link-icon" />
+                      View Memories
+                    </span>
+                  </a>
+                  <a href="/journey-tracker" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
+                    <span className="mobile-menu-link-row">
+                      <Heart size={20} className="mobile-menu-link-icon" />
+                      Journey Tracker
+                    </span>
+                  </a>
+                  <a href="/anniversary-reminders" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
+                    <span className="mobile-menu-link-row">
+                      <Bell size={20} className="mobile-menu-link-icon" />
+                      Anniversary Reminders
+                    </span>
+                  </a>
+                  {/*
+                  <a href="/pdf-export" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
+                    <span className="mobile-menu-link-row">
+                      <FileText size={20} className="mobile-menu-link-icon" />
+                      PDF Export
+                    </span>
+                  </a>
+                  */}
+                  <a href="/setting-page" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
+                    <span className="mobile-menu-link-row">
+                      <Download2 size={20} className="mobile-menu-link-icon" />
+                      Settings
+                    </span>
+                  </a>
+                </div>
+              </div>
+            )}
+          </header>
+          <main>
+            <section className="hero-section">
+              <div className="hero-container">
+                <div className="hero-grid">
+                  <div className="hero-content">
+                    <h1 className="hero-title">
+                      Welcome to <span className="hero-title-highlight">Love Journey</span>
+                    </h1>
+                    <p className="hero-description">
+                      Preserve your memories, celebrate your love.
+                    </p>
+                    <div className="hero-buttons">
+                      <a href="/create-memory" className="hero-button-primary">Start Your Memory</a>
+                      <a href="/view-memory" className="hero-button-secondary">View Memories</a>
+                    </div>
+                  </div>
+                  <div className="hero-image-container">
+                    <div className="hero-image-wrapper">
+                      <img
+                        src={heroImages.length > 0 ? heroImages[heroIndex] : "https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=400"}
+                        alt="Love Memory"
+                        className="hero-image hero-image-consistent"
+                      />
+                    </div>
+                    <div className="hero-decoration-1"></div>
+                    <div className="hero-decoration-2"></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section className="features-section">
+              <div className="features-container">
+                <div className="features-header">
+                  <h2 className="features-title">
+                    <span className="features-title-highlight">Features</span>
+                  </h2>
+                  <p className="features-description">
+                    Everything you need to make your love story unforgettable.
+                  </p>
+                </div>
+                <div className="features-grid">
+                  {features.map((feature, idx) => (
+                    <div className="feature-card" key={idx}>
+                      <div className="feature-icon">{feature.icon}</div>
+                      <div className="feature-title">{feature.title}</div>
+                      <div className="feature-description">{feature.description}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+            <section className="gallery-section">
+              <div className="gallery-container">
+                <div className="gallery-header">
+                  <h2 className="gallery-title">
+                    <span className="gallery-title-highlight">Gallery</span>
+                  </h2>
+                  <p className="gallery-description">
+                    A glimpse into the beautiful moments you can save.
+                  </p>
+                </div>
+                <div className="gallery-carousel-wrapper">
+                  <div
+                    className="gallery-carousel"
+                    ref={carouselRef}
+                    style={{
+                      display: 'flex',
+                      transition: 'transform 0.7s cubic-bezier(0.4,0,0.2,1)',
+                      transform: `translateX(-${carouselIndex * (100 / imagesPerPage)}%)`,
+                      willChange: 'transform',
+                    }}
+                  >
+                    {galleryImages.length === 0 ? (
+                      <div style={{width:'100%',textAlign:'center',padding:'2rem',color:'#aaa'}}>No images found.</div>
+                    ) : (
+                      galleryImages.map((img, idx) => (
+                        <div
+                          className="gallery-item"
+                          key={idx}
+                        >
+                          <img src={img} alt="Memory" className="gallery-image" />
+                          <div className="gallery-overlay"></div>
+                          <Heart className="gallery-heart" />
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  {/* Carousel dots: số dot = số trang */}
+                  <div className="gallery-carousel-dots">
+                    {Array.from({length: Math.max(1, Math.ceil(galleryImages.length / imagesPerPage))}).map((_, idx) => (
+                      <span
+                        key={idx}
+                        className={idx === carouselIndex ? 'dot active' : 'dot'}
+                        onClick={() => setCarouselIndex(idx)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section className="cta-section">
+              <div className="cta-container">
+                <h2 className="cta-title">Start Your Love Journey Today!</h2>
+                <p className="cta-description">Create, cherish, and relive your most precious memories together.</p>
+                <div className="cta-buttons">
+                  <a href="/create-memory" className="cta-button">Create Memory <BookOpen size={18} /></a>
+                  <a href="/view-memory" className="cta-button">View Memories <Camera size={18} /></a>
+                </div>
+                <div className="cta-note">No account required to start saving memories!</div>
+              </div>
+            </section>
+          </main>
+          <footer className="footer">
+            <div className="footer-container">
+              <div className="footer-grid">
+                <div className="footer-company">
+                  <div className="footer-logo">
+                    <Heart className="footer-logo-icon" />
+                    <span className="footer-logo-text">Love Journey</span>
+                  </div>
+                  <div className="footer-description">
+                    The best place to keep your love story alive and growing.
+                  </div>
+                  <div className="footer-social">
+                    <a href="#" className="footer-social-link"><Instagram /></a>
+                    <a href="#" className="footer-social-link"><Twitter /></a>
+                    <a href="#" className="footer-social-link"><Facebook /></a>
+                  </div>
+                </div>
+                <div>
+                  <div className="footer-section-title">Quick Links</div>
+                  <div className="footer-links">
+                    <a href="/create-memory" className="footer-link">Create Memory</a>
+                    <a href="/view-memory" className="footer-link">View Memories</a>
+                    <a href="/journey-tracker" className="footer-link">Journey Tracker</a>
+                    <a href="/anniversary-reminders" className="footer-link">Anniversary Reminders</a>
+                    {/* <a href="/pdf-export" className="footer-link">PDF Export</a> */}
+                    <a href="/setting-page" className="footer-link">Settings</a>
+                  </div>
+                </div>
+                <div>
+                  <div className="footer-section-title">Contact</div>
+                  <div className="footer-contact">
+                    <div className="footer-contact-item">
+                      <Mail className="footer-contact-icon" />
+                      <span className="footer-contact-text">contact@lovejourney.com</span>
+                    </div>
+                    <div className="footer-contact-item">
+                      <Phone className="footer-contact-icon" />
+                      <span className="footer-contact-text">+84 123 456 789</span>
+                    </div>
+                    <div className="footer-contact-item">
+                      <MapPin className="footer-contact-icon" />
+                      <span className="footer-contact-text">Hanoi, Vietnam</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="footer-bottom">
+                <div className="footer-copyright">
+                  &copy; {new Date().getFullYear()} Love Journey. All rights reserved.
+                </div>
+              </div>
+            </div>
+          </footer>
+            </div>
+          );
+        })()
+      } />
+      <Route path="/create-memory" element={<CreateMemory onBack={() => window.history.back()} currentTheme={currentTheme} />} />
+      <Route path="/view-memory" element={<ViewMemory onBack={() => window.history.back()} currentTheme={currentTheme} />} />
+      <Route path="/journey-tracker" element={<JourneyTracker onBack={() => window.history.back()} currentTheme={currentTheme} />} />
+      <Route path="/anniversary-reminders" element={<AnniversaryReminders onBack={() => window.history.back()} currentTheme={currentTheme} />} />
+      <Route path="/pdf-export" element={<PDFExport onBack={() => window.history.back()} currentTheme={currentTheme} />} />
+      <Route path="/setting-page" element={<SettingPage onBack={() => window.history.back()} currentTheme={currentTheme} setCurrentTheme={setCurrentTheme} />} />
+    </Routes>
   );
 }
 
