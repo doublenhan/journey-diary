@@ -11,10 +11,7 @@
     "build:watch": "vite build --watch",
     "lint": "eslint .",
     "preview": "vite preview",
-    "server": "node server/cloudinary-service.js",
-    "server:dev": "nodemon server/cloudinary-service.js",
-    "start": "concurrently \"npm run server:dev\" \"npm run dev\"",
-    "start:prod": "concurrently \"npm run server\" \"npm run preview\""
+    "start": "vercel dev"
   },
   "engines": {
   "node": "22.x"
