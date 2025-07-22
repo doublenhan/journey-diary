@@ -17,9 +17,13 @@ export default defineConfig({
     }
   },
   build: {
-    watch: {
-      include: 'src/**',
-      exclude: 'node_modules/**'
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('firebase')) return 'firebase';
+          if (id.includes('html2canvas')) return 'html2canvas';
+        }
+      }
     }
   },
   optimizeDeps: {

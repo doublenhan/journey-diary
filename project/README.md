@@ -75,23 +75,23 @@ api/                          # Backend API routes (Vercel serverless)
 └── cloudinary.ts            # Secure Cloudinary operations
 ```
 
+
 ## 🏗️ Backend Service Architecture
 
-### New Unified Cloudinary Service
-The project now has a dedicated backend service that combines both client and server functionality:
+### Serverless API (Vercel)
+The project uses Vercel Serverless API routes for all backend operations:
 
 ```
-Frontend (Vite + React)     Backend (Express + Node.js)     Cloudinary Cloud
-      ↓                            ↓                             ↓
-CloudinaryGalleryApi.ts -----> cloudinary-service.js -----> Cloudinary API
-      ↑                            ↑                             ↑
-Port 3000 (development)      Port 3001 (API server)         Cloud Storage
+Frontend (Vite + React)     Vercel Serverless API (api/cloudinary/*)     Cloudinary Cloud
+      ↓                                 ↓                                    ↓
+CloudinaryGalleryApi.ts  →  api/cloudinary/*.js  →  Cloudinary API
+      ↑                                 ↑                                    ↑
+Port 3000 (dev)                Serverless (Vercel)                    Cloud Storage
 ```
 
 ### Key Features:
-- **🔒 Secure**: API secrets only on backend
+- **🔒 Secure**: API secrets only in serverless API
 - **🚀 Fast**: Direct API integration with Cloudinary
-- **🔄 Auto-reload**: Both frontend and backend hot reload
 - **🧪 Mock Mode**: Works without Cloudinary credentials
 - **📤 File Upload**: Multipart form data handling
 - **🖼️ Image Processing**: Cloudinary transformations
@@ -99,19 +99,21 @@ Port 3000 (development)      Port 3001 (API server)         Cloud Storage
 
 ### Scripts Available:
 ```bash
-npm run start          # Start both frontend + backend
 npm run dev            # Frontend only (Vite dev server)
-npm run server:dev     # Backend only (with nodemon)
 npm run build          # Build for production
 npm run preview        # Preview production build
 ```
 
-### API Endpoints:
+### API Endpoints (Vercel serverless):
 - `GET /api/health` - Health check
 - `GET /api/cloudinary/config` - Public config
 - `GET /api/cloudinary/images` - Fetch images
 - `POST /api/cloudinary/upload` - Upload image
 - `DELETE /api/cloudinary/delete` - Delete image
+- `POST /api/cloudinary/memory` - Create memory (with images)
+- `GET /api/cloudinary/memories` - List memories
+
+**Note:** No need to run a separate backend server. All backend logic is handled by serverless functions in the `api/` directory and deployed automatically with Vercel.
 
 ## 🔐 Security Implementation
 
@@ -243,10 +245,47 @@ npx tsc --noEmit
 3. Import styles in component: `import './styles/NewPage.css'`
 4. Add route to `App.tsx`
 
+
 ### Extending Cloudinary Features
 1. Add new methods to `src/api/cloudinaryGalleryApi.ts`
 2. Update backend API route: `api/cloudinary.ts`
 3. Extend custom hook: `src/hooks/useCloudinary.ts`
+
+## 🔥 Firebase Integration
+
+This project also uses Firebase for additional features (such as authentication, Firestore, or analytics).
+
+### Where Firebase is Used
+- `src/firebase/firebaseConfig.ts`: Initializes and exports the Firebase app instance.
+- Custom hooks or components may use Firebase for user authentication, data storage, or other services.
+
+### Environment Variables Setup
+Add your Firebase config to `.env.local`:
+```env
+VITE_FIREBASE_API_KEY=your-firebase-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-firebase-auth-domain
+VITE_FIREBASE_PROJECT_ID=your-firebase-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-firebase-storage-bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your-firebase-messaging-sender-id
+VITE_FIREBASE_APP_ID=your-firebase-app-id
+```
+
+**Note:** All Firebase config for the web client is safe to expose (these are public keys, not secrets).
+
+### How to Use Firebase in Code
+- Import the initialized app from `src/firebase/firebaseConfig.ts`:
+  ```ts
+  import { app } from './firebase/firebaseConfig';
+  ```
+- Use Firebase SDKs (auth, firestore, etc.) as needed in your components or hooks.
+
+### Security Notes
+- Do **not** put any Firebase Admin SDK or service account credentials in the frontend code or `.env.local`.
+- Only use the public web config (as above) for client-side features.
+
+### Extending Firebase Features
+1. Add new logic to `src/firebase/firebaseConfig.ts` or create new hooks in `src/hooks/` for Firebase features.
+2. Use Firestore, Auth, or Storage as needed for your app's requirements.
 
 ### Styling Guidelines
 - Use component-specific CSS classes

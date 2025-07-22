@@ -15,6 +15,9 @@
     "start": "concurrently \"npm run server:dev\" \"npm run dev\"",
     "start:prod": "concurrently \"npm run server\" \"npm run preview\""
   },
+  "engines": {
+  "node": "18.x"
+  },
   "dependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
