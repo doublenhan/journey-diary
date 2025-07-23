@@ -80,7 +80,7 @@ const processMemoryData = (milestone: Milestone): Milestone => {
 
 class MemoriesApi {
   // Base URL for API calls
-  private readonly baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  private readonly baseUrl = import.meta.env.VITE_API_URL || '/api';
 
   constructor() {
     // Initialize with API base URL

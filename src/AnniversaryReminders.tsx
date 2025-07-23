@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Heart, Calendar, Bell, Plus, X, Edit3, Trash2, ArrowLeft, Gift, Sparkles, Clock, BellRing } from 'lucide-react';
-import { anniversaryApi, Anniversary as ApiAnniversary } from './api/anniversaryApi';
+import { anniversaryApi, Anniversary as ApiAnniversary } from './apis/anniversaryApi';
 import { auth } from './firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import './styles/AnniversaryReminders.css';
@@ -220,9 +220,9 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       months += 12;
     }
     let result = [];
-    if (years > 0) result.push(`${years} year${years > 1 ? 's' : ''}`);
-    if (months > 0) result.push(`${months} month${months > 1 ? 's' : ''}`);
-    if (days > 0) result.push(`${days} day${days > 1 ? 's' : ''}`);
+    if (years > 0) result.push(`${years} year${years !== 1 ? 's' : ''}`);
+    if (months > 0) result.push(`${months} month${months !== 1 ? 's' : ''}`);
+    if (days > 0) result.push(`${days} day${days !== 1 ? 's' : ''}`);
     return result.length ? result.join(', ') : 'Today';
   };
 

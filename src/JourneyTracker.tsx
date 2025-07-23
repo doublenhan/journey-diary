@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Heart, Calendar, ArrowLeft, Star, Gift, Camera, MapPin, Sparkles, Award, Crown, Coffee, Plane, Home, BellRing as Ring } from 'lucide-react';
-import { memoriesApi, Milestone as ApiMilestone } from './api/memoriesApi';
-import { cloudinaryApi, SavedMemory } from './api/cloudinaryGalleryApi';
+import { memoriesApi, Milestone as ApiMilestone } from './apis/memoriesApi';
+import { cloudinaryApi, SavedMemory } from './apis/cloudinaryGalleryApi';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import './styles/JourneyTracker.css';

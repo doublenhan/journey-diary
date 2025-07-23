@@ -85,13 +85,13 @@ class CloudinaryGalleryApi {
   constructor() {
     // Only use public configuration on the client
     this.config = {
-      cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'demo',
-      apiKey: import.meta.env.VITE_CLOUDINARY_API_KEY || ''
+      cloudName: (import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string) || 'demo',
+      apiKey: (import.meta.env.VITE_CLOUDINARY_API_KEY as string) || ''
     };
-    
-    // Points to our secure backend endpoint (local development server)
-    // Ensure the port matches the server's PORT (3001 by default)
-    this.baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/cloudinary';
+
+    // Points to our secure backend endpoint (serverless or local)
+    // Use VITE_API_URL for local dev, fallback to '/api/cloudinary' for production
+    this.baseUrl = (import.meta.env.VITE_API_URL as string) || '/api/cloudinary';
   }
 
   /**

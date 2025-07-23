@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { cloudinaryApi } from '../api/cloudinaryGalleryApi';
+import { cloudinaryApi } from '../apis/cloudinaryGalleryApi';
 
 export interface MemoryImage {
   public_id: string;

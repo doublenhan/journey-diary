@@ -3,10 +3,10 @@
  * Handles file selection, validation, and upload with progress indication
  */
 
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Upload, X, Image, AlertCircle, CheckCircle } from 'lucide-react';
 import { useCloudinary } from '../../hooks/useCloudinary';
-import type { UploadOptions } from '../../api/cloudinaryGalleryApi';
+import type { UploadOptions } from '../../apis/cloudinaryGalleryApi';
 import './ImageUpload.css';
 
 interface ImageUploadProps {

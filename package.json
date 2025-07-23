@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host --open",
+    "start": "vercel dev",
     "dev:watch": "vite --host --open --force",
     "vercel-build": "vite build",
     "build": "vite build",
@@ -13,7 +14,7 @@
     "preview": "vite preview"
   },
   "engines": {
-  "node": "22.x"
+    "node": "20.x"
   },
   "dependencies": {
     "@types/cors": "^2.8.19",

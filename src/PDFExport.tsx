@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Heart, Calendar, ArrowLeft, Download, Mail, FileText, Image, Palette, Settings, Check, X, Loader2, Star, Sparkles, BookOpen } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -6,6 +6,7 @@ import './styles/PDFExport.css';
 import useCloudinary from './hooks/useCloudinary';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import PDFReview from './PDFReview';
+import React from 'react';
 
 interface Memory {
   id: string;

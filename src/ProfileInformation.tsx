@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pencil, User, Mail, Phone, Calendar } from 'lucide-react';
 import { auth, db } from './firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';

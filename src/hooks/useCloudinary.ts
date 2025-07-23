@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { cloudinaryApi, type CloudinaryImage, type FetchOptions, type UploadOptions } from '../api/cloudinaryGalleryApi';
+import { cloudinaryApi, type CloudinaryImage, type FetchOptions, type UploadOptions } from '../apis/cloudinaryGalleryApi';
 
 interface UseCloudinaryReturn {
   // State
