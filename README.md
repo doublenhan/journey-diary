@@ -248,7 +248,7 @@ npx tsc --noEmit
 
 ### Extending Cloudinary Features
 1. Add new methods to `src/api/cloudinaryGalleryApi.ts`
-2. Update backend API route: `api/cloudinary.ts`
+2. Tạo file mới cho endpoint backend: `api/cloudinary/your-feature.js` (mỗi route 1 file, không sửa `api/cloudinary.ts`)
 3. Extend custom hook: `src/hooks/useCloudinary.ts`
 
 ## 🔥 Firebase Integration

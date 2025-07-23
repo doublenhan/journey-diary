@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { Heart, Camera, Calendar, Save, ArrowLeft, X, Upload, MapPin, Type, CheckCircle, AlertCircle } from 'lucide-react';
-import { cloudinaryApi, type MemoryData } from './apis/cloudinaryGalleryApi';
+import type { MemoryData } from './apis/cloudinaryGalleryApi';
 import './styles/CreateMemory.css';
 
 interface CreateMemoryProps {
@@ -89,10 +89,23 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
         tags: ['memory', 'love-journal'],
         userId: userId || undefined
       };
-      // Log API URL
-      console.log(`Sending request to: ${cloudinaryApi.getApiUrl()}/memory`);
-      const response = await cloudinaryApi.saveMemory(memoryData, uploadedImages);
-      console.log('Memory saved successfully:', response.memory);
+      // Gửi dữ liệu memory và ảnh qua serverless API
+      const formData = new FormData();
+      formData.append('title', memoryData.title);
+      if (memoryData.location) formData.append('location', memoryData.location);
+      formData.append('text', memoryData.text);
+      formData.append('date', memoryData.date);
+      if (memoryData.tags?.length) formData.append('tags', memoryData.tags.join(','));
+      if (memoryData.userId) formData.append('userId', memoryData.userId);
+      uploadedImages.forEach((file) => {
+        formData.append('images', file);
+      });
+      const response = await fetch('/api/cloudinary/memory', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!response.ok) throw new Error('Failed to save memory');
+      const data = await response.json();
       setSaveMessage({
         type: 'success',
         text: `Memory "${title}" saved successfully! 💕`

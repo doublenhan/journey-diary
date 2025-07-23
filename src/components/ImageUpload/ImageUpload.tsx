@@ -115,13 +115,13 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                   status: 'success',
                   result: {
                     url: result.secure_url,
-                    publicId: result.public_id
+                    publicId: result.public_id || ''
                   }
                 }
               : f
           ));
           
-          onUploadComplete?.(result.secure_url, result.public_id);
+          onUploadComplete?.(result.secure_url, result.public_id || '');
         } else {
           throw new Error('Upload failed');
         }

@@ -1,15 +1,17 @@
 ## Firebase API Endpoints (nếu sử dụng)
 
+> **Lưu ý:** Firebase hiện chỉ dùng cho các tính năng như xác thực (auth), profile người dùng, analytics. Tất cả logic memories/images đã chuyển hoàn toàn sang Cloudinary qua serverless API. Không còn lưu memories/images trên Firestore hay Storage.
+
 ### 1. Firestore (Client-side)
-- **Lưu trữ dữ liệu**: Sử dụng SDK để đọc/ghi collection, document.
+- **Chỉ dùng cho user profile hoặc các dữ liệu phụ.**
 - **Ví dụ**:
   ```typescript
   import { getFirestore, collection, addDoc, getDocs } from 'firebase/firestore';
   const db = getFirestore(app);
-  // Thêm document
-  await addDoc(collection(db, 'memories'), { title, text, ... });
-  // Lấy danh sách
-  const querySnapshot = await getDocs(collection(db, 'memories'));
+  // Thêm document (ví dụ: user profile)
+  await addDoc(collection(db, 'users'), { displayName, ... });
+  // Lấy danh sách user
+  const querySnapshot = await getDocs(collection(db, 'users'));
   ```
 
 ### 2. Authentication (Client-side)
@@ -22,19 +24,21 @@
   ```
 
 ### 3. Firebase Storage (Client-side)
-- **Upload/Lấy file**: Sử dụng SDK để upload/lấy URL file.
+- **Chỉ dùng cho file user profile (nếu có).**
+- **Không dùng cho memories/images.**
 - **Ví dụ**:
   ```typescript
   import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
   const storage = getStorage(app);
-  const storageRef = ref(storage, 'images/my-image.jpg');
+  const storageRef = ref(storage, 'avatars/my-avatar.jpg');
   await uploadBytes(storageRef, file);
   const url = await getDownloadURL(storageRef);
   ```
 
-**Lưu ý:**
-- Các API này được gọi trực tiếp từ frontend, không cần endpoint trung gian.
-- Nếu cần bảo mật hoặc xử lý logic phức tạp, có thể xây dựng thêm serverless API routes để wrap các thao tác với Firebase.
+---
+## Cloudinary Serverless API Endpoints (Vercel)
+
+> **Toàn bộ memories/images đều qua các endpoint dưới đây. Không còn backend Express, không cần chạy server riêng. Frontend fetch trực tiếp các endpoint này.**
 ## Backend API Endpoints Detail
 
 
@@ -160,40 +164,20 @@
 
 ---
 
-## Hướng dẫn chuyển sang serverless (Vercel API routes)
 
-1. **Tạo thư mục `api/` ở gốc project** (nếu deploy Vercel):
-   - Mỗi file trong `api/` là một endpoint (ví dụ: `api/cloudinary/memories.js`).
-   - Mỗi file export 1 hàm handler: `(req, res) => { ... }`.
+## Hướng dẫn triển khai & phát triển
 
-2. **Chuyển từng route Express sang file riêng**:
-   - Ví dụ: `GET /api/cloudinary/memories` → `api/cloudinary/memories.js`.
-   - Sử dụng Node.js API (không dùng Express middleware).
+1. **Tất cả endpoint Cloudinary nằm trong thư mục `api/` ở gốc project.**
+2. **Không còn backend Express, không cần chạy server riêng.**
+3. **Chỉ cần chạy 1 lệnh:**
+   - `npm run start` hoặc `vercel dev` (chạy cả FE + API serverless)
+   - Hoặc `npm run dev` (chỉ FE, không dùng cho test API)
+4. **Frontend fetch trực tiếp các endpoint `/api/cloudinary/*`**
+5. **Không dùng `app.listen`, không có Express app.**
+6. **Mỗi file trong `api/` là 1 function handler.**
+7. **Cấu hình env đúng như README.**
 
-3. **Cấu hình Cloudinary, Multer, ...**
-   - Dùng các package như trên, nhưng khởi tạo trong từng file handler.
-
-4. **Cập nhật `vercel.json`**
-   - Đảm bảo có:
-```json
-{
-  "version": 2,
-  "builds": [
-    { "src": "api/**/*.js", "use": "@vercel/node" }
-  ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1.js" }
-  ]
-}
-```
-
-5. **Kiểm tra lại các endpoint**
-   - Đảm bảo logic, validate, trả về đúng response như BE cũ.
-
-6. **Lưu ý**
-   - Không dùng `app.listen` hoặc Express app.
-   - Mỗi file là 1 function nhận `req, res`.
-   - Xử lý upload file có thể dùng `busboy`, `formidable`, hoặc Multer (cách dùng khác).
+---
 
 ---
 # CreateMemory API Integration Test Results
@@ -205,32 +189,24 @@ The CreateMemory component now fully integrates with the Cloudinary backend API 
 
 ## What's Working:
 
-### Backend API (Port 3001)
 - ✅ Memory creation endpoint: `POST /api/cloudinary/memory`
 - ✅ Accepts multiple form fields: title, location, text, date, tags
 - ✅ Handles multiple image uploads
 - ✅ Real Cloudinary integration for image storage
 - ✅ Proper error handling and validation
-
-### Frontend Integration
 - ✅ CreateMemory form updated with API calls
 - ✅ Loading states during save operation
 - ✅ Success/error message display
 - ✅ Form validation before submission
 - ✅ Image preview and upload handling
 - ✅ Form reset after successful save
-
-### Configuration
-- ✅ Backend running on port 3001
-- ✅ Frontend running on port 3000
-- ✅ Proper CORS configuration
 - ✅ Environment variables properly configured
 
 ## Test Results:
 
 ### Manual API Test
 ```bash
-curl -X POST http://localhost:3001/api/cloudinary/memory \
+curl -X POST http://localhost:3000/api/cloudinary/memory \
   -F "title=Test Memory" \
   -F "text=This is a test memory" \
   -F "date=2025-07-01" \

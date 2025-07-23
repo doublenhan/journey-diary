@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Heart, BookOpen, Camera, Bell, Download as Download2, FileText, Menu, X, Instagram, Twitter, Facebook, Mail, Phone, MapPin } from 'lucide-react';
-import cloudinaryApi from './apis/cloudinaryGalleryApi';
+// import cloudinaryApi from './apis/cloudinaryGalleryApi';
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import CreateMemory from './CreateMemory';
@@ -13,6 +13,28 @@ import SettingPage from './SettingPage';
 import LoginPage from './LoginPage';
 import './styles/App.css';
 import { Routes, Route, useNavigate } from 'react-router-dom';
+
+type FetchCloudinaryOptions = {
+  folder?: string;
+  tags?: string[];
+  maxResults?: number;
+  nextCursor?: string;
+  sortBy?: string;
+  sortOrder?: string;
+};
+
+async function fetchCloudinaryImages(options: FetchCloudinaryOptions = {}) {
+  const params = new URLSearchParams();
+  if (options.folder) params.append('folder', options.folder);
+  if (options.tags && options.tags.length) params.append('tags', options.tags.join(','));
+  if (options.maxResults !== undefined) params.append('max_results', options.maxResults.toString());
+  if (options.nextCursor) params.append('next_cursor', options.nextCursor);
+  if (options.sortBy) params.append('sort_by', options.sortBy);
+  if (options.sortOrder) params.append('sort_order', options.sortOrder);
+  const res = await fetch(`/api/cloudinary/images?${params.toString()}`);
+  if (!res.ok) throw new Error('Failed to fetch images');
+  return await res.json();
+}
 
 type MoodTheme = 'happy' | 'calm' | 'romantic';
 
@@ -120,11 +142,11 @@ function App() {
     return () => clearInterval(interval);
   }, [heroImages]);
 
-  // Fetch images from Cloudinary on mount
+  // Fetch images from Cloudinary on mount (serverless API)
   useEffect(() => {
     async function fetchImages() {
       try {
-        const res = await cloudinaryApi.fetchImages({ maxResults: 20 });
+        const res = await fetchCloudinaryImages({ maxResults: 20 });
         setGalleryImages(res.resources.map(img => img.secure_url));
       } catch (e) {
         setGalleryImages([]);

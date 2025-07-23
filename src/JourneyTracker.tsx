@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Heart, Calendar, ArrowLeft, Star, Gift, Camera, MapPin, Sparkles, Award, Crown, Coffee, Plane, Home, BellRing as Ring } from 'lucide-react';
-import { memoriesApi, Milestone as ApiMilestone } from './apis/memoriesApi';
-import { cloudinaryApi, SavedMemory } from './apis/cloudinaryGalleryApi';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import './styles/JourneyTracker.css';
 
+import type { Milestone as ApiMilestone } from './apis/memoriesApi';
 // Extended milestone interface for the component with React elements
 interface Milestone extends Omit<ApiMilestone, 'iconType' | 'achievement'> {
   id: string;
@@ -83,7 +82,11 @@ function JourneyTracker({ onBack, currentTheme }: JourneyTrackerProps) {
 
     // Convert badge type to React element if achievement exists
     let achievement = undefined;
-    if (apiMilestone.achievement) {
+    if (
+      apiMilestone.achievement &&
+      typeof apiMilestone.achievement.title === 'string' &&
+      typeof apiMilestone.achievement.description === 'string'
+    ) {
       let badge: React.ReactNode;
       switch (apiMilestone.achievement.badgeType) {
         case 'heart':
@@ -107,7 +110,6 @@ function JourneyTracker({ onBack, currentTheme }: JourneyTrackerProps) {
         default:
           badge = <Award className="w-8 h-8 text-blue-500" />;
       }
-
       achievement = {
         title: apiMilestone.achievement.title,
         description: apiMilestone.achievement.description,
@@ -129,7 +131,9 @@ function JourneyTracker({ onBack, currentTheme }: JourneyTrackerProps) {
       setJourneyLoading(true);
       setJourneyError(null);
       try {
-        const data = await memoriesApi.getJourneyMilestones();
+        const res = await fetch('/api/memories/milestones');
+        if (!res.ok) throw new Error('Failed to fetch milestones');
+        const data = await res.json();
         const componentMilestones = data.map(convertToComponentMilestone);
         const sortedMilestones = componentMilestones.sort(
           (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
@@ -338,37 +342,28 @@ function JourneyTracker({ onBack, currentTheme }: JourneyTrackerProps) {
                   <h3 className="milestone-title">{milestone.title}</h3>
                   <p className="milestone-description">{milestone.description}</p>
                   
-                  {/* Photos đúng cho từng milestone theo memory */}
-                  {(() => {
-                    // Tìm memory khớp milestone (theo date hoặc id, tuỳ backend)
-                    // Find memory by date from cache
-                    const allMemories: any[] = years.flatMap((y: string) => memoriesByYear[y] || []);
-                    const memory = allMemories.find((mem: any) => mem.date === milestone.date);
-                    if (memory && memory.images.length > 0) {
-                      return (
-                        <div className="milestone-photos gallery-grid">
-                          {memory.images.slice(0, 3).map((img: any, idx: number) => (
-                            <img
-                              key={idx}
-                              src={img.secure_url}
-                              alt={`Memory photo ${idx + 1}`}
-                              className="milestone-photo gallery-photo"
-                              onClick={() => {
-                                setSelectedPhotos(memory.images.map((i: any) => i.secure_url));
-                                setActivePhoto(img.secure_url);
-                              }}
-                            />
-                          ))}
-                          {memory.images.length > 3 && (
-                            <div className="photo-count gallery-photo-count">
-                              +{memory.images.length - 3}
-                            </div>
-                          )}
+                  {/* Photos đúng cho từng milestone */}
+                  {milestone.photos && milestone.photos.length > 0 && (
+                    <div className="milestone-photos gallery-grid">
+                      {milestone.photos.slice(0, 3).map((url, idx) => (
+                        <img
+                          key={idx}
+                          src={url}
+                          alt={`Memory photo ${idx + 1}`}
+                          className="milestone-photo gallery-photo"
+                          onClick={() => {
+                            setSelectedPhotos(milestone.photos!);
+                            setActivePhoto(url);
+                          }}
+                        />
+                      ))}
+                      {milestone.photos.length > 3 && (
+                        <div className="photo-count gallery-photo-count">
+                          +{milestone.photos.length - 3}
                         </div>
-                      );
-                    }
-                    return null;
-                  })()}
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Achievement Badge */}
