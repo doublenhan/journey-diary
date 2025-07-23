@@ -1,15 +1,9 @@
 import { useState, useEffect } from 'react';
-import { cloudinaryApi } from '../apis/cloudinaryGalleryApi';
+import { CloudinaryImage } from '../apis/cloudinaryGalleryApi';
 
-export interface MemoryImage {
-  public_id: string;
-  secure_url: string;
-  width: number;
-  height: number;
-  format: string;
-  created_at: string;
-  tags: string[];
-}
+
+// Use CloudinaryImage from API
+export type MemoryImage = CloudinaryImage;
 
 export interface Memory {
   id: string;
@@ -60,8 +54,11 @@ export function useMemoriesCache(userId: string | null, loading: boolean) {
     if (!cacheValid) {
       (async () => {
         try {
-          const res = await cloudinaryApi.getMemories(userId);
-          const memories = res.memories || [];
+          const params = userId ? `?userId=${encodeURIComponent(userId)}` : '';
+          const res = await fetch(`/api/cloudinary/memories${params}`);
+          if (!res.ok) throw new Error('Failed to fetch memories');
+          const data = await res.json();
+          const memories = data.memories || [];
           localStorage.setItem(cacheKey, JSON.stringify({ memories, timestamp: Date.now() }));
           const byYear: MemoriesByYear = {};
           memories.forEach((memory: Memory) => {

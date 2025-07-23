@@ -65,7 +65,8 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
     | 'honeymoon'
     | 'birthday'
     | 'valentine';
-  const [floatingHearts, setFloatingHearts] = useState<Array<{ id: number; x: number; y: number }>>([]);
+  type FloatingHeart = { id: number; x: number; y: number };
+  const [floatingHearts, setFloatingHearts] = useState<FloatingHeart[]>([]);
   // Custom confirm delete modal state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -219,7 +220,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       years--;
       months += 12;
     }
-    let result = [];
+    const result: string[] = [];
     if (years > 0) result.push(`${years} year${years !== 1 ? 's' : ''}`);
     if (months > 0) result.push(`${months} month${months !== 1 ? 's' : ''}`);
     if (days > 0) result.push(`${days} day${days !== 1 ? 's' : ''}`);
@@ -427,18 +428,19 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
 
   const createFloatingHearts = (event: React.MouseEvent) => {
     const rect = event.currentTarget.getBoundingClientRect();
-    const hearts = [];
-    
+    const hearts: FloatingHeart[] = [];
     for (let i = 0; i < 8; i++) {
+      let x = rect.left + Math.random() * rect.width;
+      let y = rect.top + Math.random() * rect.height;
+      if (!isFinite(x) || x < 0) x = 0;
+      if (!isFinite(y) || y < 0) y = 0;
       hearts.push({
         id: Date.now() + i,
-        x: rect.left + Math.random() * rect.width,
-        y: rect.top + Math.random() * rect.height
+        x,
+        y
       });
     }
-    
     setFloatingHearts(hearts);
-    
     setTimeout(() => {
       setFloatingHearts([]);
     }, 2000);

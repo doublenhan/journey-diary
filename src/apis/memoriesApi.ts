@@ -1,4 +1,4 @@
-// Define the interface for Milestone/Memory
+// Đã chuyển sang fetch API serverless, file này không còn sử dụng.
 export interface Milestone {
   id: string;
   date: string;
@@ -222,5 +222,4 @@ class MemoriesApi {
   }
 }
 
-export const memoriesApi = new MemoriesApi();
-export default memoriesApi;
+// Đã chuyển sang fetch API serverless, xóa export service client
