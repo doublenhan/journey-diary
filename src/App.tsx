@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Heart, BookOpen, Camera, Bell, Download as Download2, FileText, Menu, X, Instagram, Twitter, Facebook, Mail, Phone, MapPin } from 'lucide-react';
-import cloudinaryApi from './api/cloudinaryGalleryApi';
+import cloudinaryApi from './apis/cloudinaryGalleryApi';
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import CreateMemory from './CreateMemory';

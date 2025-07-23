@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { Heart, Calendar, ArrowLeft, ChevronLeft, ChevronRight, Loader } from 'lucide-react';
-// import { cloudinaryApi, type SavedMemory } from './api/cloudinaryGalleryApi';
+// import { cloudinaryApi, type SavedMemory } from './apis/cloudinaryGalleryApi';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import './styles/ViewMemory.css';
 

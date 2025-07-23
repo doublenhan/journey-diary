@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { Heart, Camera, Calendar, Save, ArrowLeft, X, Upload, MapPin, Type, CheckCircle, AlertCircle } from 'lucide-react';
-import { cloudinaryApi, type MemoryData } from './api/cloudinaryGalleryApi';
+import { cloudinaryApi, type MemoryData } from './apis/cloudinaryGalleryApi';
 import './styles/CreateMemory.css';
 
 interface CreateMemoryProps {

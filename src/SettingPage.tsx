@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Sun, Moon, Heart, Sparkles, Palette, CalendarDays, User, Menu, X, Clock, Calendar } from 'lucide-react';
 import { auth } from './firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
-import { saveUserTheme, getUserTheme } from './api/userThemeApi';
+import { saveUserTheme, getUserTheme } from './apis/userThemeApi';
 
 import EventsPageComponent from './components/EventsPage';
 import EventModal from './components/EventModal';
