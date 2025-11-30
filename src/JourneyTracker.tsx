@@ -140,7 +140,6 @@ function JourneyTracker({ onBack, currentTheme }: JourneyTrackerProps) {
         );
         setMilestones(sortedMilestones);
       } catch (error) {
-        console.error('Failed to fetch milestones:', error);
         setJourneyError('Unable to load your journey milestones. Please try again later.');
         setMilestones([]);
       } finally {
