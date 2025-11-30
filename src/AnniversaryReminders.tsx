@@ -26,6 +26,7 @@ interface AnniversaryRemindersProps {
 }
 
 function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProps) {
+  const { syncStatus, lastSyncTime, errorMessage, startSync, syncSuccess, syncError } = useSyncStatus();
   const [anniversaries, setAnniversaries] = useState<Anniversary[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -515,6 +516,13 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         effectsEnabled={effectsEnabled}
         animationSpeed={animationSpeed}
         theme={{ colors: { primary: theme.textPrimary } }}
+      />
+
+      {/* Sync Status Indicator */}
+      <SyncStatus 
+        status={syncStatus}
+        lastSyncTime={lastSyncTime}
+        errorMessage={errorMessage || undefined}
       />
       
       {loading && (

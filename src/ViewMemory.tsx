@@ -52,6 +52,19 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
   const [allPhotos, setAllPhotos] = useState<string[]>([]);
   const theme = themes[currentTheme];
 
+  // Show sync status when loading memories
+  useEffect(() => {
+    if (isLoading && !loading) {
+      startSync();
+    } else if (!isLoading && !loading) {
+      if (error) {
+        syncError(error);
+      } else if (Object.keys(memoriesByYear).length > 0) {
+        syncSuccess();
+      }
+    }
+  }, [isLoading, loading, error, memoriesByYear]);
+
   // Log all memory images for debugging after fetching
   useEffect(() => {
     // Memory images fetched successfully
