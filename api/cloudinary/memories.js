@@ -50,6 +50,12 @@ export default async function handler(req, res) {
       } while (nextCursor);
       
       console.log(`[DEBUG] Total resources fetched: ${allImages.length}`);
+      console.log(`[DEBUG] All public_ids from Cloudinary:`, allImages.map(r => r.public_id));
+      console.log(`[DEBUG] All memory_ids in context:`, allImages.map(r => {
+        const flatCtx = r.context || {};
+        const customCtx = r.context?.custom || {};
+        return `${r.public_id} -> ${flatCtx.memory_id || customCtx.memory_id || 'NONE'}`;
+      }));
       
       // Group by memory_id and filter by userId if provided
       const memoriesMap = new Map();
