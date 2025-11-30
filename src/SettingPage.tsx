@@ -9,6 +9,8 @@ import { settingThemes } from './config/settingThemes';
 import VisualEffects from './components/VisualEffects';
 import ProfileInformation from './ProfileInformation';
 import MoodTracking from './MoodTracking';
+import { useSyncStatus } from './hooks/useSyncStatus';
+import SyncStatus from './components/SyncStatus';
 import './styles/SettingPage.css';
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
@@ -114,6 +116,7 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
   // Use cache for real memories/photos
   const { userId: cacheUserId, loading: cacheLoading } = useCurrentUserId();
   const { memoriesByYear, years, isLoading: memoriesLoading, error: memoriesError } = useMemoriesCache(cacheUserId, cacheLoading);
+  const { syncStatus, lastSyncTime, errorMessage, startSync, syncSuccess, syncError } = useSyncStatus();
   
   const [activeMenuItem, setActiveMenuItem] = useState<MenuItemType>('mood');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -195,9 +198,14 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
   const handleSaveTheme = async () => {
     if (!userId) return;
     setIsSaving(true);
+    startSync();
     try {
       await saveUserTheme(userId, currentTheme);
       setSavedTheme(currentTheme);
+      syncSuccess();
+    } catch (error) {
+      syncError('Lỗi lưu theme. Vui lòng thử lại.');
+      console.error('Error saving theme:', error);
     } finally {
       setIsSaving(false);
     }
@@ -358,6 +366,13 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
         effectsEnabled={effectsEnabled}
         animationSpeed={animationSpeed}
         theme={theme}
+      />
+
+      {/* Sync Status Indicator */}
+      <SyncStatus 
+        status={syncStatus}
+        lastSyncTime={lastSyncTime}
+        errorMessage={errorMessage || undefined}
       />
 
       {/* Mobile menu button */}
