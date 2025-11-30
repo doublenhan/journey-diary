@@ -123,7 +123,11 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
         setSaveMessage(null);
         setValidationAttempted(false);
         // Remove cache so next view reloads from API
-        if (userId) localStorage.removeItem(`memoriesCache_${userId}`);
+        if (userId) {
+          localStorage.removeItem(`memoriesCache_${userId}`);
+          // Dispatch custom event to notify other components
+          window.dispatchEvent(new CustomEvent('memoryCacheInvalidated', { detail: { userId } }));
+        }
       }, 2000);
     } catch (error) {
       console.error('Failed to save memory:', error);

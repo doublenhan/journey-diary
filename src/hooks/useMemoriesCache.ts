@@ -26,6 +26,24 @@ export function useMemoriesCache(userId: string | null, loading: boolean) {
   const [years, setYears] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Listen for memory cache invalidation events
+  useEffect(() => {
+    const handleCacheInvalidated = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const eventUserId = customEvent.detail?.userId;
+      
+      // Trigger refresh if the event is for this user or no specific user
+      if (!eventUserId || eventUserId === userId) {
+        console.log('[DEBUG] Memory cache invalidated event received, triggering refresh');
+        setRefreshTrigger(t => t + 1);
+      }
+    };
+
+    window.addEventListener('memoryCacheInvalidated', handleCacheInvalidated);
+    return () => window.removeEventListener('memoryCacheInvalidated', handleCacheInvalidated);
+  }, [userId]);
 
   useEffect(() => {
     if (loading || !userId) return;
@@ -97,7 +115,7 @@ export function useMemoriesCache(userId: string | null, loading: boolean) {
         }
       })();
     }
-  }, [userId, loading]);
+  }, [userId, loading, refreshTrigger]);
 
   return { memoriesByYear, years, isLoading, error };
 }
