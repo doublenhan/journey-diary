@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import app from './firebase/firebaseConfig';
 import { Heart, Mail, Lock, Eye, EyeOff, BookHeart, Calendar, Phone } from 'lucide-react';
+import { MoodTheme, themes } from './config/themes';
+import VisualEffects from './components/VisualEffects';
 import './styles/LoginPage.css';
 
 declare global {
@@ -38,32 +40,10 @@ const FloatingHeart = ({ delay = 0, size = 'small' }) => (
 
 
 interface LoginPageProps {
-  currentTheme?: 'happy' | 'calm' | 'romantic';
+  currentTheme?: MoodTheme;
 }
 
-const themes = {
-  happy: {
-    background: 'linear-gradient(135deg, #FFFDE4 0%, #FFF 50%, #FEF08A 100%)',
-    cardBg: '#fff',
-    textPrimary: '#78350f',
-    border: '#FEF08A',
-  },
-  calm: {
-    background: 'linear-gradient(135deg, #EEF2FF 0%, #FFF 50%, #E0E7FF 100%)',
-    cardBg: '#fff',
-    textPrimary: '#3730a3',
-    border: '#E0E7FF',
-  },
-  romantic: {
-    background: 'linear-gradient(135deg, #FDF2F8 0%, #FFF 50%, #FCE7F3 100%)',
-    cardBg: '#fff',
-    textPrimary: '#831843',
-    border: '#FCE7F3',
-  }
-};
-
 function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
-  const theme = themes[currentTheme];
   const navigate = useNavigate();
   const [email, setEmail] = useState(() => localStorage.getItem('rememberEmail') || '');
   const [password, setPassword] = useState(() => localStorage.getItem('rememberPassword') || '');
@@ -131,7 +111,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
       }
     } else {
       if (!email || !password) {
-        setError('Please fill in all fields to continue your love journey 💕');
+        setError('Vui lòng điền đầy đủ thông tin để tiếp tục hành trình tình yêu 💕');
         return;
       }
     }
@@ -219,8 +199,28 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
     });
   };
 
+  const theme = currentTheme ? themes[currentTheme] : themes.happy;
+  
+  // Default visual effects settings
+  const effectsEnabled = {
+    particles: true,
+    hearts: true,
+    transitions: true,
+    glow: true,
+    fadeIn: true,
+    slideIn: true
+  };
+  const animationSpeed = 50;
+
   return (
     <div className="login-container">
+      {/* Visual Effects */}
+      <VisualEffects 
+        effectsEnabled={effectsEnabled}
+        animationSpeed={animationSpeed}
+        theme={{ colors: { primary: theme.textPrimary } }}
+      />
+      
       {/* Floating Hearts Background */}
       {[...Array(12)].map((_, i) => (
         <FloatingHeart 
@@ -238,8 +238,8 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
             <div className="logo-container">
               <BookHeart className="logo-icon" />
             </div>
-            <h1 className="login-title">Love Journey</h1>
-            <p className="login-subtitle">Chào mừng quay lại Hành Trình Tình Yêu của bạn 💌</p>
+            <h1 className="login-title">Nhật Ký Tình Yêu</h1>
+            <p className="login-subtitle">Hành Trình Tình Yêu 💌</p>
           </div>
 
           {/* Current Date */}
@@ -378,7 +378,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                   onChange={e => setRememberMe(e.target.checked)}
                   className="remember-me-checkbox"
                 />
-                <span className="remember-me-text">Nhớ Tôi</span>
+                <span className="remember-me-text">Lưu Thông Tin</span>
               </label>
             </div>
 
@@ -410,6 +410,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                 <>
                   <Heart className="login-button-icon fill-current" />
                   <span>{isRegister ? 'Tạo Tài Khoản' : 'Tiếp Tục Hành Trình Tình Yêu'}</span>
+                  <Heart className="login-button-icon fill-current" />
                 </>
               )}
             </button>
@@ -426,12 +427,12 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
           <div className="social-login">
             <button className="social-button">
               <div className="social-icon google">G</div>
-              <span>Tiếp Tục bằng Google</span>
+              <span>Đăng nhập bằng Google</span>
             </button>
             
             <button className="social-button">
               <div className="social-icon facebook">f</div>
-              <span>Tiếp Tục bằng Facebook</span>
+              <span>Đăng nhập bằng Facebook</span>
             </button>
           </div>
 
@@ -455,7 +456,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                 </>
               ) : (
                 <>
-                  Mới sử dụng Love Journey?{' '}
+                  Mới sử dụng Nhật Ký Tình Yêu?{' '}
                   <button
                     type="button"
                     className="footer-link"

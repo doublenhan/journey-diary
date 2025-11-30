@@ -3,6 +3,10 @@ import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { Heart, Calendar, ArrowLeft, ChevronLeft, ChevronRight, Loader } from 'lucide-react';
 // import { cloudinaryApi, type SavedMemory } from './apis/cloudinaryGalleryApi';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
+import { MoodTheme, themes } from './config/themes';
+import VisualEffects from './components/VisualEffects';
+import { useSyncStatus } from './hooks/useSyncStatus';
+import SyncStatus from './components/SyncStatus';
 import './styles/ViewMemory.css';
 
 // Update Memory interface to match SavedMemory from the API
@@ -34,33 +38,14 @@ interface MemoriesByYear {
 
 interface ViewMemoryProps {
   onBack?: () => void;
-  currentTheme: 'happy' | 'calm' | 'romantic';
+  currentTheme: MoodTheme;
 }
 
-const themes = {
-  happy: {
-    background: 'linear-gradient(135deg, #FFFDE4 0%, #FFF 50%, #FEF08A 100%)',
-    cardBg: '#fff',
-    textPrimary: '#78350f',
-    border: '#FEF08A',
-  },
-  calm: {
-    background: 'linear-gradient(135deg, #EEF2FF 0%, #FFF 50%, #E0E7FF 100%)',
-    cardBg: '#fff',
-    textPrimary: '#3730a3',
-    border: '#E0E7FF',
-  },
-  romantic: {
-    background: 'linear-gradient(135deg, #FDF2F8 0%, #FFF 50%, #FCE7F3 100%)',
-    cardBg: '#fff',
-    textPrimary: '#831843',
-    border: '#FCE7F3',
-  }
-};
 function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
   // All hooks must come first
   const { userId, loading } = useCurrentUserId();
   const { memoriesByYear, years, isLoading, error } = useMemoriesCache(userId, loading);
+  const { syncStatus, lastSyncTime, errorMessage, startSync, syncSuccess, syncError } = useSyncStatus();
   // Remove unused floatingHearts state
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number>(0);
@@ -107,8 +92,33 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
 
   // Removed unused createFloatingHeart function
 
+  // Default visual effects settings
+  const effectsEnabled = {
+    particles: true,
+    hearts: true,
+    transitions: true,
+    glow: true,
+    fadeIn: true,
+    slideIn: true
+  };
+  const animationSpeed = 50;
+
   return (
     <div className="view-memory-page" style={{ background: theme.background, color: theme.textPrimary }}>
+      {/* Visual Effects */}
+      <VisualEffects 
+        effectsEnabled={effectsEnabled}
+        animationSpeed={animationSpeed}
+        theme={{ colors: { primary: theme.textPrimary } }}
+      />
+
+      {/* Sync Status Indicator */}
+      <SyncStatus 
+        status={syncStatus}
+        lastSyncTime={lastSyncTime}
+        errorMessage={errorMessage || undefined}
+      />
+      
       {/* Header */}
       <header className="bg-white/95 backdrop-blur-sm border-b border-pink-100 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -144,13 +154,13 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
             <span className="gradient-text"> Của Chúng Ta</span>
           </h1>
           <p className="page-subtitle">
-            Mỗi khoảnh khắc chúng ta chia sẻ, mỗi lần cười, mỗi cuộc phiêu lưu - tất cả đều được lưu lại ở câu chuyện tình yêu kỹ thuậc về chúng ta.
+            Mỗi khoảnh khắc chúng ta chia sẻ, mỗi lần cười, mỗi cuộc phiêu lưu - tất cả đều được lưu lại ở câu chuyện tình yêu.
           </p>
         </div>
 
         {/* Dashboard: Your Love Story by the Numbers */}
         <div className="love-story-dashboard mb-8">
-          <h2 className="dashboard-title text-xl font-bold mb-4 text-pink-600">Câu Chuyện Tình Yêu Của Bạn Trong Số Liệu</h2>
+          <h2 className="dashboard-title text-xl font-bold mb-4 text-pink-600">Câu Chuyện Tình Yêu Của Bạn</h2>
           <div className="dashboard-grid grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="dashboard-card bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
               <Heart className="w-8 h-8 text-pink-500 mb-2" />
@@ -180,13 +190,13 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
               <div className="dashboard-number text-base font-bold">{
                 (() => {
                   const allMemories = years.flatMap((y: string) => memoriesByYear[y] || []);
+                  <div className="dashboard-number text-2xl font-bold">{years.length}</div>
                   if (allMemories.length === 0) return '--';
                   const firstDate = allMemories[allMemories.length - 1]?.date;
                   const lastDate = allMemories[0]?.date;
                   return `Từ ${firstDate ? formatDate(firstDate) : '--'} đến ${lastDate ? formatDate(lastDate) : '--'}`;
                 })()
               }</div>
-
             </div>
           </div>
         </div>

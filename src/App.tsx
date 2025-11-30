@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
+import { MoodTheme, themes, isValidTheme } from './config/themes';
 import CreateMemory from './CreateMemory';
 import ViewMemory from './ViewMemory';
 import AnniversaryReminders from './AnniversaryReminders';
@@ -35,8 +36,6 @@ async function fetchCloudinaryImages(options: FetchCloudinaryOptions = {}) {
   if (!res.ok) throw new Error('Failed to fetch images');
   return await res.json();
 }
-
-type MoodTheme = 'happy' | 'calm' | 'romantic';
 
 function App() {
   const navigate = useNavigate();
@@ -88,7 +87,7 @@ function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentTheme, setCurrentThemeState] = useState<MoodTheme>(() => {
     const stored = localStorage.getItem('currentTheme');
-    return (stored === 'happy' || stored === 'calm' || stored === 'romantic') ? stored : 'romantic';
+    return (stored && isValidTheme(stored)) ? stored : 'romantic';
   });
 
   const setCurrentTheme = (theme: MoodTheme) => {
@@ -174,20 +173,6 @@ function App() {
       <Route path="/" element={<LoginPage currentTheme={currentTheme} />} />
       <Route path="/landing" element={
         (() => {
-          const themes = {
-            happy: {
-              background: 'linear-gradient(135deg, #FFFDE4 0%, #FFF 50%, #FEF08A 100%)',
-              textPrimary: '#78350f',
-            },
-            calm: {
-              background: 'linear-gradient(135deg, #EEF2FF 0%, #FFF 50%, #E0E7FF 100%)',
-              textPrimary: '#3730a3',
-            },
-            romantic: {
-              background: 'linear-gradient(135deg, #FDF2F8 0%, #FFF 50%, #FCE7F3 100%)',
-              textPrimary: '#831843',
-            }
-          };
           const theme = themes[currentTheme];
           return (
             <div className="landing-page" style={{ background: theme.background, color: theme.textPrimary }}>
@@ -196,7 +181,7 @@ function App() {
                   <div className="header-content">
                     <div className="logo">
                       <Heart className="logo-icon" />
-                      <span className="logo-text">Love Journey</span>
+                      <span className="logo-text">Nhật Ký Tình Yêu</span>
                     </div>
                     <nav className="nav-desktop">
                       <a href="/create-memory" className="nav-link">Tạo Kỷ Niệm</a>
@@ -249,7 +234,7 @@ function App() {
                     <div className="hero-grid">
                       <div className="hero-content">
                         <h1 className="hero-title">
-                          Chào Mừng Đến <span className="hero-title-highlight">Love Journey</span>
+                          Chào Mừng Đến <span className="hero-title-highlight">Nhật Ký Tình Yêu</span>
                         </h1>
                         <p className="hero-description">
                           Lưu giữ kỷ niệm, tôn vinh tình yêu của bạn.
@@ -345,12 +330,12 @@ function App() {
                 <section className="cta-section">
                   <div className="cta-container">
                     <h2 className="cta-title">Bắt Đầu Hành Trình Tình Yêu Ngay Hôm Nay!</h2>
-                    <p className="cta-description">Tạo, trân trọng và tái tạo những kỷ niệm quý giá nhất của bạn cùng nhau.</p>
+                    <p className="cta-description">Trân trọng và tái tạo những kỷ niệm quý giá nhất của bạn cùng nhau.</p>
                     <div className="cta-buttons">
                       <a href="/create-memory" className="cta-button">Tạo Kỷ Niệm <BookOpen size={18} /></a>
                       <a href="/view-memory" className="cta-button">Xem Kỷ Niệm <Camera size={18} /></a>
                     </div>
-                    <div className="cta-note">Không cần tài khoản để bắt đầu lưu giữ kỷ niệm!</div>
+                    <div className="cta-note">Cần tài khoản để bắt đầu lưu giữ kỷ niệm!</div>
                   </div>
                 </section>
               </main>
