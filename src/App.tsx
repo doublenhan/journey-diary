@@ -77,13 +77,10 @@ function App() {
         const contentType = res.headers.get('content-type');
         if (res.ok && contentType && contentType.includes('application/json')) {
           const data = await res.json();
-          console.log(`✅ [BUILD: ${buildVersion}] API /health ok:`, data);
         } else {
-          console.warn(`⚠️ [BUILD: ${buildVersion}] Health check: Invalid response format`);
         }
       } catch (err) {
         // Silently fail - don't block page load
-        console.debug('Health check unavailable:', err.message);
       }
     };
     

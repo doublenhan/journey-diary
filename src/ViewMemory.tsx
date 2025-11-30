@@ -69,13 +69,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
 
   // Log all memory images for debugging after fetching
   useEffect(() => {
-    if (Object.keys(memoriesByYear).length > 0) {
-      Object.entries(memoriesByYear).forEach(([year, memories]) => {
-        (memories as any[]).forEach((memory: any) => {
-          console.log('Images for memory:', memory.title, memory.images);
-        });
-      });
-    }
+    // Memory images fetched successfully
   }, [memoriesByYear]);
 
   // Fetch memories from Cloudinary

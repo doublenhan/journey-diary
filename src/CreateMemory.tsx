@@ -73,14 +73,6 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
     setIsLoading(true);
     setSaveMessage(null);
     try {
-      // Add debug console log
-      console.log('Starting memory save with data:', {
-        title: title.trim(),
-        location: location.trim() || undefined,
-        text: `${memoryText.trim().substring(0, 50)}...`,
-        date: `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`,
-        imageCount: uploadedImages.length
-      });
       const memoryData: MemoryData & { userId?: string } = {
         title: title.trim(),
         location: location.trim() || undefined,
