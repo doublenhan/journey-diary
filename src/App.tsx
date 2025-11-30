@@ -67,6 +67,7 @@ function App() {
   useEffect(() => {
     const checkHealth = async () => {
       try {
+        const buildVersion = `${new Date().toISOString().split('T')[0]}-${Math.random().toString(36).substring(7)}`;
         const res = await fetch('/api/cloudinary/health', {
           method: 'GET',
           headers: { 'Accept': 'application/json' }
@@ -76,9 +77,9 @@ function App() {
         const contentType = res.headers.get('content-type');
         if (res.ok && contentType && contentType.includes('application/json')) {
           const data = await res.json();
-          console.log('✅ API /health ok:', data);
+          console.log(`✅ [BUILD: ${buildVersion}] API /health ok:`, data);
         } else {
-          console.warn('Health check: Invalid response format');
+          console.warn(`⚠️ [BUILD: ${buildVersion}] Health check: Invalid response format`);
         }
       } catch (err) {
         // Silently fail - don't block page load
