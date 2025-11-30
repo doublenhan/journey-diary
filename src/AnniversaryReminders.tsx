@@ -455,7 +455,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       {loading && (
         <div className="loading-overlay">
           <div className="loading-spinner"></div>
-          <div className="loading-text">Loading...</div>
+          <div className="loading-text">Đang tải...</div>
         </div>
       )}
       {/* Header */}
@@ -467,7 +467,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
               className="back-button"
             >
               <ArrowLeft className="w-5 h-5" />
-              <span className="back-button-text">Back</span>
+              <span className="back-button-text">Quay Lại</span>
             </button>
             
             <div className="header-logo">
@@ -482,7 +482,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
               className="add-button"
             >
               <Plus className="w-5 h-5" />
-              <span className="add-button-text">Add</span>
+              <span className="add-button-text">Thêm</span>
             </button>
           </div>
         </div>
@@ -493,11 +493,10 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         {/* Page Header */}
         <div className="page-header">
           <h1 className="page-title">
-            Anniversary
-            <span className="gradient-text"> Reminders</span>
+            Nhắc Nhở Kỷ Niệm
           </h1>
           <p className="page-subtitle">
-            Never miss a special moment - keep track of all your important relationship milestones
+            Không bao giờ bỏ lỡ những ngày quan trọng - theo dõi tất cả các cột mốc trong mối quan hệ của bạn
           </p>
         </div>
 
@@ -507,10 +506,10 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
             <div className="section-header">
               <div className="section-title-container">
                 <BellRing className="w-6 h-6 text-pink-500 animate-pulse" />
-                <h2 className="section-title">Coming Soon</h2>
+                <h2 className="section-title">Sắp Đến</h2>
               </div>
               <div className="upcoming-count">
-                {upcomingAnniversaries.length} upcoming
+                {upcomingAnniversaries.length} sắp đến
               </div>
             </div>
             
@@ -593,7 +592,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                     {anniversary.isNotificationEnabled && (
                       <div className="reminder-info">
                         <Bell className="w-4 h-4" />
-                        <span>Reminder set for {anniversary.reminderDays} day{anniversary.reminderDays !== 1 ? 's' : ''} before</span>
+                        <span>Nhắc nhở được đặt {anniversary.reminderDays} ngày trước</span>
                       </div>
                     )}
                   </div>
@@ -611,10 +610,10 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
           <div className="section-header">
             <div className="section-title-container">
               <Heart className="w-6 h-6 text-pink-500" />
-              <h2 className="section-title">All Anniversaries</h2>
+              <h2 className="section-title">Tất Cả Kỷ Niệm</h2>
             </div>
             <div className="total-count">
-              {anniversaries.length} total
+              {anniversaries.length} tổng cộng
             </div>
           </div>
           
@@ -682,7 +681,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                       <div className="days-until">
                         <Clock className="w-4 h-4" />
                         <span className="days-count">{anniversary.daysUntil}</span>
-                        <span className="days-text">days to go</span>
+                        <span className="days-text">ngày nữa</span>
                       </div>
                     </div>
                   </div>
@@ -714,14 +713,14 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         {anniversaries.length === 0 && (
           <div className="empty-state">
             <Heart className="empty-state-icon" />
-            <h3 className="empty-state-title">No anniversaries yet</h3>
-            <p className="empty-state-text">Add your first anniversary to start tracking your special moments!</p>
+            <h3 className="empty-state-title">Chưa có kỷ niệm nào</h3>
+            <p className="empty-state-text">Thêm kỷ niệm đầu tiên của bạn để bắt đầu theo dõi những khoảnh khắc đặc biệt!</p>
             <button
               onClick={() => setShowAddForm(true)}
               className="empty-state-button"
             >
               <Plus className="w-5 h-5" />
-              Add Anniversary
+              Thêm Kỷ Niệm
             </button>
           </div>
         )}
@@ -733,7 +732,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
           <div className="modal-container">
             <div className="modal-header">
               <h2 className="modal-title">
-                {editingAnniversary ? 'Edit Anniversary' : 'Add New Anniversary'}
+                {editingAnniversary ? 'Chỉnh Sửa Kỷ Niệm' : 'Thêm Kỷ Niệm Mới'}
               </h2>
               <button
                 onClick={() => {
@@ -757,14 +756,14 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
 
               <div className="form-group">
                 <label className="form-label">
-                  <Heart className="w-4 h-4 mr-1 inline text-pink-400" /> Anniversary Title
+                  <Heart className="w-4 h-4 mr-1 inline text-pink-400" /> Tên Kỷ Niệm
                 </label>
                 <div className="input-icon-wrapper">
                   <input
                     type="text"
                     value={newAnniversary.title}
                     onChange={(e) => setNewAnniversary(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="e.g., First Date Anniversary"
+                    placeholder="ví dụ: Kỷ Niệm Ngày Đầu Tiên"
                     className="form-input"
                     style={{ paddingLeft: '10px' }}
                   />
@@ -774,7 +773,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
 
               <div className="form-group">
                 <label className="form-label">
-                  <Calendar className="w-4 h-4 mr-1 inline text-blue-400" /> Date
+                  <Calendar className="w-4 h-4 mr-1 inline text-blue-400" /> Ngày Tháng
                 </label>
                 <div className="input-icon-wrapper">
                   <input
@@ -790,7 +789,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
 
               <div className="form-group">
                 <label className="form-label">
-                  <Gift className="w-4 h-4 mr-1 inline text-yellow-500" /> Anniversary Type
+                  <Gift className="w-4 h-4 mr-1 inline text-yellow-500" /> Loại Kỷ Niệm
                 </label>
                 <div className="input-icon-wrapper">
                   <select
@@ -798,15 +797,15 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                     onChange={(e) => setNewAnniversary(prev => ({ ...prev, type: e.target.value as AnniversaryType }))}
                     className="form-select"
                   >
-                    <option value="custom">Custom</option>
-                    <option value="first_date">First Date</option>
-                    <option value="engagement">Engagement</option>
-                    <option value="wedding">Wedding</option>
-                    <option value="first_meeting">First Meeting</option>
-                    <option value="proposal">Proposal</option>
-                    <option value="honeymoon">Honeymoon</option>
-                    <option value="birthday">Birthday</option>
-                    <option value="valentine">Valentine</option>
+                    <option value="custom">Tùy Chỉnh</option>
+                    <option value="first_date">Hẹn Hò Lần Đầu</option>
+                    <option value="engagement">Đính Hôn</option>
+                    <option value="wedding">Đám Cưới</option>
+                    <option value="first_meeting">Gặp Nhau Lần Đầu</option>
+                    <option value="proposal">Cầu Hôn</option>
+                    <option value="honeymoon">Tuần Trăng Mật</option>
+                    <option value="birthday">Sinh Nhật</option>
+                    <option value="valentine">Lễ Tình Nhân</option>
                   </select>
                 </div>
               </div>
@@ -814,7 +813,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
 
               <div className="form-group">
                 <label className="form-label">
-                  <Bell className="w-4 h-4 mr-1 inline text-purple-500" /> Remind me
+                  <Bell className="w-4 h-4 mr-1 inline text-purple-500" /> Nhắc Nhở Tôi
                 </label>
                 <div className="input-icon-wrapper">
                   <select
@@ -822,11 +821,11 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                     onChange={(e) => setNewAnniversary(prev => ({ ...prev, reminderDays: parseInt(e.target.value) }))}
                     className="form-select"
                   >
-                    <option value={1}>1 day before</option>
-                    <option value={3}>3 days before</option>
-                    <option value={7}>1 week before</option>
-                    <option value={14}>2 weeks before</option>
-                    <option value={30}>1 month before</option>
+                    <option value={1}>1 ngày trước</option>
+                    <option value={3}>3 ngày trước</option>
+                    <option value={7}>1 tuần trước</option>
+                    <option value={14}>2 tuần trước</option>
+                    <option value={30}>1 tháng trước</option>
                   </select>
                 </div>
               </div>
@@ -841,7 +840,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                     className="checkbox-input"
                   />
                   <BellRing className="w-4 h-4 mr-1 inline text-pink-500" />
-                  <span className="checkbox-text">Enable notifications</span>
+                  <span className="checkbox-text">Bật Thông Báo</span>
                 </label>
               </div>
             </div>
@@ -861,7 +860,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                 }}
                 className="cancel-button"
               >
-                Cancel
+                Hủy
               </button>
               <button
                 onClick={() => {
@@ -874,7 +873,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                 disabled={!newAnniversary.title || !newAnniversary.date}
                 className="save-button"
               >
-                {editingAnniversary ? 'Update' : 'Add'} Anniversary
+                {editingAnniversary ? 'Cập Nhật' : 'Thêm'} Kỷ Niệm
               </button>
             </div>
           </div>
@@ -886,10 +885,10 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         <div className="modal-overlay">
           <div className="modal-container delete-confirm-modal">
             <div className="modal-header">
-              <h2 className="modal-title">Confirm Delete</h2>
+              <h2 className="modal-title">Xác Nhận Xóa</h2>
             </div>
             <div className="modal-content">
-              <p className="delete-confirm-text">Are you sure you want to delete this anniversary?</p>
+              <p className="delete-confirm-text">Bạn có chắc chắn muốn xóa kỷ niệm này không?</p>
             </div>
             <div className="modal-actions delete-confirm-actions">
               <button
@@ -897,14 +896,14 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                 onClick={() => { setShowDeleteConfirm(false); setDeleteId(null); }}
                 disabled={loading}
               >
-                Cancel
+                Hủy
               </button>
               <button
                 className="delete-confirm-button"
                 onClick={confirmDeleteAnniversary}
                 disabled={loading}
               >
-                Delete
+                Xóa
               </button>
             </div>
           </div>

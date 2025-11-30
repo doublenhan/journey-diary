@@ -159,7 +159,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
               className="back-button"
             >
               <ArrowLeft className="w-5 h-5" />
-              <span className="back-button-text">Back</span>
+              <span className="back-button-text">Quay Lại</span>
             </button>
             
             <div className="header-logo">
@@ -167,7 +167,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
                 <Heart className="w-5 h-5 text-white" />
               </div>
               <span className="header-logo-text">
-                Love Journal
+                Nhật Ký Tình Yêu
               </span>
             </div>
             
@@ -182,10 +182,10 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
           {/* Page Header */}
           <div className="memory-card-header">
             <h1 className="memory-card-title">
-              Create New Memory
+              Tạo Kỷ Niệm Mới
             </h1>
             <p className="memory-card-subtitle">
-              Capture this beautiful moment forever
+              Lưu giữ khoảnh khắc đẹp đẽ này mãi mãi
             </p>
           </div>
 
@@ -196,14 +196,14 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
               <label className="form-label">
                 <span className="form-label-row">
                   <Type className="w-5 h-5 form-label-icon" />
-                  Give this memory a title <span className="required-field">*</span>
+                  Đặt tiêu đề cho kỷ niệm này <span className="required-field">*</span>
                 </span>
               </label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g., Our first date, Anniversary dinner, Weekend getaway..."
+                placeholder="Ví dụ: Ngày hẹn hò đầu tiên, Bữa tối sinh nhật, Tuần cuối cùng..."
                 className="form-input"
                 required
               />
@@ -214,14 +214,14 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
               <label className="form-label">
                 <span className="form-label-row">
                   <MapPin className="w-5 h-5 form-label-icon" />
-                  Where did this happen? <span className="required-field">*</span>
+                  Nơi này xảy ra ở đâu? <span className="required-field">*</span>
                 </span>
               </label>
               <input
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="e.g., Central Park, Eiffel Tower, Our favorite café..."
+                placeholder="Ví dụ: Công viên trung tâm, Tháp Eiffel, Quán cà phê yêu thích..."
                 className="form-input"
                 required
               />
@@ -232,7 +232,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
               <label className="form-label">
                 <span className="form-label-row">
                   <Calendar className="w-5 h-5 form-label-icon" />
-                  When did this happen? <span className="required-field">*</span>
+                  Điều này xảy ra khi nào? <span className="required-field">*</span>
                 </span>
               </label>
               <input
@@ -255,19 +255,19 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
               <label className="form-label">
                 <span className="form-label-row">
                   <Heart className="w-5 h-5 form-label-icon" />
-                  Tell your story <span className="required-field">*</span>
+                  Kể câu chuyện của bạn <span className="required-field">*</span>
                 </span>
               </label>
               <textarea
                 value={memoryText}
                 onChange={(e) => setMemoryText(e.target.value)}
-                placeholder="Write about this special moment... What made it magical? How did it make you feel?"
+                placeholder="Viết về khoảnh khắc đặc biệt này... Điều gì làm cho nó trở nên kỳ diệu? Nó làm cho bạn cảm thấy thế nào?"
                 rows={8}
                 className="form-textarea"
                 required
               />
               <div className="character-counter">
-                {memoryText.length} characters
+                {memoryText.length} ký tự
               </div>
             </div>
 
@@ -276,7 +276,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
               <label className="form-label">
                 <span className="form-label-row">
                   <Camera className="w-5 h-5 form-label-icon" />
-                  Add photos <span className="required-field">*</span>
+                  Thêm ảnh <span className="required-field">*</span>
                 </span>
               </label>
               
@@ -293,10 +293,10 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
                 <div className="upload-dropzone">
                   <Upload className="upload-icon" />
                   <p className="upload-text">
-                    Click to upload photos or drag and drop <span className="required-field">(required)</span>
+                    Nhấp để tải lên ảnh hoặc kéo và thả <span className="required-field">(bắt buộc)</span>
                   </p>
                   <p className="upload-subtext">
-                    PNG, JPG, GIF up to 10MB each
+                    PNG, JPG, GIF tối đa 10MB mỗi cái
                   </p>
                 </div>
               </div>
@@ -335,12 +335,12 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
                 {isLoading ? (
                   <>
                     <div className="loading-spinner" />
-                    <span>Saving Memory...</span>
+                    <span>Đang Lưu Kỷ Niệm...</span>
                   </>
                 ) : (
                   <>
                     <Save className="w-5 h-5" />
-                    <span>Save Memory</span>
+                    <span>Lưu Kỷ Niệm</span>
                   </>
                 )}
               </button>
@@ -358,15 +358,15 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
               
               {validationAttempted && !isFormValid && !saveMessage && (
                 <div className="save-validation-message">
-                  <span className="validation-heading">Please complete all required fields:</span>
+                  <span className="validation-heading">Vui lòng hoàn thành tất cả các trường bắt buộc:</span>
                   <ul className="validation-list">
-                    {title.trim().length === 0 && <li>• Add a title for your memory</li>}
-                    {location.trim().length === 0 && <li>• Specify the location</li>}
-                    {memoryText.trim().length === 0 && <li>• Write your memory text</li>}
-                    {selectedDay <= 0 && <li>• Select a valid day</li>}
-                    {selectedMonth <= 0 && <li>• Select a valid month</li>}
-                    {selectedYear <= 1900 && <li>• Select a valid year</li>}
-                    {uploadedImages.length === 0 && <li>• Upload at least one photo</li>}
+                    {title.trim().length === 0 && <li>• Thêm tiêu đề cho kỷ niệm của bạn</li>}
+                    {location.trim().length === 0 && <li>• Chỉ định vị trí</li>}
+                    {memoryText.trim().length === 0 && <li>• Viết văn bản kỷ niệm của bạn</li>}
+                    {selectedDay <= 0 && <li>• Chọn một ngày hợp lệ</li>}
+                    {selectedMonth <= 0 && <li>• Chọn một tháng hợp lệ</li>}
+                    {selectedYear <= 1900 && <li>• Chọn một năm hợp lệ</li>}
+                    {uploadedImages.length === 0 && <li>• Tải lên ít nhất một ảnh</li>}
                   </ul>
                 </div>
               )}
@@ -378,28 +378,28 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
         <div className="tips-section">
           <h3 className="tips-title">
             <Heart className="w-5 h-5 tips-title-icon" />
-            Tips for capturing memories
+            Mẹo để ghi lại những kỷ niệm
           </h3>
           <ul className="tips-list">
             <li className="tips-item">
               <span className="tips-bullet">•</span>
-              <span className="tips-text">Choose a meaningful title that captures the essence of your memory</span>
+              <span className="tips-text">Chọn một tiêu đề có ý nghĩa phản ánh bản chất của kỷ niệm của bạn</span>
             </li>
             <li className="tips-item">
               <span className="tips-bullet">•</span>
-              <span className="tips-text">Include the location to help you remember where it happened</span>
+              <span className="tips-text">Bao gồm vị trí để giúp bạn nhớ nơi nó xảy ra</span>
             </li>
             <li className="tips-item">
               <span className="tips-bullet">•</span>
-              <span className="tips-text">Include details about what made this moment special</span>
+              <span className="tips-text">Bao gồm chi tiết về những gì làm cho khoảnh khắc này trở nên đặc biệt</span>
             </li>
             <li className="tips-item">
               <span className="tips-bullet">•</span>
-              <span className="tips-text">Describe your feelings and emotions in that moment</span>
+              <span className="tips-text">Mô tả cảm xúc và tình cảm của bạn lúc đó</span>
             </li>
             <li className="tips-item">
               <span className="tips-bullet">•</span>
-              <span className="tips-text">Add photos to bring your memory to life</span>
+              <span className="tips-text">Thêm ảnh để làm cho kỷ niệm của bạn sống động</span>
             </li>
           </ul>
         </div>

@@ -271,22 +271,22 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
   const menuItems: MenuItem[] = [
     {
       id: 'effects',
-      label: 'Effects',
+      label: 'Hiệu Ưứng',
       icon: <Sparkles className="w-5 h-5" />
     },
     {
       id: 'mood',
-      label: 'Mood Tracking',
+      label: 'Theo Dõi Tâm Trạng',
       icon: <Palette className="w-5 h-5" />
     },
     {
       id: 'events',
-      label: 'Special Events',
+      label: 'Sự Kiện Đặc Biệt',
       icon: <CalendarDays className="w-5 h-5" />
     },
     {
       id: 'account',
-      label: 'Account Settings',
+      label: 'Cài Đặt Tài Khoản',
       icon: <User className="w-5 h-5" />
     }
   ];
@@ -388,7 +388,7 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
     // Use cached memories
     return (
       <div className="space-y-8">
-        {memoriesLoading && <div>Loading memories...</div>}
+        {memoriesLoading && <div>Đang tải kỷ niệm...</div>}
         {memoriesError && <div className="text-red-500">{memoriesError}</div>}
         {!memoriesLoading && !memoriesError && years.length > 0 && (
           Object.entries(memoriesByYear)
@@ -525,10 +525,10 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-bold mb-2" style={{ color: theme.colors.textPrimary }}>
-                Visual Effects & Animations
+                Hiệu Ưứng Hình Ảnh & Hoạt Hình
               </h2>
               <p style={{ color: theme.colors.textSecondary }}>
-                Customize your visual experience with beautiful effects and transitions.
+                Tùy chỉnh trải nghiệm hình ảnh của bạn với các hiệu ứng và chuyển tiếp đẹp.
               </p>
             </div>
 
@@ -541,7 +541,7 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
               }}
             >
               <h3 className="font-semibold mb-4" style={{ color: theme.colors.textPrimary }}>
-                Animation Speed
+                Tốc Độ Hoạt Hình
               </h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -634,19 +634,19 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
         return <ProfileInformation theme={theme} />;
       
       default:
-        return <div>Select a menu item</div>;
+        return <div>Chọn mục menu</div>;
     }
   };
 
   // Get description for each effect type
   const getEffectDescription = (effectType: keyof typeof effectsEnabled): string => {
     const descriptions: Record<keyof typeof effectsEnabled, string> = {
-      particles: "Floating particles in the background for a subtle ambient effect",
-      hearts: "Animated floating hearts for a romantic touch",
-      transitions: "Smooth transitions between pages and components",
-      glow: "Subtle glow effects around important elements",
-      fadeIn: "Elements gracefully fade in when they appear",
-      slideIn: "Elements slide in from the side when they appear"
+      particles: "Các hạt nổi trong nền để tạo hiệu ứng xung quanh tinh tế",
+      hearts: "Trái tim nổi hoạt hình để tạo vẻ lãng mạn",
+      transitions: "Chuyển tiếp mượt mà giữa các trang và thành phần",
+      glow: "Hiệu ứng phát sáng tinh tế xung quanh các phần tử quan trọng",
+      fadeIn: "Các phần tử biến mất một cách duyên dáng khi chúng xuất hiện",
+      slideIn: "Các phần tử trượt vào từ cạnh khi chúng xuất hiện"
     };
     
     return descriptions[effectType];
@@ -703,7 +703,7 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
                     Love Journal
                   </h1>
                   <p className="text-xs" style={{ color: theme.colors.textSecondary }}>
-                    Settings
+                    Cài Đặt
                   </p>
                 </div>
               </div>
@@ -741,11 +741,11 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
                       color: 'white'
                     }}
                   >
-                    Back to Home
+                    Quay Lại Trang Chủ
                   </button>
                 )}
                 <div className="text-center text-xs" style={{ color: theme.colors.textSecondary }}>
-                  Made with <Heart className="w-3 h-3 inline-block mx-1" style={{ color: theme.colors.primary }} /> for you
+                  Được tạo với tình yêu cho bạn
                 </div>
               </div>
             </div>
