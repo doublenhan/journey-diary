@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: true, // Allows access from network
-    port: 3000,
+    port: 3001,
     open: true, // Auto open browser
     hmr: {
       overlay: true // Show error overlay
@@ -14,6 +14,13 @@ export default defineConfig({
     watch: {
       usePolling: true, // Better file watching on Windows
       interval: 100
+    },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '/api'),
+      }
     }
   },
   build: {
