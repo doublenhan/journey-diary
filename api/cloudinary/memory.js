@@ -1,5 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
-import formidable from 'formidable';
+import { IncomingForm } from 'formidable';
 
 export const config = {
   api: {
@@ -10,7 +10,7 @@ export const config = {
 // Helper function to parse form with timeout
 async function parseFormWithTimeout(req, timeoutMs = 30000) {
   return new Promise((resolve, reject) => {
-    const form = new formidable.IncomingForm({
+    const form = new IncomingForm({
       keepExtensions: true,
       maxFileSize: 50 * 1024 * 1024, // 50MB limit
     });
