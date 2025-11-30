@@ -30,19 +30,101 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [validationAttempted, setValidationAttempted] = useState(false);
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Compress image before upload
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d')!;
+          
+          // Max dimensions
+          const MAX_WIDTH = 1920;
+          const MAX_HEIGHT = 1920;
+          let width = img.width;
+          let height = img.height;
+          
+          // Calculate new dimensions
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height = (height * MAX_WIDTH) / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width = (width * MAX_HEIGHT) / height;
+              height = MAX_HEIGHT;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Convert to blob with quality 0.8
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const compressedFile = new File([blob], file.name, {
+                  type: 'image/jpeg',
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } else {
+                resolve(file);
+              }
+            },
+            'image/jpeg',
+            0.8
+          );
+        };
+        img.src = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     
-    files.forEach(file => {
+    // Limit to 5 images total
+    const remainingSlots = 5 - uploadedImages.length;
+    if (remainingSlots <= 0) {
+      setSaveMessage({
+        type: 'error',
+        text: 'Tối đa 5 ảnh. Vui lòng xóa ảnh cũ trước khi thêm ảnh mới.'
+      });
+      setTimeout(() => setSaveMessage(null), 3000);
+      return;
+    }
+    
+    const filesToProcess = files.slice(0, remainingSlots);
+    
+    for (const file of filesToProcess) {
       if (file.type.startsWith('image/')) {
+        // Check file size (max 10MB before compression)
+        if (file.size > 10 * 1024 * 1024) {
+          setSaveMessage({
+            type: 'error',
+            text: `File ${file.name} quá lớn (>10MB). Vui lòng chọn ảnh nhỏ hơn.`
+          });
+          setTimeout(() => setSaveMessage(null), 3000);
+          continue;
+        }
+        
+        // Compress image first
+        const compressedFile = await compressImage(file);
+        
         const reader = new FileReader();
         reader.onload = (e) => {
           setImagePreviews(prev => [...prev, e.target?.result as string]);
         };
-        reader.readAsDataURL(file);
-        setUploadedImages(prev => [...prev, file]);
+        reader.readAsDataURL(compressedFile);
+        setUploadedImages(prev => [...prev, compressedFile]);
       }
-    });
+    }
   };
 
   const removeImage = (index: number) => {
