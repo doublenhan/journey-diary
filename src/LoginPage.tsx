@@ -233,7 +233,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
               <BookHeart className="logo-icon" />
             </div>
             <h1 className="login-title">Love Journey</h1>
-            <p className="login-subtitle">Welcome back to your Love Journey 💌</p>
+            <p className="login-subtitle">Chào mừng quay lại Hành Trình Tình Yêu của bạn 💌</p>
           </div>
 
           {/* Current Date */}
@@ -255,7 +255,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                     checked={registerMethod === 'email'}
                     onChange={() => setRegisterMethod('email')}
                   />{' '}
-                  Register with Email
+                  Đăng ký bằng Email
                 </label>
                 <label style={{ marginLeft: '1.5em' }}>
                   <input
@@ -265,7 +265,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                     checked={registerMethod === 'phone'}
                     onChange={() => setRegisterMethod('phone')}
                   />{' '}
-                  Register with Phone
+                  Đăng ký bằng Điện Thoại
                 </label>
               </div>
             )}
@@ -275,7 +275,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
               registerMethod === 'phone' ? (
                 <div className="form-group">
                   <label htmlFor="phone" className="form-label">
-                    Phone Number
+                    Số Điện Thoại
                   </label>
                   <div className="input-container">
                     <Phone className="input-icon" />
@@ -305,7 +305,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="form-input"
-                      placeholder="Enter your email"
+                      placeholder="Nhập email của bạn"
                       required
                     />
                   </div>
@@ -324,7 +324,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="form-input"
-                    placeholder="Enter your email"
+                    placeholder="Nhập email của bạn"
                     required
                   />
                 </div>
@@ -334,7 +334,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
             {/* Password Field */}
             <div className="form-group">
               <label htmlFor="password" className="form-label">
-                Password
+                Mật Khẩu
               </label>
               <div className="input-container">
                 <Lock className="input-icon" />
@@ -344,14 +344,14 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="form-input"
-                  placeholder="Enter your password"
+                  placeholder="Nhập mật khẩu của bạn"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="password-toggle"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiển thị mật khẩu'}
                 >
                   {showPassword ? (
                     <EyeOff className="password-toggle-icon" />
@@ -372,7 +372,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                   onChange={e => setRememberMe(e.target.checked)}
                   className="remember-me-checkbox"
                 />
-                <span className="remember-me-text">Remember Me</span>
+                <span className="remember-me-text">Nhớ Tôi</span>
               </label>
             </div>
 
@@ -398,12 +398,12 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
               {isLoading ? (
                 <>
                   <Heart className="login-button-icon loading fill-current" />
-                  <span>{isRegister ? 'Creating account...' : 'Signing you in...'}</span>
+                  <span>{isRegister ? 'Đang tạo tài khoản...' : 'Đang đăng nhập...'}</span>
                 </>
               ) : (
                 <>
                   <Heart className="login-button-icon fill-current" />
-                  <span>{isRegister ? 'Create Account' : 'Continue Love Journey'}</span>
+                  <span>{isRegister ? 'Tạo Tài Khoản' : 'Tiếp Tục Hành Trình Tình Yêu'}</span>
                 </>
               )}
             </button>
@@ -412,7 +412,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
           {/* Divider */}
           <div className="divider">
             <div className="divider-line"></div>
-            <span className="divider-text">or</span>
+            <span className="divider-text">hoặc</span>
             <div className="divider-line"></div>
           </div>
 
@@ -420,12 +420,12 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
           <div className="social-login">
             <button className="social-button">
               <div className="social-icon google">G</div>
-              <span>Continue with Google</span>
+              <span>Tiếp Tục bằng Google</span>
             </button>
             
             <button className="social-button">
               <div className="social-icon facebook">f</div>
-              <span>Continue with Facebook</span>
+              <span>Tiếp Tục bằng Facebook</span>
             </button>
           </div>
 
@@ -434,7 +434,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
             <p className="footer-text">
               {isRegister ? (
                 <>
-                  Already have an account?{' '}
+                  Đã có tài khoản?{' '}
                   <button
                     type="button"
                     className="footer-link"
@@ -444,12 +444,12 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                       setSuccessMsg('');
                     }}
                   >
-                    Login
+                    Đăng Nhập
                   </button>
                 </>
               ) : (
                 <>
-                  New to Love Journey?{' '}
+                  Mới sử dụng Love Journey?{' '}
                   <button
                     type="button"
                     className="footer-link"
@@ -459,13 +459,13 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                       setSuccessMsg('');
                     }}
                   >
-                    Create Account
+                    Tạo Tài Khoản
                   </button>
                 </>
               )}
             </p>
             <button className="footer-link">
-              Forgot Password?
+              Quên Mật Khẩu?
             </button>
           </div>
         </div>

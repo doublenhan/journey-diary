@@ -118,7 +118,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
               className="flex items-center space-x-2 text-gray-700 hover:text-pink-600 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
-              <span className="font-medium">Back</span>
+              <span className="font-medium">Quay Lại</span>
             </button>
             
             <div className="flex items-center space-x-2">
@@ -140,29 +140,29 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
         {/* Page Header */}
         <div className="page-header">
           <h1 className="page-title">
-            Our Love
-            <span className="gradient-text"> Memories</span>
+            Những Kỷ Niệm
+            <span className="gradient-text"> Của Chúng Ta</span>
           </h1>
           <p className="page-subtitle">
-            Every moment we've shared, every laugh, every adventure - all captured here in our digital love story.
+            Mỗi khoảnh khắc chúng ta chia sẻ, mỗi lần cười, mỗi cuộc phiêu lưu - tất cả đều được lưu lại ở câu chuyện tình yêu kỹ thuậc về chúng ta.
           </p>
         </div>
 
         {/* Dashboard: Your Love Story by the Numbers */}
         <div className="love-story-dashboard mb-8">
-          <h2 className="dashboard-title text-xl font-bold mb-4 text-pink-600">Your Love Story by the Numbers</h2>
+          <h2 className="dashboard-title text-xl font-bold mb-4 text-pink-600">Câu Chuyện Tình Yêu Của Bạn Trong Số Liệu</h2>
           <div className="dashboard-grid grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="dashboard-card bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
               <Heart className="w-8 h-8 text-pink-500 mb-2" />
               <div className="dashboard-number text-2xl font-bold">{
                 (Object.values(memoriesByYear) as any[][]).reduce((total, arr) => total + (Array.isArray(arr) ? arr.length : 0), 0)
               }</div>
-              <div className="dashboard-label text-sm text-gray-500">Memories</div>
+              <div className="dashboard-label text-sm text-gray-500">Kỷ Niệm</div>
             </div>
             <div className="dashboard-card bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
               <Calendar className="w-8 h-8 text-blue-500 mb-2" />
               <div className="dashboard-number text-2xl font-bold">{years.length}</div>
-              <div className="dashboard-label text-sm text-gray-500">Years</div>
+              <div className="dashboard-label text-sm text-gray-500">Năm</div>
             </div>
             <div className="dashboard-card bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
               <span className="inline-block bg-pink-100 rounded-full p-2 mb-2">
@@ -171,7 +171,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
               <div className="dashboard-number text-2xl font-bold">{
                 (Object.values(memoriesByYear) as any[][]).reduce((total, arr) => total + (Array.isArray(arr) ? arr.reduce((p, m) => p + (Array.isArray(m.images) ? m.images.length : 0), 0) : 0), 0)
               }</div>
-              <div className="dashboard-label text-sm text-gray-500">Photos</div>
+              <div className="dashboard-label text-sm text-gray-500">Ảnh</div>
             </div>
             <div className="dashboard-card bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
               <span className="inline-block bg-pink-100 rounded-full p-2 mb-2">
@@ -183,7 +183,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                   if (allMemories.length === 0) return '--';
                   const firstDate = allMemories[allMemories.length - 1]?.date;
                   const lastDate = allMemories[0]?.date;
-                  return `From ${firstDate ? formatDate(firstDate) : '--'} to ${lastDate ? formatDate(lastDate) : '--'}`;
+                  return `Từ ${firstDate ? formatDate(firstDate) : '--'} đến ${lastDate ? formatDate(lastDate) : '--'}`;
                 })()
               }</div>
 
@@ -195,7 +195,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader className="w-10 h-10 text-pink-500 animate-spin mb-4" />
-            <p className="text-lg text-gray-600">Loading your precious memories...</p>
+            <p className="text-lg text-gray-600">Đang tải những kỷ niệm quý giá của bạn...</p>
           </div>
         )}
 
@@ -209,7 +209,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
               onClick={() => window.location.reload()} 
               className="bg-pink-500 hover:bg-pink-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
             >
-              Try Again
+              Thử Lại
             </button>
           </div>
         )}
@@ -219,15 +219,15 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
           <div className="flex flex-col items-center justify-center py-20">
             <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md">
               <Heart className="w-16 h-16 text-pink-300 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold mb-2 text-gray-800">No Memories Yet</h3>
+              <h3 className="text-2xl font-bold mb-2 text-gray-800">Chưa Có Kỷ Niệm Nào</h3>
               <p className="text-gray-600 mb-6">
-                Start creating beautiful memories together! Each memory will appear here.
+                Bắt đầu tạo những kỷ niệm đẹp cùng nhau! Mỗi kỷ niệm sẽ xuất hiện ở đây.
               </p>
               <a 
                 href="/create-memory" 
                 className="inline-block bg-pink-500 hover:bg-pink-600 text-white font-medium py-2 px-6 rounded-lg transition-colors"
               >
-                Create Your First Memory
+                Tạo Kỷ Niệm Đầu Tiên
               </a>
             </div>
           </div>

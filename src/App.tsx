@@ -99,23 +99,23 @@ function App() {
   const features = [
     {
       icon: <BookOpen className="w-8 h-8" />,
-      title: "Love Journaling",
-      description: "Write and preserve your most precious romantic memories with our beautiful journaling interface."
+      title: "Nhật Ký Tình Yêu",
+      description: "Viết và lưu giữ những kỷ niệm lãng mạn quý giá nhất của bạn với giao diện nhật ký đẹp mắt."
     },
     {
       icon: <Camera className="w-8 h-8" />,
-      title: "Photo Memories",
-      description: "Upload and organize your favorite photos together, creating a visual timeline of your love story."
+      title: "Bộ Sưu Tập Ảnh",
+      description: "Tải lên và sắp xếp những bức ảnh yêu thích của bạn, tạo dòng thời gian trực quan cho câu chuyện tình yêu."
     },
     {
       icon: <Bell className="w-8 h-8" />,
-      title: "Anniversary Reminders",
-      description: "Never miss important dates with smart reminders for anniversaries, birthdays, and special moments."
+      title: "Nhắc Nhở Kỷ Niệm",
+      description: "Không bao giờ bỏ lỡ những ngày quan trọng với nhắc nhở thông minh cho kỷ niệm, sinh nhật và những khoảnh khắc đặc biệt."
     },
     {
       icon: <Download2 className="w-8 h-8" />,
-      title: "Cloud Sync",
-      description: "Keep your memories safe with automatic cloud backup and sync across all your devices."
+      title: "Đồng Bộ Cloud",
+      description: "Giữ an toàn kỷ niệm của bạn với sao lưu tự động và đồng bộ trên tất cả các thiết bị."
     }
   ];
 
@@ -199,11 +199,10 @@ function App() {
                       <span className="logo-text">Love Journey</span>
                     </div>
                     <nav className="nav-desktop">
-                      <a href="/create-memory" className="nav-link">Create Memory</a>
-                      <a href="/view-memory" className="nav-link">View Memories</a>
-                      <a href="/journey-tracker" className="nav-link">Journey Tracker</a>
-                      <a href="/anniversary-reminders" className="nav-link">Anniversary Reminders</a>
-                      <a href="/setting-page" className="nav-link">Settings</a>
+                      <a href="/create-memory" className="nav-link">Tạo Kỷ Niệm</a>
+                      <a href="/view-memory" className="nav-link">Xem Kỷ Niệm</a>
+                      <a href="/anniversary-reminders" className="nav-link">Nhắc Nhở Kỷ Niệm</a>
+                      <a href="/setting-page" className="nav-link">Cài Đặt</a>
                     </nav>
                     <button className="mobile-menu-button" onClick={() => setMobileMenuOpen(true)} aria-label="Open menu">
                       <Menu size={28} />
@@ -219,31 +218,25 @@ function App() {
                       <a href="/create-memory" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
                         <span className="mobile-menu-link-row">
                           <BookOpen size={20} className="mobile-menu-link-icon" />
-                          Create Memory
+                          Tạo Kỷ Niệm
                         </span>
                       </a>
                       <a href="/view-memory" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
                         <span className="mobile-menu-link-row">
                           <Camera size={20} className="mobile-menu-link-icon" />
-                          View Memories
-                        </span>
-                      </a>
-                      <a href="/journey-tracker" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
-                        <span className="mobile-menu-link-row">
-                          <Heart size={20} className="mobile-menu-link-icon" />
-                          Journey Tracker
+                          Xem Kỷ Niệm
                         </span>
                       </a>
                       <a href="/anniversary-reminders" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
                         <span className="mobile-menu-link-row">
                           <Bell size={20} className="mobile-menu-link-icon" />
-                          Anniversary Reminders
+                          Nhắc Nhở Kỷ Niệm
                         </span>
                       </a>
                       <a href="/setting-page" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
                         <span className="mobile-menu-link-row">
                           <Download2 size={20} className="mobile-menu-link-icon" />
-                          Settings
+                          Cài Đặt
                         </span>
                       </a>
                     </div>
@@ -256,14 +249,14 @@ function App() {
                     <div className="hero-grid">
                       <div className="hero-content">
                         <h1 className="hero-title">
-                          Welcome to <span className="hero-title-highlight">Love Journey</span>
+                          Chào Mừng Đến <span className="hero-title-highlight">Love Journey</span>
                         </h1>
                         <p className="hero-description">
-                          Preserve your memories, celebrate your love.
+                          Lưu giữ kỷ niệm, tôn vinh tình yêu của bạn.
                         </p>
                         <div className="hero-buttons">
-                          <a href="/create-memory" className="hero-button-primary">Start Your Memory</a>
-                          <a href="/view-memory" className="hero-button-secondary">View Memories</a>
+                          <a href="/create-memory" className="hero-button-primary">Bắt Đầu Tạo Kỷ Niệm</a>
+                          <a href="/view-memory" className="hero-button-secondary">Xem Kỷ Niệm</a>
                         </div>
                       </div>
                       <div className="hero-image-container">
@@ -284,10 +277,10 @@ function App() {
                   <div className="features-container">
                     <div className="features-header">
                       <h2 className="features-title">
-                        <span className="features-title-highlight">Features</span>
+                        <span className="features-title-highlight">Tính Năng</span>
                       </h2>
                       <p className="features-description">
-                        Everything you need to make your love story unforgettable.
+                        Tất cả những gì bạn cần để làm cho câu chuyện tình yêu trở nên không thể quên.
                       </p>
                     </div>
                     <div className="features-grid">
@@ -305,10 +298,10 @@ function App() {
                   <div className="gallery-container">
                     <div className="gallery-header">
                       <h2 className="gallery-title">
-                        <span className="gallery-title-highlight">Gallery</span>
+                        <span className="gallery-title-highlight">Bộ Sưu Tập Ảnh</span>
                       </h2>
                       <p className="gallery-description">
-                        A glimpse into the beautiful moments you can save.
+                        Những khoảnh khắc đẹp mà bạn có thể lưu giữ.
                       </p>
                     </div>
                     <div className="gallery-carousel-wrapper">
@@ -323,7 +316,7 @@ function App() {
                         }}
                       >
                         {galleryImages.length === 0 ? (
-                          <div style={{width:'100%',textAlign:'center',padding:'2rem',color:'#aaa'}}>No images found.</div>
+                          <div style={{width:'100%',textAlign:'center',padding:'2rem',color:'#aaa'}}>Không tìm thấy hình ảnh.</div>
                         ) : (
                           galleryImages.map((img, idx) => (
                             <div
@@ -351,13 +344,13 @@ function App() {
                 </section>
                 <section className="cta-section">
                   <div className="cta-container">
-                    <h2 className="cta-title">Start Your Love Journey Today!</h2>
-                    <p className="cta-description">Create, cherish, and relive your most precious memories together.</p>
+                    <h2 className="cta-title">Bắt Đầu Hành Trình Tình Yêu Ngay Hôm Nay!</h2>
+                    <p className="cta-description">Tạo, trân trọng và tái tạo những kỷ niệm quý giá nhất của bạn cùng nhau.</p>
                     <div className="cta-buttons">
-                      <a href="/create-memory" className="cta-button">Create Memory <BookOpen size={18} /></a>
-                      <a href="/view-memory" className="cta-button">View Memories <Camera size={18} /></a>
+                      <a href="/create-memory" className="cta-button">Tạo Kỷ Niệm <BookOpen size={18} /></a>
+                      <a href="/view-memory" className="cta-button">Xem Kỷ Niệm <Camera size={18} /></a>
                     </div>
-                    <div className="cta-note">No account required to start saving memories!</div>
+                    <div className="cta-note">Không cần tài khoản để bắt đầu lưu giữ kỷ niệm!</div>
                   </div>
                 </section>
               </main>
