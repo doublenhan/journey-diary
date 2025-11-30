@@ -20,13 +20,36 @@ export default async function handler(req, res) {
         return res.status(200).json({ memories: [] });
       }
       
-      const allImages = await cloudinary.api.resources({
-        type: 'upload',
-        resource_type: 'image',
-        prefix: 'love-journal/memories/',
-        context: true,
-        max_results: 100,
-      });
+      // Fetch all images with pagination
+      let allImages = [];
+      let nextCursor = null;
+      let pageNum = 0;
+      
+      do {
+        console.log(`[DEBUG] Fetching page ${pageNum}...`);
+        
+        const queryParams = {
+          type: 'upload',
+          resource_type: 'image',
+          prefix: 'love-journal/memories/',
+          context: true,
+          max_results: 100,
+        };
+        
+        if (nextCursor) {
+          queryParams.next_cursor = nextCursor;
+        }
+        
+        const response = await cloudinary.api.resources(queryParams);
+        
+        console.log(`[DEBUG] Page ${pageNum} returned:`, response.resources.length, 'resources, total_count:', response.total_count);
+        
+        allImages = allImages.concat(response.resources);
+        nextCursor = response.next_cursor;
+        pageNum++;
+      } while (nextCursor);
+      
+      console.log(`[DEBUG] Total resources fetched: ${allImages.length}`);
       
       // Group by memory_id and filter by userId if provided
       const memoriesMap = new Map();
@@ -34,9 +57,9 @@ export default async function handler(req, res) {
       let imagesWithoutMemoryId = 0;
       let imagesFiltered = 0;
       
-      console.log('[DEBUG] Total resources from Cloudinary:', allImages.resources.length);
+      console.log('[DEBUG] Total resources from Cloudinary:', allImages.length);
       
-      for (const resource of allImages.resources) {
+      for (const resource of allImages) {
         // Handle both context.custom and flat context structure
         let customContext = resource.context?.custom || {};
         let flatContext = resource.context || {};
@@ -45,14 +68,21 @@ export default async function handler(req, res) {
         const memoryId = flatContext.memory_id || customContext.memory_id;
         const userId_context = flatContext.userId || customContext.userId;
         
+        console.log(`[DEBUG] Processing resource ${resource.public_id}:`, {
+          hasMemoryId: !!memoryId,
+          memoryId: memoryId || 'N/A',
+          userId_context: userId_context || 'N/A',
+          userIdFilter: userId || 'N/A',
+        });
+        
         if (!memoryId) {
-          console.log('[DEBUG] Image without memory_id:', resource.public_id);
+          console.log(`[WARN] Image without memory_id: ${resource.public_id}`);
           imagesWithoutMemoryId++;
           continue;
         }
         
         if (userId && userId_context !== userId) {
-          console.log('[DEBUG] Image filtered by userId:', resource.public_id, 'userId_context:', userId_context, 'filter:', userId);
+          console.log(`[DEBUG] Image filtered by userId: ${resource.public_id} (${userId_context} !== ${userId})`);
           imagesFiltered++;
           continue;
         }
@@ -88,8 +118,8 @@ export default async function handler(req, res) {
       const memories = Array.from(memoriesMap.values()).sort((a, b) => new Date(b.date) - new Date(a.date));
       const totalImages = memories.reduce((sum, m) => sum + m.images.length, 0);
       
-      console.log('[DEBUG] Memories processing stats:', {
-        totalResources: allImages.resources.length,
+      console.log('[DEBUG] ✅ Memories processing complete:', {
+        totalResources: allImages.length,
         totalImagesProcessed,
         imagesWithoutMemoryId,
         imagesFiltered,
