@@ -94,14 +94,11 @@ function PDFExport({ onBack, currentTheme }: PDFExportProps) {
   React.useEffect(() => {
     async function loadMemories() {
       try {
-        console.log('userId:', userId);
         if (!userId) {
-          console.warn('userId is empty. Please login or set userId before using PDFExport.');
           setMemories([]);
           return;
         }
         const data = await fetchMemories(userId);
-        console.log('Fetched memories:', data);
         // Filter by date range
         const filteredMemories = data.filter((memory: any) => {
           const memoryDate = new Date(memory.date);
@@ -122,10 +119,8 @@ function PDFExport({ onBack, currentTheme }: PDFExportProps) {
           mood: typeof memory.mood === 'string' ? memory.mood : '',
           moodEmoji: typeof memory.moodEmoji === 'string' ? memory.moodEmoji : '',
         }));
-        console.log('Filtered memories:', filteredMemories);
         setMemories(filteredMemories);
       } catch (error) {
-        console.error('Error loading memories:', error);
         setMemories([]);
       }
     }

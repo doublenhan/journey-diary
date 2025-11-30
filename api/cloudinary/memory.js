@@ -41,21 +41,18 @@ export default async function handler(req, res) {
     const api_secret = process.env.CLOUDINARY_API_SECRET;
     
     if (!cloud_name || !api_key || !api_secret) {
-      console.error('[ERROR] Missing Cloudinary config');
       return res.status(403).json({ error: 'Cloudinary not configured' });
     }
     
     cloudinary.config({ cloud_name, api_key, api_secret });
     
     // Parse form data
-    console.log('[DEBUG] Starting form parse...');
     let fields, files;
     try {
       const parsed = await parseFormWithTimeout(req);
       fields = parsed.fields;
       files = parsed.files;
     } catch (parseErr) {
-      console.error('[ERROR] Form parse failed:', parseErr.message);
       return res.status(400).json({ 
         error: 'Form parse error',
         message: parseErr.message,
@@ -82,16 +79,8 @@ export default async function handler(req, res) {
       images = [images];
     }
 
-    console.log('[DEBUG] Fields extracted:', { titleStr: !!titleStr, textStr: !!textStr, dateStr: !!dateStr, imageCount: images.length });
-    
     // Validate required fields
     if (!titleStr || !textStr || !dateStr || images.length === 0) {
-      console.error('[ERROR] Missing required fields:', {
-        titleStr: !!titleStr,
-        textStr: !!textStr,
-        dateStr: !!dateStr,
-        imageCount: images.length
-      });
       return res.status(400).json({
         error: 'Missing required fields',
         details: { titleStr: !!titleStr, textStr: !!textStr, dateStr: !!dateStr, imageCount: images.length },
@@ -102,28 +91,14 @@ export default async function handler(req, res) {
     const folder = `love-journal/memories/${new Date(dateStr).getFullYear()}`;
     const memoryId = `memory-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
-    console.log('[DEBUG] Starting image uploads...');
-    console.log('[DEBUG] Uploading', images.length, 'images to folder:', folder);
-    console.log('[DEBUG] Memory ID:', memoryId);
-
     // Upload images with better error handling
     const uploadPromises = images.map((file, idx) => {
-      console.log(`[DEBUG] Image ${idx}: ${file.filepath} (${file.size} bytes)`);
-      
       // Create unique public_id with timestamp + random + index
       const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${idx}`;
       
       // Cloudinary context must be key=value format, not nested objects
       // Use pipe | as delimiter for multiple values
       const contextStr = `memory_id=${memoryId}|memory_date=${dateStr}|title=${titleStr.substring(0, 50)}|location=${(locationStr || '').substring(0, 30)}|memory_text=${textStr.substring(0, 60)}|userId=${userIdStr}`;
-      
-      console.log(`[DEBUG] Image ${idx} context string created:`, {
-        memoryId,
-        hasUserId: !!userIdStr,
-        hasTitle: !!titleStr,
-        hasDate: !!dateStr,
-        contextLength: contextStr.length
-      });
       
       return cloudinary.uploader.upload(file.filepath, {
         resource_type: 'auto',
@@ -135,24 +110,15 @@ export default async function handler(req, res) {
         public_id: `memory-${uniqueSuffix}`,
         timeout: 60000, // 60s timeout per upload
       })
-        .then(result => {
-          console.log(`[DEBUG] Image ${idx} uploaded: ${result.public_id}`);
-          return result;
-        })
         .catch(uploadErr => {
-          console.error(`[ERROR] Image ${idx} upload failed:`, uploadErr.message);
           throw uploadErr;
         });
     });
 
     let uploadedImages;
     try {
-      console.log(`[DEBUG] Uploading ${uploadPromises.length} images with Promise.all...`);
       uploadedImages = await Promise.all(uploadPromises);
-      console.log(`[DEBUG] Promise.all resolved: ${uploadedImages.length} images uploaded`);
     } catch (uploadErr) {
-      console.error('[ERROR] Image upload failed:', uploadErr.message);
-      console.error('[ERROR] Stack:', uploadErr.stack);
       return res.status(500).json({
         error: 'Image upload failed',
         message: uploadErr.message,
@@ -161,21 +127,12 @@ export default async function handler(req, res) {
     }
     
     if (!uploadedImages || uploadedImages.length === 0) {
-      console.error('[ERROR] uploadedImages is empty after Promise.all');
       return res.status(500).json({
         error: 'No images uploaded',
         message: 'uploadedImages array is empty',
         code: 'NO_IMAGES'
       });
     }
-
-    console.log(`[DEBUG] All images uploaded successfully: ${uploadedImages.length} images`);
-    console.log('[DEBUG] uploadedImages details:', uploadedImages.map((img, i) => ({ 
-      idx: i, 
-      public_id: img.public_id,
-      secure_url: img.secure_url?.substring(0, 50) + '...'
-    })));
-    console.log('[DEBUG] Creating memory object...');
 
     const memory = {
       id: memoryId,
@@ -198,7 +155,6 @@ export default async function handler(req, res) {
       folder,
     };
 
-    console.log('[DEBUG] Memory saved successfully, returning response');
     return res.status(200).json({
       success: true,
       memory,
@@ -206,8 +162,6 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error('[ERROR] Outer catch:', error.message);
-    console.error('[ERROR] Stack:', error.stack);
     return res.status(500).json({
       error: 'Server error',
       message: error.message,

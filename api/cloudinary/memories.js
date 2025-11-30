@@ -16,7 +16,6 @@ export default async function handler(req, res) {
       
       // Check if Cloudinary credentials exist
       if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-        console.warn('⚠️ Cloudinary credentials not configured');
         return res.status(200).json({ memories: [] });
       }
       
@@ -26,8 +25,6 @@ export default async function handler(req, res) {
       let pageNum = 0;
       
       do {
-        console.log(`[DEBUG] Fetching page ${pageNum}...`);
-        
         const queryParams = {
           type: 'upload',
           resource_type: 'image',
@@ -42,28 +39,16 @@ export default async function handler(req, res) {
         
         const response = await cloudinary.api.resources(queryParams);
         
-        console.log(`[DEBUG] Page ${pageNum} returned:`, response.resources.length, 'resources, total_count:', response.total_count);
-        
         allImages = allImages.concat(response.resources);
         nextCursor = response.next_cursor;
         pageNum++;
       } while (nextCursor);
-      
-      console.log(`[DEBUG] Total resources fetched: ${allImages.length}`);
-      console.log(`[DEBUG] All public_ids from Cloudinary:`, allImages.map(r => r.public_id));
-      console.log(`[DEBUG] All memory_ids in context:`, allImages.map(r => {
-        const flatCtx = r.context || {};
-        const customCtx = r.context?.custom || {};
-        return `${r.public_id} -> ${flatCtx.memory_id || customCtx.memory_id || 'NONE'}`;
-      }));
       
       // Group by memory_id and filter by userId if provided
       const memoriesMap = new Map();
       let totalImagesProcessed = 0;
       let imagesWithoutMemoryId = 0;
       let imagesFiltered = 0;
-      
-      console.log('[DEBUG] Total resources from Cloudinary:', allImages.length);
       
       for (const resource of allImages) {
         // Parse context - can be string (pipe-delimited) or object
@@ -82,21 +67,12 @@ export default async function handler(req, res) {
         const memoryId = contextData.memory_id;
         const userId_context = contextData.userId;
         
-        console.log(`[DEBUG] Processing resource ${resource.public_id}:`, {
-          hasMemoryId: !!memoryId,
-          memoryId: memoryId || 'N/A',
-          userId_context: userId_context || 'N/A',
-          userIdFilter: userId || 'N/A',
-        });
-        
         if (!memoryId) {
-          console.log(`[WARN] Image without memory_id: ${resource.public_id}`);
           imagesWithoutMemoryId++;
           continue;
         }
         
         if (userId && userId_context !== userId) {
-          console.log(`[DEBUG] Image filtered by userId: ${resource.public_id} (${userId_context} !== ${userId})`);
           imagesFiltered++;
           continue;
         }
@@ -132,18 +108,8 @@ export default async function handler(req, res) {
       const memories = Array.from(memoriesMap.values()).sort((a, b) => new Date(b.date) - new Date(a.date));
       const totalImages = memories.reduce((sum, m) => sum + m.images.length, 0);
       
-      console.log('[DEBUG] ✅ Memories processing complete:', {
-        totalResources: allImages.length,
-        totalImagesProcessed,
-        imagesWithoutMemoryId,
-        imagesFiltered,
-        totalMemories: memories.length,
-        totalImages
-      });
-      
       res.status(200).json({ memories, timestamp: new Date().toISOString() });
     } catch (error) {
-      console.error('Memories API error:', error);
       res.status(500).json({ 
         error: 'Failed to fetch memories', 
         message: error.message,
