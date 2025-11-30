@@ -18,15 +18,33 @@ export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
   
   if (req.method === 'POST') {
+    // Re-config cloudinary for this request (environment may not be set initially)
+    const cloud_name = process.env.CLOUDINARY_CLOUD_NAME;
+    const api_key = process.env.CLOUDINARY_API_KEY;
+    const api_secret = process.env.CLOUDINARY_API_SECRET;
+    
     // Check credentials
-    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-      return res.status(403).json({ error: 'Cloudinary not configured' });
+    if (!cloud_name || !api_key || !api_secret) {
+      console.error('Missing Cloudinary config:', {
+        cloud_name: !!cloud_name,
+        api_key: !!api_key,
+        api_secret: !!api_secret
+      });
+      return res.status(403).json({ error: 'Cloudinary not configured', code: 'MISSING_CONFIG' });
     }
+    
+    // Update config
+    cloudinary.config({
+      cloud_name,
+      api_key,
+      api_secret,
+    });
     
     const form = new formidable.IncomingForm({ multiples: true });
     form.parse(req, async (err, fields, files) => {
       try {
         if (err) {
+          console.error('Form parse error:', err);
           res.status(400).json({ error: 'Form parse error', message: err.message });
           return;
         }
@@ -39,6 +57,7 @@ export default async function handler(req, res) {
         
         const images = Array.isArray(files.images) ? files.images : files.images ? [files.images] : [];
         if (!titleStr || !textStr || !dateStr || images.length === 0) {
+          console.warn('Missing fields:', { titleStr: !!titleStr, textStr: !!textStr, dateStr: !!dateStr, images: images.length });
           res.status(400).json({ error: 'Missing required fields: title, text, date, or images' });
           return;
         }
