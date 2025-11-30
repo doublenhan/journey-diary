@@ -19,8 +19,13 @@ export default async function handler(req, res) {
       }
       
       let { folder, tags, max_results = '20', next_cursor, sort_by = 'created_at', sort_order = 'desc' } = req.query;
+      
+      // Add environment prefix to folder for DEV/PROD separation
+      const envPrefix = process.env.CLOUDINARY_FOLDER_PREFIX || '';
+      const finalFolder = (folder && envPrefix) ? `${envPrefix}/${folder}` : (folder || '');
+      
       let expression = 'resource_type:image';
-      if (folder) expression += ` AND folder:${folder}`;
+      if (finalFolder) expression += ` AND folder:${finalFolder}`;
       if (tags) {
         const tagArray = tags.split(',');
         const tagExpression = tagArray.map(tag => `tags:${tag.trim()}`).join(' AND ');

@@ -89,6 +89,11 @@ export default async function handler(req, res) {
     }
 
     const folder = `love-journal/memories/${new Date(dateStr).getFullYear()}`;
+    
+    // Add environment prefix to folder for DEV/PROD separation
+    const envPrefix = process.env.CLOUDINARY_FOLDER_PREFIX || '';
+    const finalFolder = envPrefix ? `${envPrefix}/${folder}` : folder;
+    
     const memoryId = `memory-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
     // Upload images with better error handling
@@ -104,7 +109,7 @@ export default async function handler(req, res) {
         resource_type: 'auto',
         quality: 'auto',
         fetch_format: 'auto',
-        folder,
+        folder: finalFolder,
         tags: ['memory', 'love-journal'],
         context: contextStr,
         public_id: `memory-${uniqueSuffix}`,

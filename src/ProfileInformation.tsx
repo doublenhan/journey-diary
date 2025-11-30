@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { Pencil, User, Mail, Phone, Calendar } from 'lucide-react';
-import { auth, db } from './firebase/firebaseConfig';
+import { auth, db, getCollectionName } from './firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
@@ -32,7 +32,7 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
       if (firebaseUser) {
         setProfile((prev) => ({ ...prev, email: firebaseUser.email || '' }));
         // Fetch profile from Firestore
-        const docRef = doc(db, 'users', firebaseUser.uid);
+        const docRef = doc(db, getCollectionName('users'), firebaseUser.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
@@ -65,7 +65,7 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
     setSaving(true);
     onSyncStart?.();
     try {
-      await setDoc(doc(db, 'users', user.uid), {
+      await setDoc(doc(db, getCollectionName('users'), user.uid), {
         displayName: profile.displayName,
         phone: profile.phone,
         dob: profile.dob
