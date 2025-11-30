@@ -63,24 +63,30 @@ function App() {
     }
   }, [userId, loading, navigate]);
 
-  // ✅ Gọi API health check từ serverless Vercel
+  // ✅ Gọi API health check từ serverless Vercel (non-blocking)
   useEffect(() => {
-    fetch('/api/cloudinary/health')
-      .then(res => {
-        if (!res.ok) {
-          console.warn('Health check returned non-ok status:', res.status);
-          return null;
-        }
-        return res.json();
-      })
-      .then(data => {
-        if (data) {
+    const checkHealth = async () => {
+      try {
+        const res = await fetch('/api/cloudinary/health', {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' }
+        });
+        
+        // Check if response is ok and has correct content type
+        const contentType = res.headers.get('content-type');
+        if (res.ok && contentType && contentType.includes('application/json')) {
+          const data = await res.json();
           console.log('✅ API /health ok:', data);
+        } else {
+          console.warn('Health check: Invalid response format');
         }
-      })
-      .catch(err => {
-        console.error('❌ API /health error:', err);
-      });
+      } catch (err) {
+        // Silently fail - don't block page load
+        console.debug('Health check unavailable:', err.message);
+      }
+    };
+    
+    checkHealth();
   }, []);
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -181,9 +187,197 @@ function App() {
     <Routes>
       <Route path="/" element={<LoginPage currentTheme={currentTheme} />} />
       <Route path="/landing" element={
-        <div className="landing-page">
-          {/* phần landing giữ nguyên như trước, không thay đổi */}
-        </div>
+        (() => {
+          const themes = {
+            happy: {
+              background: 'linear-gradient(135deg, #FFFDE4 0%, #FFF 50%, #FEF08A 100%)',
+              textPrimary: '#78350f',
+            },
+            calm: {
+              background: 'linear-gradient(135deg, #EEF2FF 0%, #FFF 50%, #E0E7FF 100%)',
+              textPrimary: '#3730a3',
+            },
+            romantic: {
+              background: 'linear-gradient(135deg, #FDF2F8 0%, #FFF 50%, #FCE7F3 100%)',
+              textPrimary: '#831843',
+            }
+          };
+          const theme = themes[currentTheme];
+          return (
+            <div className="landing-page" style={{ background: theme.background, color: theme.textPrimary }}>
+              <header className="header">
+                <div className="header-container">
+                  <div className="header-content">
+                    <div className="logo">
+                      <Heart className="logo-icon" />
+                      <span className="logo-text">Love Journey</span>
+                    </div>
+                    <nav className="nav-desktop">
+                      <a href="/create-memory" className="nav-link">Create Memory</a>
+                      <a href="/view-memory" className="nav-link">View Memories</a>
+                      <a href="/journey-tracker" className="nav-link">Journey Tracker</a>
+                      <a href="/anniversary-reminders" className="nav-link">Anniversary Reminders</a>
+                      <a href="/setting-page" className="nav-link">Settings</a>
+                    </nav>
+                    <button className="mobile-menu-button" onClick={() => setMobileMenuOpen(true)} aria-label="Open menu">
+                      <Menu size={28} />
+                    </button>
+                  </div>
+                </div>
+                {mobileMenuOpen && (
+                  <div className="mobile-menu">
+                    <div className="mobile-menu-content">
+                      <button className="mobile-menu-button" onClick={() => setMobileMenuOpen(false)} aria-label="Close menu">
+                        <X size={28} />
+                      </button>
+                      <a href="/create-memory" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
+                        <span className="mobile-menu-link-row">
+                          <BookOpen size={20} className="mobile-menu-link-icon" />
+                          Create Memory
+                        </span>
+                      </a>
+                      <a href="/view-memory" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
+                        <span className="mobile-menu-link-row">
+                          <Camera size={20} className="mobile-menu-link-icon" />
+                          View Memories
+                        </span>
+                      </a>
+                      <a href="/journey-tracker" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
+                        <span className="mobile-menu-link-row">
+                          <Heart size={20} className="mobile-menu-link-icon" />
+                          Journey Tracker
+                        </span>
+                      </a>
+                      <a href="/anniversary-reminders" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
+                        <span className="mobile-menu-link-row">
+                          <Bell size={20} className="mobile-menu-link-icon" />
+                          Anniversary Reminders
+                        </span>
+                      </a>
+                      <a href="/setting-page" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
+                        <span className="mobile-menu-link-row">
+                          <Download2 size={20} className="mobile-menu-link-icon" />
+                          Settings
+                        </span>
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </header>
+              <main>
+                <section className="hero-section">
+                  <div className="hero-container">
+                    <div className="hero-grid">
+                      <div className="hero-content">
+                        <h1 className="hero-title">
+                          Welcome to <span className="hero-title-highlight">Love Journey</span>
+                        </h1>
+                        <p className="hero-description">
+                          Preserve your memories, celebrate your love.
+                        </p>
+                        <div className="hero-buttons">
+                          <a href="/create-memory" className="hero-button-primary">Start Your Memory</a>
+                          <a href="/view-memory" className="hero-button-secondary">View Memories</a>
+                        </div>
+                      </div>
+                      <div className="hero-image-container">
+                        <div className="hero-image-wrapper">
+                          <img
+                            src={heroImages.length > 0 ? heroImages[heroIndex] : "https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=400"}
+                            alt="Love Memory"
+                            className="hero-image hero-image-consistent"
+                          />
+                        </div>
+                        <div className="hero-decoration-1"></div>
+                        <div className="hero-decoration-2"></div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+                <section className="features-section">
+                  <div className="features-container">
+                    <div className="features-header">
+                      <h2 className="features-title">
+                        <span className="features-title-highlight">Features</span>
+                      </h2>
+                      <p className="features-description">
+                        Everything you need to make your love story unforgettable.
+                      </p>
+                    </div>
+                    <div className="features-grid">
+                      {features.map((feature, idx) => (
+                        <div className="feature-card" key={idx}>
+                          <div className="feature-icon">{feature.icon}</div>
+                          <div className="feature-title">{feature.title}</div>
+                          <div className="feature-description">{feature.description}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+                <section className="gallery-section">
+                  <div className="gallery-container">
+                    <div className="gallery-header">
+                      <h2 className="gallery-title">
+                        <span className="gallery-title-highlight">Gallery</span>
+                      </h2>
+                      <p className="gallery-description">
+                        A glimpse into the beautiful moments you can save.
+                      </p>
+                    </div>
+                    <div className="gallery-carousel-wrapper">
+                      <div
+                        className="gallery-carousel"
+                        ref={carouselRef}
+                        style={{
+                          display: 'flex',
+                          transition: 'transform 0.7s cubic-bezier(0.4,0,0.2,1)',
+                          transform: `translateX(-${carouselIndex * (100 / imagesPerPage)}%)`,
+                          willChange: 'transform',
+                        }}
+                      >
+                        {galleryImages.length === 0 ? (
+                          <div style={{width:'100%',textAlign:'center',padding:'2rem',color:'#aaa'}}>No images found.</div>
+                        ) : (
+                          galleryImages.map((img, idx) => (
+                            <div
+                              className="gallery-item"
+                              key={idx}
+                            >
+                              <img src={img} alt="Memory" className="gallery-image" />
+                              <div className="gallery-overlay"></div>
+                              <Heart className="gallery-heart" />
+                            </div>
+                          ))
+                        )}
+                      </div>
+                      <div className="gallery-carousel-dots">
+                        {Array.from({length: Math.max(1, Math.ceil(galleryImages.length / imagesPerPage))}).map((_, idx) => (
+                          <span
+                            key={idx}
+                            className={idx === carouselIndex ? 'dot active' : 'dot'}
+                            onClick={() => setCarouselIndex(idx)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </section>
+                <section className="cta-section">
+                  <div className="cta-container">
+                    <h2 className="cta-title">Start Your Love Journey Today!</h2>
+                    <p className="cta-description">Create, cherish, and relive your most precious memories together.</p>
+                    <div className="cta-buttons">
+                      <a href="/create-memory" className="cta-button">Create Memory <BookOpen size={18} /></a>
+                      <a href="/view-memory" className="cta-button">View Memories <Camera size={18} /></a>
+                    </div>
+                    <div className="cta-note">No account required to start saving memories!</div>
+                  </div>
+                </section>
+              </main>
+            </div>
+          );
+        })()
       } />
       <Route path="/create-memory" element={<CreateMemory onBack={() => window.history.back()} currentTheme={currentTheme} />} />
       <Route path="/view-memory" element={<ViewMemory onBack={() => window.history.back()} currentTheme={currentTheme} />} />
