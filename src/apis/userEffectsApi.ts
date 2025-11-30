@@ -21,21 +21,27 @@ const DEFAULT_EFFECTS: EffectsSettings = {
   animationSpeed: 0.5
 };
 
+// Save to Firestore only
 export async function saveUserEffects(userId: string, effects: EffectsSettings): Promise<void> {
   try {
-    const effectsRef = doc(db, 'userEffects', userId);
-    await setDoc(effectsRef, {
+    const effectsData = {
       ...effects,
       updatedAt: new Date().toISOString()
-    });
+    };
+    
+    // Save to Firestore only
+    const effectsRef = doc(db, 'userEffects', userId);
+    await setDoc(effectsRef, effectsData);
   } catch (error) {
     console.error('Error saving user effects:', error);
     throw error;
   }
 }
 
+// Load from Firestore only
 export async function getUserEffects(userId: string): Promise<EffectsSettings | null> {
   try {
+    // Load from Firestore
     const effectsRef = doc(db, 'userEffects', userId);
     const effectsSnap = await getDoc(effectsRef);
     
