@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   Heart, BookOpen, Camera, Bell, Download as Download2,
-  FileText, Menu, X, Instagram, Twitter, Facebook,
+  Menu, X, Instagram, Twitter, Facebook,
   Mail, Phone, MapPin
 } from 'lucide-react';
 import { useMemoriesCache } from './hooks/useMemoriesCache';
@@ -10,7 +10,6 @@ import CreateMemory from './CreateMemory';
 import ViewMemory from './ViewMemory';
 import JourneyTracker from './JourneyTracker';
 import AnniversaryReminders from './AnniversaryReminders';
-import PDFExport from './PDFExport';
 import SettingPage from './SettingPage';
 import LoginPage from './LoginPage';
 import './styles/App.css';
@@ -113,11 +112,6 @@ function App() {
       icon: <Bell className="w-8 h-8" />,
       title: "Anniversary Reminders",
       description: "Never miss important dates with smart reminders for anniversaries, birthdays, and special moments."
-    },
-    {
-      icon: <FileText className="w-8 h-8" />,
-      title: "PDF Export",
-      description: "Transform your digital memories into beautiful PDF books that you can print and treasure forever."
     },
     {
       icon: <Heart className="w-8 h-8" />,
@@ -381,7 +375,6 @@ function App() {
       <Route path="/view-memory" element={<ViewMemory onBack={() => window.history.back()} currentTheme={currentTheme} />} />
       <Route path="/journey-tracker" element={<JourneyTracker onBack={() => window.history.back()} currentTheme={currentTheme} />} />
       <Route path="/anniversary-reminders" element={<AnniversaryReminders onBack={() => window.history.back()} currentTheme={currentTheme} />} />
-      <Route path="/pdf-export" element={<PDFExport onBack={() => window.history.back()} currentTheme={currentTheme} />} />
       <Route path="/setting-page" element={<SettingPage onBack={() => window.history.back()} currentTheme={currentTheme} setCurrentTheme={setCurrentTheme} />} />
     </Routes>
   );
