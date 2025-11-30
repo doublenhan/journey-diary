@@ -144,17 +144,35 @@ export default async function handler(req, res) {
 
     let uploadedImages;
     try {
+      console.log(`[DEBUG] Uploading ${uploadPromises.length} images with Promise.all...`);
       uploadedImages = await Promise.all(uploadPromises);
+      console.log(`[DEBUG] Promise.all resolved: ${uploadedImages.length} images uploaded`);
     } catch (uploadErr) {
       console.error('[ERROR] Image upload failed:', uploadErr.message);
+      console.error('[ERROR] Stack:', uploadErr.stack);
       return res.status(500).json({
         error: 'Image upload failed',
         message: uploadErr.message,
         code: 'UPLOAD_FAILED'
       });
     }
+    
+    if (!uploadedImages || uploadedImages.length === 0) {
+      console.error('[ERROR] uploadedImages is empty after Promise.all');
+      return res.status(500).json({
+        error: 'No images uploaded',
+        message: 'uploadedImages array is empty',
+        code: 'NO_IMAGES'
+      });
+    }
 
-    console.log('[DEBUG] All images uploaded, creating memory object...');
+    console.log(`[DEBUG] All images uploaded successfully: ${uploadedImages.length} images`);
+    console.log('[DEBUG] uploadedImages details:', uploadedImages.map((img, i) => ({ 
+      idx: i, 
+      public_id: img.public_id,
+      secure_url: img.secure_url?.substring(0, 50) + '...'
+    })));
+    console.log('[DEBUG] Creating memory object...');
 
     const memory = {
       id: memoryId,
