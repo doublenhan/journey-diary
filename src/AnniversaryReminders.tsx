@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Heart, Calendar, Bell, Plus, X, Edit3, Trash2, ArrowLeft, Gift, Sparkles, Clock, BellRing } from 'lucide-react';
+import { Heart, Calendar, Bell, Plus, X, Edit3, Trash2, ArrowLeft, Gift, Sparkles, Clock, BellRing, Download } from 'lucide-react';
 import { anniversaryApi, Anniversary as ApiAnniversary } from './apis/anniversaryApi';
 import { auth } from './firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -143,6 +143,69 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         .finally(() => setLoading(false));
     }
   }, [userId]);
+
+  // Hàm tạo file iCalendar (.ics) để lưu vào calendar
+  const generateICS = (anniversary: Anniversary): string => {
+    const eventDate = new Date(anniversary.date);
+    const year = eventDate.getFullYear();
+    const month = String(eventDate.getMonth() + 1).padStart(2, '0');
+    const day = String(eventDate.getDate()).padStart(2, '0');
+    
+    // Định dạng ngày tháng cho iCalendar (YYYYMMDD)
+    const formattedDate = `${year}${month}${day}`;
+    
+    // Tạo unique identifier cho event
+    const uid = `anniversary-${anniversary.id}-${year}@lovediaryapp`;
+    
+    // Tạo nội dung ICS
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Love Diary//Love Journey//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      `DTSTART;VALUE=DATE:${formattedDate}`,
+      `DTEND;VALUE=DATE:${formattedDate}`,
+      `UID:${uid}`,
+      `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+      `SUMMARY:${anniversary.title}`,
+      `DESCRIPTION:${anniversary.type === 'custom' ? 'Kỷ niệm tùy chỉnh' : 'Kỷ niệm quan trọng'}`,
+      `RRULE:FREQ=YEARLY`,
+      `ALARM:-PT${anniversary.reminderDays}D`,
+      'STATUS:CONFIRMED',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n');
+    
+    return icsContent;
+  };
+
+  // Hàm lưu event vào calendar (download file .ics)
+  const handleSaveToCalendar = (anniversary: Anniversary) => {
+    try {
+      const icsContent = generateICS(anniversary);
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      // Đặt tên file
+      const fileName = `${anniversary.title.replace(/\s+/g, '_')}_${anniversary.date}.ics`;
+      link.setAttribute('href', url);
+      link.setAttribute('download', fileName);
+      link.style.visibility = 'hidden';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Hiển thị thông báo thành công
+      alert(`✅ Sự kiện "${anniversary.title}" đã sẵn sàng để lưu vào calendar!`);
+    } catch (err) {
+      alert('❌ Không thể tạo file calendar. Vui lòng thử lại.');
+      console.error('Error creating ICS:', err);
+    }
+  };
 
   const getAnniversaryIcon = (type: string) => {
     switch (type) {
@@ -533,8 +596,19 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                           toggleNotification(anniversary.id);
                         }}
                         className={`notification-toggle ${anniversary.isNotificationEnabled ? 'active' : ''}`}
+                        title="Bật/Tắt thông báo"
                       >
                         <Bell className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSaveToCalendar(anniversary);
+                        }}
+                        className="save-calendar-button"
+                        title="Lưu sự kiện vào calendar"
+                      >
+                        <Download className="w-4 h-4" />
                       </button>
                       <button
                         onClick={(e) => {

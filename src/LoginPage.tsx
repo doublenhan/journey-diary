@@ -5,6 +5,12 @@ import app from './firebase/firebaseConfig';
 import { Heart, Mail, Lock, Eye, EyeOff, BookHeart, Calendar, Phone } from 'lucide-react';
 import './styles/LoginPage.css';
 
+declare global {
+  interface Window {
+    recaptchaVerifier: any;
+  }
+}
+
 
 const loveQuotes = [
   "Love is not just looking at each other, it's looking in the same direction.",

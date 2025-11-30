@@ -515,6 +515,16 @@
   transform: scale(1.1);
 }
 
+.save-calendar-button {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.save-calendar-button:hover {
+  background: #a7f3d0;
+  transform: scale(1.1);
+}
+
 /* Card Content */
 .card-content {
   display: flex;
