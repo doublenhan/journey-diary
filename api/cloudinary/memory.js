@@ -100,14 +100,18 @@ export default async function handler(req, res) {
     }
 
     const folder = `love-journal/memories/${new Date(dateStr).getFullYear()}`;
-    const memoryId = `memory-${Date.now()}`;
+    const memoryId = `memory-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
     console.log('[DEBUG] Starting image uploads...');
     console.log('[DEBUG] Uploading', images.length, 'images to folder:', folder);
+    console.log('[DEBUG] Memory ID:', memoryId);
 
     // Upload images with better error handling
     const uploadPromises = images.map((file, idx) => {
       console.log(`[DEBUG] Image ${idx}: ${file.filepath} (${file.size} bytes)`);
+      
+      // Create unique public_id with timestamp + random + index
+      const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${idx}`;
       
       return cloudinary.uploader.upload(file.filepath, {
         resource_type: 'auto',
@@ -122,7 +126,7 @@ export default async function handler(req, res) {
           memory_text: textStr.substring(0, 255),
           memory_id: memoryId,
         },
-        public_id: `memory-${Date.now()}-${idx}`,
+        public_id: `memory-${uniqueSuffix}`,
         timeout: 60000, // 60s timeout per upload
       })
         .then(result => {
