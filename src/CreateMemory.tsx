@@ -1,39 +1,23 @@
 import { useState } from 'react';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { useMemoriesCache } from './hooks/useMemoriesCache';
+import { useSyncStatus } from './hooks/useSyncStatus';
 import { Heart, Camera, Calendar, Save, ArrowLeft, X, Upload, MapPin, Type, CheckCircle, AlertCircle } from 'lucide-react';
 import type { MemoryData } from './apis/cloudinaryGalleryApi';
+import { MoodTheme, themes } from './config/themes';
+import VisualEffects from './components/VisualEffects';
+import SyncStatus from './components/SyncStatus';
 import './styles/CreateMemory.css';
 
 interface CreateMemoryProps {
   onBack?: () => void;
-  currentTheme: 'happy' | 'calm' | 'romantic';
+  currentTheme: MoodTheme;
 }
-
-const themes = {
-  happy: {
-    background: 'linear-gradient(135deg, #FFFDE4 0%, #FFF 50%, #FEF08A 100%)',
-    cardBg: '#fff',
-    textPrimary: '#78350f',
-    border: '#FEF08A',
-  },
-  calm: {
-    background: 'linear-gradient(135deg, #EEF2FF 0%, #FFF 50%, #E0E7FF 100%)',
-    cardBg: '#fff',
-    textPrimary: '#3730a3',
-    border: '#E0E7FF',
-  },
-  romantic: {
-    background: 'linear-gradient(135deg, #FDF2F8 0%, #FFF 50%, #FCE7F3 100%)',
-    cardBg: '#fff',
-    textPrimary: '#831843',
-    border: '#FCE7F3',
-  }
-};
 
 function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
   const { userId, loading } = useCurrentUserId();
   useMemoriesCache(userId, loading);
+  const { syncStatus, lastSyncTime, errorMessage, startSync, syncSuccess, syncError } = useSyncStatus();
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
   const [memoryText, setMemoryText] = useState('');
@@ -72,6 +56,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
     if (!isFormValid) return;
     setIsLoading(true);
     setSaveMessage(null);
+    startSync(); // Start sync animation
     try {
       const memoryData: MemoryData & { userId?: string } = {
         title: title.trim(),
@@ -102,6 +87,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
         type: 'success',
         text: `Memory "${title}" saved successfully! 💕`
       });
+      syncSuccess(); // Show sync success animation
       // Clear form after successful save
       setTimeout(() => {
         setTitle('');
@@ -125,11 +111,13 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
       console.error('Failed to save memory:', error);
       // Enhanced error reporting
       if (error instanceof Error) {
+        syncError(error.message || 'Lỗi lưu kỷ niệm');
         setSaveMessage({
           type: 'error',
           text: error.message || 'Failed to save memory. Please try again.'
         });
       } else {
+        syncError('Lỗi lưu kỷ niệm. Vui lòng thử lại.');
         setSaveMessage({
           type: 'error',
           text: 'Failed to save memory. Network error or server unavailable.'
@@ -148,8 +136,34 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
     uploadedImages.length > 0;
 
   const theme = themes[currentTheme];
+  
+  // Default visual effects settings
+  const effectsEnabled = {
+    particles: true,
+    hearts: true,
+    transitions: true,
+    glow: true,
+    fadeIn: true,
+    slideIn: true
+  };
+  const animationSpeed = 50;
+
   return (
     <div className="create-memory-page" style={{ background: theme.background, color: theme.textPrimary }}>  
+      {/* Visual Effects */}
+      <VisualEffects 
+        effectsEnabled={effectsEnabled}
+        animationSpeed={animationSpeed}
+        theme={{ colors: { primary: theme.textPrimary } }}
+      />
+
+      {/* Sync Status Indicator */}
+      <SyncStatus 
+        status={syncStatus}
+        lastSyncTime={lastSyncTime}
+        errorMessage={errorMessage || undefined}
+      />
+      
       {/* Header */}
       <header className="create-memory-header">
         <div className="create-memory-header-container">

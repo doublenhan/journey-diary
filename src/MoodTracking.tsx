@@ -4,23 +4,19 @@ interface MoodTrackingProps {
   theme: any;
   currentTheme: string;
   handleThemeChange: (theme: string) => void;
-  galleryMode: string;
-  setGalleryMode: (mode: string) => void;
-  renderMemoriesLayout: () => React.ReactNode;
-  renderJourneyLayout: () => React.ReactNode;
   onSaveTheme?: () => void;
   isSaveEnabled?: boolean;
   isSaving?: boolean;
 }
 
-const MoodTracking: React.FC<MoodTrackingProps> = ({ theme, currentTheme, handleThemeChange, galleryMode, setGalleryMode, renderMemoriesLayout, renderJourneyLayout, onSaveTheme, isSaveEnabled, isSaving }) => (
+const MoodTracking: React.FC<MoodTrackingProps> = ({ theme, currentTheme, handleThemeChange, onSaveTheme, isSaveEnabled, isSaving }) => (
   <div className="space-y-6">
     <div>
       <h2 className="text-2xl font-bold mb-2" style={{ color: theme.colors.textPrimary }}>
-        Mood Tracking & Gallery Display
+        Chọn Giao Diện Tâm Trạng
       </h2>
       <p style={{ color: theme.colors.textSecondary }}>
-        Choose your mood theme and customize how your love memories are displayed.
+        Chọn giao diện phù hợp với tâm trạng của bạn để cá nhân hóa trải nghiệm.
       </p>
     </div>
     {/* Theme Selection */}
@@ -33,7 +29,7 @@ const MoodTracking: React.FC<MoodTrackingProps> = ({ theme, currentTheme, handle
     >
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold" style={{ color: theme.colors.textPrimary }}>
-          Mood Themes
+          Giao Diện Tâm Trạng
         </h3>
         {onSaveTheme && (
           <button
@@ -42,7 +38,7 @@ const MoodTracking: React.FC<MoodTrackingProps> = ({ theme, currentTheme, handle
             onClick={onSaveTheme}
             disabled={!isSaveEnabled || isSaving}
           >
-            {isSaving ? 'Saving...' : 'Save'}
+            {isSaving ? 'Đang lưu...' : 'Lưu Giao Diện'}
           </button>
         )}
       </div>
@@ -78,53 +74,6 @@ const MoodTracking: React.FC<MoodTrackingProps> = ({ theme, currentTheme, handle
             </div>
           </div>
         ))}
-      </div>
-    </div>
-    {/* Gallery Display Mode Toggle */}
-    <div 
-      className="p-6 rounded-2xl border"
-      style={{ 
-        background: theme.colors.cardBg,
-        borderColor: theme.colors.border
-      }}
-    >
-      <h3 className="font-semibold mb-4" style={{ color: theme.colors.textPrimary }}>
-        Gallery Display Mode
-      </h3>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <span className="font-medium" style={{ color: theme.colors.textPrimary }}>
-            {galleryMode === 'memories' ? 'Photo Grid' : 'Journey Timeline'}
-          </span>
-          <p className="text-sm" style={{ color: theme.colors.textSecondary }}>
-            {galleryMode === 'memories' 
-              ? 'View memories organized by year' 
-              : 'View your relationship as a timeline journey'}
-          </p>
-        </div>
-        <button
-          onClick={() => setGalleryMode(galleryMode === 'memories' ? 'journey' : 'memories')}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2`}
-          style={{ 
-            backgroundColor: galleryMode === 'journey' ? theme.colors.primary : theme.colors.border,
-            '--tw-ring-color': theme.colors.primary + '33'
-          } as React.CSSProperties}
-        >
-          <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${
-              galleryMode === 'journey' ? 'translate-x-6' : 'translate-x-1'
-            }`}
-          />
-        </button>
-      </div>
-      {/* Gallery Preview */}
-      <div className="border rounded-xl p-4" style={{ borderColor: theme.colors.border }}>
-        <h4 className="font-medium mb-4" style={{ color: theme.colors.textPrimary }}>
-          Preview:
-        </h4>
-        <div className="max-h-96 overflow-y-auto">
-          {galleryMode === 'memories' ? renderMemoriesLayout() : renderJourneyLayout()}
-        </div>
       </div>
     </div>
   </div>

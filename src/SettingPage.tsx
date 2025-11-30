@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Sun, Moon, Heart, Sparkles, Palette, CalendarDays, User, Menu, X, Clock, Calendar } from 'lucide-react';
+import { Sparkles, Palette, User, Menu, X, Heart } from 'lucide-react';
 import { auth } from './firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import { saveUserTheme, getUserTheme } from './apis/userThemeApi';
+import { MoodTheme } from './config/themes';
+import { settingThemes } from './config/settingThemes';
 
-import EventsPageComponent from './components/EventsPage';
-import EventModal from './components/EventModal';
 import VisualEffects from './components/VisualEffects';
 import ProfileInformation from './ProfileInformation';
 import MoodTracking from './MoodTracking';
@@ -13,9 +13,7 @@ import './styles/SettingPage.css';
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 
-type MenuItemType = 'effects' | 'mood' | 'account' | 'events';
-type MoodTheme = 'happy' | 'calm' | 'romantic';
-type GalleryMode = 'memories' | 'journey';
+type MenuItemType = 'effects' | 'mood' | 'account';
 
 interface SettingPageProps {
   onBack?: () => void;
@@ -27,26 +25,6 @@ interface MenuItem {
   id: MenuItemType;
   label: string;
   icon: React.ReactNode;
-}
-
-interface ThemeConfig {
-  name: string;
-  icon: React.ReactNode;
-  emoji: string;
-  colors: {
-    primary: string;
-    secondary: string;
-    accent: string;
-    background: string;
-    cardBg: string;
-    textPrimary: string;
-    textSecondary: string;
-    border: string;
-    gradient: string;
-    buttonGradient: string;
-    hoverBg: string;
-  };
-  fontFamily: string;
 }
 
 interface Memory {
@@ -70,66 +48,6 @@ interface Event {
   icon?: React.ReactNode;
   color: string;
 }
-
-const themes: Record<MoodTheme, ThemeConfig> = {
-  happy: {
-    name: 'Happy',
-    icon: <Sun className="w-5 h-5" />,
-    emoji: '😊',
-    colors: {
-      primary: 'rgb(251, 191, 36)',
-      secondary: 'rgb(252, 211, 77)',
-      accent: 'rgb(245, 158, 11)',
-      background: 'linear-gradient(135deg, rgb(254, 249, 195) 0%, rgb(255, 255, 255) 50%, rgb(254, 240, 138) 100%)',
-      cardBg: 'rgb(255, 255, 255)',
-      textPrimary: 'rgb(120, 53, 15)',
-      textSecondary: 'rgb(146, 64, 14)',
-      border: 'rgb(254, 240, 138)',
-      gradient: 'linear-gradient(135deg, rgb(254, 249, 195), rgb(254, 240, 138))',
-      buttonGradient: 'linear-gradient(135deg, rgb(251, 191, 36), rgb(245, 158, 11))',
-      hoverBg: 'rgb(254, 249, 195)',
-    },
-    fontFamily: 'ui-rounded, system-ui, sans-serif'
-  },
-  calm: {
-    name: 'Calm',
-    icon: <Moon className="w-5 h-5" />,
-    emoji: '🌙',
-    colors: {
-      primary: 'rgb(99, 102, 241)',
-      secondary: 'rgb(129, 140, 248)',
-      accent: 'rgb(79, 70, 229)',
-      background: 'linear-gradient(135deg, rgb(238, 242, 255) 0%, rgb(255, 255, 255) 50%, rgb(224, 231, 255) 100%)',
-      cardBg: 'rgb(255, 255, 255)',
-      textPrimary: 'rgb(55, 48, 163)',
-      textSecondary: 'rgb(67, 56, 202)',
-      border: 'rgb(224, 231, 255)',
-      gradient: 'linear-gradient(135deg, rgb(238, 242, 255), rgb(224, 231, 255))',
-      buttonGradient: 'linear-gradient(135deg, rgb(99, 102, 241), rgb(79, 70, 229))',
-      hoverBg: 'rgb(238, 242, 255)',
-    },
-    fontFamily: 'ui-serif, Georgia, serif'
-  },
-  romantic: {
-    name: 'Romantic',
-    icon: <Heart className="w-5 h-5" />,
-    emoji: '💖',
-    colors: {
-      primary: 'rgb(236, 72, 153)',
-      secondary: 'rgb(244, 114, 182)',
-      accent: 'rgb(219, 39, 119)',
-      background: 'linear-gradient(135deg, rgb(253, 242, 248) 0%, rgb(255, 255, 255) 50%, rgb(252, 231, 243) 100%)',
-      cardBg: 'rgb(255, 255, 255)',
-      textPrimary: 'rgb(131, 24, 67)',
-      textSecondary: 'rgb(157, 23, 77)',
-      border: 'rgb(252, 231, 243)',
-      gradient: 'linear-gradient(135deg, rgb(253, 242, 248), rgb(252, 231, 243))',
-      buttonGradient: 'linear-gradient(135deg, rgb(236, 72, 153), rgb(219, 39, 119))',
-      hoverBg: 'rgb(253, 242, 248)',
-    },
-    fontFamily: 'ui-sans-serif, system-ui, sans-serif'
-  }
-};
 
 // Sample memory data
 const sampleMemories: Memory[] = [
@@ -196,43 +114,10 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
   // Use cache for real memories/photos
   const { userId: cacheUserId, loading: cacheLoading } = useCurrentUserId();
   const { memoriesByYear, years, isLoading: memoriesLoading, error: memoriesError } = useMemoriesCache(cacheUserId, cacheLoading);
-  // Restore icons for events after initialization
-  useEffect(() => {
-    setEvents(prevEvents => prevEvents.map(event => {
-      if (!event.icon && (event.type === 'dating' || event.type === 'wedding')) {
-        return { ...event, icon: <Heart className="w-5 h-5" /> };
-      }
-      return event;
-    }));
-    // Only run once on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  
   const [activeMenuItem, setActiveMenuItem] = useState<MenuItemType>('mood');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [galleryMode, setGalleryMode] = useState<GalleryMode>('memories');
-  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [animationSpeed, setAnimationSpeed] = useState(50);
-  const [events, setEvents] = useState<Event[]>([
-    {
-      id: '1',
-      title: 'Started Dating',
-      date: '2023-04-15',
-      type: 'dating',
-      description: 'The day we became official and started our beautiful journey together',
-      location: 'Central Park, New York',
-      color: '#ec4899'
-    },
-    {
-      id: '2',
-      title: 'Our Wedding Day',
-      date: '2024-08-20',
-      type: 'wedding',
-      description: 'The most magical day of our lives, surrounded by family and friends',
-      location: 'Malibu Beach, CA',
-      color: '#f59e0b'
-    }
-  ]);
 
   // --- Mood Theme Persistence State ---
   const [userId, setUserId] = useState<string | null>(null);
@@ -248,7 +133,7 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
     slideIn: false
   });
 
-  const theme = themes[currentTheme];
+  const theme = settingThemes[currentTheme];
 
   // Apply theme globally to document body
   useEffect(() => {
@@ -271,18 +156,13 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
   const menuItems: MenuItem[] = [
     {
       id: 'effects',
-      label: 'Hiệu Ưứng',
+      label: 'Hiệu Ứng',
       icon: <Sparkles className="w-5 h-5" />
     },
     {
       id: 'mood',
       label: 'Theo Dõi Tâm Trạng',
       icon: <Palette className="w-5 h-5" />
-    },
-    {
-      id: 'events',
-      label: 'Sự Kiện Đặc Biệt',
-      icon: <CalendarDays className="w-5 h-5" />
     },
     {
       id: 'account',
@@ -296,7 +176,7 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
       if (user) {
         setUserId(user.uid);
         const fetchedTheme = await getUserTheme(user.uid);
-        if (fetchedTheme && ["happy","calm","romantic"].includes(fetchedTheme)) {
+        if (fetchedTheme && ["happy","calm","romantic","energetic","peaceful","passionate"].includes(fetchedTheme)) {
           setCurrentTheme(fetchedTheme as MoodTheme);
           setSavedTheme(fetchedTheme as MoodTheme);
         }
@@ -329,7 +209,7 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
       if (user) {
         setUserId(user.uid);
         const fetchedTheme = await getUserTheme(user.uid);
-        if (fetchedTheme && ["happy","calm","romantic"].includes(fetchedTheme)) {
+        if (fetchedTheme && ["happy","calm","romantic","energetic","peaceful","passionate"].includes(fetchedTheme)) {
           setCurrentTheme(fetchedTheme as MoodTheme);
           setSavedTheme(fetchedTheme as MoodTheme);
         }
@@ -346,178 +226,6 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
     }));
   };
 
-  const handleAddEvent = (eventData: Omit<Event, 'id'>) => {
-    const newEvent: Event = {
-      ...eventData,
-      id: Date.now().toString()
-    };
-    setEvents(prev => [...prev, newEvent]);
-  };
-
-  const handleUpdateEvent = (id: string, eventData: Omit<Event, 'id'>) => {
-    setEvents(prev => prev.map(event => 
-      event.id === id ? { ...eventData, id } : event
-    ));
-  };
-
-  const handleDeleteEvent = (id: string) => {
-    setEvents(prev => prev.filter(event => event.id !== id));
-  };
-
-  const handleEditEvent = (event: Event) => {
-    setEditingEvent(event);
-    setIsEventModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsEventModalOpen(false);
-    setEditingEvent(null);
-  };
-
-  const groupMemoriesByYear = (memories: Memory[]) => {
-    return memories.reduce((acc, memory) => {
-      if (!acc[memory.year]) {
-        acc[memory.year] = [];
-      }
-      acc[memory.year].push(memory);
-      return acc;
-    }, {} as Record<number, Memory[]>);
-  };
-
-  const renderMemoriesLayout = () => {
-    // Use cached memories
-    return (
-      <div className="space-y-8">
-        {memoriesLoading && <div>Đang tải kỷ niệm...</div>}
-        {memoriesError && <div className="text-red-500">{memoriesError}</div>}
-        {!memoriesLoading && !memoriesError && years.length > 0 && (
-          Object.entries(memoriesByYear)
-            .sort(([a], [b]) => parseInt(b) - parseInt(a))
-            .map(([year, memories]) => (
-              <div key={year}>
-                <h3 className="text-2xl font-bold mb-6 flex items-center" style={{ color: theme.colors.textPrimary }}>
-                  <Calendar className="w-6 h-6 mr-2" style={{ color: theme.colors.primary }} />
-                  {year}
-                </h3>
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {(memories as any[]).map((memory: any) => (
-                    <div
-                      key={memory.id}
-                      className="memory-card"
-                      style={{
-                        backgroundColor: theme.colors.cardBg,
-                        borderColor: theme.colors.border
-                      }}
-                    >
-                      {/* Image Gallery */}
-                      <div className="relative h-48 bg-gray-100">
-                        {Array.isArray(memory.images) && memory.images.length > 0 && (
-                          <div className="memory-images grid grid-cols-2 gap-2 mt-2">
-                            {memory.images.map((img: any, idx: number) => (
-                              <img
-                                key={idx}
-                                src={img.secure_url || img}
-                                alt={`Memory ${idx + 1}`}
-                                className="rounded-lg shadow"
-                              />
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      {/* Content */}
-                      <div className="p-4">
-                        <div className="memory-title font-bold text-lg mb-2">{memory.title}</div>
-                        <div className="memory-date text-xs text-pink-500 mb-2">
-                          <Calendar className="w-4 h-4 inline-block mr-1" />
-                          {memory.date}
-                        </div>
-                        <div className="memory-location text-xs text-gray-500 mb-2">{memory.location}</div>
-                        <div className="memory-description mb-2">{memory.description || memory.text}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))
-        )}
-      </div>
-    );
-  };
-
-  const renderJourneyLayout = () => {
-    // Use cached memories for journey layout
-    const allMemories: any[] = years.flatMap((y: string) => memoriesByYear[y] || []);
-    const sortedMemories = allMemories.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    return (
-      <div className="relative">
-        {/* Timeline Line */}
-        <div 
-          className="timeline-line"
-          style={{ backgroundColor: theme.colors.border }}
-        />
-        
-        <div className="space-y-12">
-          {sortedMemories.map((memory: any, index: number) => (
-            <div key={memory.id} className={`flex items-center ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'}`}>
-              {/* Content Card */}
-              <div className={`w-5/12 ${index % 2 === 0 ? 'pr-8' : 'pl-8'}`}>
-                <div
-                  className="memory-card"
-                  style={{
-                    backgroundColor: theme.colors.cardBg,
-                    borderColor: theme.colors.border
-                  }}
-                >
-                  <div className="memory-title font-bold text-lg mb-2">{memory.title}</div>
-                  <div className="memory-date text-xs text-pink-500 mb-2">
-                    <Calendar className="w-4 h-4 inline-block mr-1" />
-                    {memory.date}
-                  </div>
-                  <div className="memory-location text-xs text-gray-500 mb-2">{memory.location}</div>
-                  <div className="memory-description mb-2">{memory.description || memory.text}</div>
-                  {Array.isArray(memory.images) && memory.images.length > 0 && (
-                    <div className="memory-images grid grid-cols-2 gap-2 mt-2">
-                      {memory.images.map((img: any, idx: number) => (
-                        <img
-                          key={idx}
-                          src={img.secure_url || img}
-                          alt={`Memory ${idx + 1}`}
-                          className="rounded-lg shadow"
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Timeline Node */}
-              <div className="timeline-node" style={{ 
-                backgroundColor: theme.colors.cardBg,
-                borderColor: theme.colors.primary
-              }}>
-                <div 
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: theme.colors.primary }}
-                />
-              </div>
-              
-              {/* Date Badge */}
-              <div className={`w-5/12 ${index % 2 === 0 ? 'pl-8' : 'pr-8'} flex ${index % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
-                <div 
-                  className="px-4 py-2 rounded-full text-sm font-medium text-white"
-                  style={{ background: theme.colors.buttonGradient }}
-                >
-                  <Clock className="w-4 h-4 inline mr-2" />
-                  {memory.date}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   const renderContent = () => {
     switch (activeMenuItem) {
       case 'effects':
@@ -525,10 +233,10 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-bold mb-2" style={{ color: theme.colors.textPrimary }}>
-                Hiệu Ưứng Hình Ảnh & Hoạt Hình
+                Hiệu Ứng Hình Ảnh & Hoạt Hình
               </h2>
               <p style={{ color: theme.colors.textSecondary }}>
-                Tùy chỉnh trải nghiệm hình ảnh của bạn với các hiệu ứng và chuyển tiếp đẹp.
+                Tùy chỉnh trải nghiệm hình ảnh của bạn với các hiệu ứng và chuyển tiếp.
               </p>
             </div>
 
@@ -541,7 +249,7 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
               }}
             >
               <h3 className="font-semibold mb-4" style={{ color: theme.colors.textPrimary }}>
-                Tốc Độ Hoạt Hình
+                Tốc Độ Chuyển Động Hiệu Ứng
               </h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -606,27 +314,12 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
       case 'mood':
         return (
           <MoodTracking
-            theme={{ ...theme, allThemes: themes }}
+            theme={{ ...theme, allThemes: settingThemes }}
             currentTheme={currentTheme as string}
             handleThemeChange={handleThemeChange as (theme: string) => void}
-            galleryMode={galleryMode as string}
-            setGalleryMode={setGalleryMode as (mode: string) => void}
-            renderMemoriesLayout={renderMemoriesLayout}
-            renderJourneyLayout={renderJourneyLayout}
             onSaveTheme={handleSaveTheme}
             isSaveEnabled={isSaveEnabled}
             isSaving={isSaving}
-          />
-        );
-
-      case 'events':
-        return (
-          <EventsPageComponent 
-            theme={theme}
-            events={events}
-            onAddEvent={() => setIsEventModalOpen(true)}
-            onEditEvent={handleEditEvent}
-            onDeleteEvent={handleDeleteEvent}
           />
         );
       
@@ -634,7 +327,7 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
         return <ProfileInformation theme={theme} />;
       
       default:
-        return <div>Chọn mục menu</div>;
+        return <div>Menu</div>;
     }
   };
 
@@ -769,17 +462,6 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
           </div>
         </div>
       </div>
-
-      {/* Event Modal */}
-      <EventModal
-        isOpen={isEventModalOpen}
-        onClose={handleCloseModal}
-        onSave={handleAddEvent}
-        onUpdate={handleUpdateEvent}
-        onDelete={handleDeleteEvent}
-        theme={theme}
-        editingEvent={editingEvent}
-      />
     </div>
   );
 }

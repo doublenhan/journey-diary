@@ -3,6 +3,10 @@ import { Heart, Calendar, Bell, Plus, X, Edit3, Trash2, ArrowLeft, Gift, Sparkle
 import { anniversaryApi, Anniversary as ApiAnniversary } from './apis/anniversaryApi';
 import { auth } from './firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
+import { MoodTheme, themes } from './config/themes';
+import VisualEffects from './components/VisualEffects';
+import { useSyncStatus } from './hooks/useSyncStatus';
+import SyncStatus from './components/SyncStatus';
 import './styles/AnniversaryReminders.css';
 import anniversaryTimeline from "./data/anniversaryTimeline.json";
 
@@ -18,29 +22,8 @@ interface Anniversary extends ApiAnniversary {
 
 interface AnniversaryRemindersProps {
   onBack?: () => void;
-  currentTheme: 'happy' | 'calm' | 'romantic';
+  currentTheme: MoodTheme;
 }
-
-const themes = {
-  happy: {
-    background: 'linear-gradient(135deg, #FFFDE4 0%, #FFF 50%, #FEF08A 100%)',
-    cardBg: '#fff',
-    textPrimary: '#78350f',
-    border: '#FEF08A',
-  },
-  calm: {
-    background: 'linear-gradient(135deg, #EEF2FF 0%, #FFF 50%, #E0E7FF 100%)',
-    cardBg: '#fff',
-    textPrimary: '#3730a3',
-    border: '#E0E7FF',
-  },
-  romantic: {
-    background: 'linear-gradient(135deg, #FDF2F8 0%, #FFF 50%, #FCE7F3 100%)',
-    cardBg: '#fff',
-    textPrimary: '#831843',
-    border: '#FCE7F3',
-  }
-};
 
 function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProps) {
   const [anniversaries, setAnniversaries] = useState<Anniversary[]>([]);
@@ -161,7 +144,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
     const icsContent = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
-      'PRODID:-//Love Diary//Love Journey//EN',
+      'PRODID:-//Love Diary//Nhật Ký Tình Yêu//EN',
       'CALSCALE:GREGORIAN',
       'METHOD:PUBLISH',
       'BEGIN:VEVENT',
@@ -513,8 +496,27 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
   const otherAnniversaries = anniversaries.filter(ann => !ann.isUpcoming);
 
   const theme = themes[currentTheme];
+  
+  // Default visual effects settings
+  const effectsEnabled = {
+    particles: true,
+    hearts: true,
+    transitions: true,
+    glow: true,
+    fadeIn: true,
+    slideIn: true
+  };
+  const animationSpeed = 50;
+
   return (
     <div className="anniversary-reminders-page" style={{ background: theme.background, color: theme.textPrimary }}>
+      {/* Visual Effects */}
+      <VisualEffects 
+        effectsEnabled={effectsEnabled}
+        animationSpeed={animationSpeed}
+        theme={{ colors: { primary: theme.textPrimary } }}
+      />
+      
       {loading && (
         <div className="loading-overlay">
           <div className="loading-spinner"></div>
