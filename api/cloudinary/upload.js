@@ -18,10 +18,23 @@ export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
   
   if (req.method === 'POST') {
+    // Re-config cloudinary for this request
+    const cloud_name = process.env.CLOUDINARY_CLOUD_NAME;
+    const api_key = process.env.CLOUDINARY_API_KEY;
+    const api_secret = process.env.CLOUDINARY_API_SECRET;
+    
     // Check credentials
-    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    if (!cloud_name || !api_key || !api_secret) {
+      console.error('Missing Cloudinary config for upload');
       return res.status(403).json({ error: 'Cloudinary not configured' });
     }
+    
+    // Update config
+    cloudinary.config({
+      cloud_name,
+      api_key,
+      api_secret,
+    });
     
     const form = new formidable.IncomingForm();
     form.parse(req, async (err, fields, files) => {
