@@ -464,7 +464,8 @@
 
 .notification-toggle,
 .edit-button,
-.delete-button {
+.delete-button,
+.save-calendar-button {
   width: 2rem;
   height: 2rem;
   border-radius: 50%;

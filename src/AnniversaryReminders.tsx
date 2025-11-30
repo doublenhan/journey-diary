@@ -711,8 +711,19 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                         toggleNotification(anniversary.id);
                       }}
                       className={`notification-toggle ${anniversary.isNotificationEnabled ? 'active' : ''}`}
+                      title="Thông Báo"
                     >
                       <Bell className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSaveToCalendar(anniversary);
+                      }}
+                      className="save-calendar-button"
+                      title="Lưu sự kiện vào calendar"
+                    >
+                      <Download className="w-4 h-4" />
                     </button>
                     <button
                       onClick={(e) => {
@@ -720,6 +731,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                         handleEditAnniversary(anniversary);
                       }}
                       className="edit-button"
+                      title="Chỉnh sửa"
                     >
                       <Edit3 className="w-4 h-4" />
                     </button>
@@ -729,6 +741,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                         handleDeleteAnniversary(anniversary.id);
                       }}
                       className="delete-button"
+                      title="Xóa Sự Kiện"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
