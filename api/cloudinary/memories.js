@@ -24,11 +24,16 @@ export default async function handler(req, res) {
       let nextCursor = null;
       let pageNum = 0;
       
+      // Add environment prefix to folder for DEV/PROD separation
+      const envPrefix = process.env.CLOUDINARY_FOLDER_PREFIX || '';
+      const basePrefix = 'love-journal/memories/';
+      const finalPrefix = envPrefix ? `${envPrefix}/${basePrefix}` : basePrefix;
+      
       do {
         const queryParams = {
           type: 'upload',
           resource_type: 'image',
-          prefix: 'love-journal/memories/',
+          prefix: finalPrefix,
           context: true,
           max_results: 100,
         };
