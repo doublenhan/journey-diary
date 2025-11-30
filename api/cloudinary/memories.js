@@ -66,13 +66,21 @@ export default async function handler(req, res) {
       console.log('[DEBUG] Total resources from Cloudinary:', allImages.length);
       
       for (const resource of allImages) {
-        // Handle both context.custom and flat context structure
-        let customContext = resource.context?.custom || {};
-        let flatContext = resource.context || {};
+        // Parse context - can be string (pipe-delimited) or object
+        let contextData = {};
+        if (typeof resource.context === 'string') {
+          // Parse pipe-delimited format: key1=val1|key2=val2|...
+          resource.context.split('|').forEach(pair => {
+            const [key, value] = pair.split('=');
+            if (key && value) contextData[key.trim()] = value.trim();
+          });
+        } else if (typeof resource.context === 'object') {
+          // Handle nested custom or flat structure
+          contextData = resource.context.custom || resource.context || {};
+        }
         
-        // memory_id can be in either place
-        const memoryId = flatContext.memory_id || customContext.memory_id;
-        const userId_context = flatContext.userId || customContext.userId;
+        const memoryId = contextData.memory_id;
+        const userId_context = contextData.userId;
         
         console.log(`[DEBUG] Processing resource ${resource.public_id}:`, {
           hasMemoryId: !!memoryId,
@@ -98,10 +106,10 @@ export default async function handler(req, res) {
         if (!memoriesMap.has(memoryId)) {
           memoriesMap.set(memoryId, {
             id: memoryId,
-            title: flatContext.title || customContext.title || 'Untitled Memory',
-            location: flatContext.location || customContext.location || null,
-            text: flatContext.memory_text || customContext.memory_text || '',
-            date: flatContext.memory_date || customContext.memory_date || resource.created_at,
+            title: contextData.title || 'Untitled Memory',
+            location: contextData.location || null,
+            text: contextData.memory_text || '',
+            date: contextData.memory_date || resource.created_at,
             images: [],
             created_at: resource.created_at,
             tags: resource.tags || [],
@@ -117,7 +125,7 @@ export default async function handler(req, res) {
           created_at: resource.created_at,
           tags: resource.tags || [],
           folder: resource.folder,
-          context: flatContext,
+          context: contextData,
         });
       }
       
