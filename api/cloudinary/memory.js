@@ -113,22 +113,31 @@ export default async function handler(req, res) {
       // Create unique public_id with timestamp + random + index
       const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${idx}`;
       
+      const contextObj = {
+        custom: {
+          memory_id: memoryId,
+          memory_date: dateStr,
+          title: titleStr,
+          location: locationStr || '',
+          memory_text: textStr.substring(0, 100),  // Reduced from 255
+          userId: userIdStr,
+        }
+      };
+      
+      console.log(`[DEBUG] Image ${idx} context object created:`, {
+        memoryId,
+        hasUserId: !!userIdStr,
+        hasTitle: !!titleStr,
+        hasDate: !!dateStr
+      });
+      
       return cloudinary.uploader.upload(file.filepath, {
         resource_type: 'auto',
         quality: 'auto',
         fetch_format: 'auto',
         folder,
         tags: ['memory', 'love-journal'],
-        context: {
-          custom: {
-            location: locationStr,
-            memory_date: dateStr,
-            memory_id: memoryId,
-            memory_text: textStr.substring(0, 255),
-            title: titleStr,
-            userId: userIdStr,
-          }
-        },
+        context: contextObj,
         public_id: `memory-${uniqueSuffix}`,
         timeout: 60000, // 60s timeout per upload
       })
