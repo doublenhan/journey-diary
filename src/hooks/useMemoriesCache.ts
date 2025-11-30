@@ -49,27 +49,49 @@ export function useMemoriesCache(userId: string | null, loading: boolean) {
           setIsLoading(false);
           cacheValid = true;
         }
-      } catch {}
+      } catch (e) {
+        console.debug('Cache parse error:', e);
+      }
     }
     if (!cacheValid) {
       (async () => {
         try {
           const params = userId ? `?userId=${encodeURIComponent(userId)}` : '';
           const res = await fetch(`/api/cloudinary/memories${params}`);
-          if (!res.ok) throw new Error('Failed to fetch memories');
+          
+          if (!res.ok) {
+            console.warn(`Memories API returned ${res.status}`);
+            setMemoriesByYear({});
+            setYears([]);
+            setIsLoading(false);
+            return;
+          }
+          
           const data = await res.json();
           const memories = data.memories || [];
+          
           localStorage.setItem(cacheKey, JSON.stringify({ memories, timestamp: Date.now() }));
+          
           const byYear: MemoriesByYear = {};
           memories.forEach((memory: Memory) => {
             const year = new Date(memory.date).getFullYear().toString();
             if (!byYear[year]) byYear[year] = [];
             byYear[year].push(memory);
           });
+          
           setMemoriesByYear(byYear);
           setYears(Object.keys(byYear).sort((a, b) => Number(b) - Number(a)));
+          
+          if (memories.length === 0) {
+            console.log('No memories found for user');
+          } else {
+            console.log(`✅ Loaded ${memories.length} memories`);
+          }
         } catch (e) {
-          setError('Failed to load memories.');
+          console.error('Memories fetch error:', e);
+          setError('Failed to load memories. Please try again.');
+          setMemoriesByYear({});
+          setYears([]);
         } finally {
           setIsLoading(false);
         }

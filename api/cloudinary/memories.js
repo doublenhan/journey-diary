@@ -7,9 +7,19 @@ cloudinary.config({
 });
 
 export default async function handler(req, res) {
+  // Set correct content type
+  res.setHeader('Content-Type', 'application/json');
+  
   if (req.method === 'GET') {
     try {
       const userId = req.query.userId;
+      
+      // Check if Cloudinary credentials exist
+      if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+        console.warn('⚠️ Cloudinary credentials not configured');
+        return res.status(200).json({ memories: [] });
+      }
+      
       const allImages = await cloudinary.api.resources({
         type: 'upload',
         resource_type: 'image',
@@ -17,6 +27,7 @@ export default async function handler(req, res) {
         context: true,
         max_results: 100,
       });
+      
       // Group by memory_id and filter by userId if provided
       const memoriesMap = new Map();
       for (const resource of allImages.resources) {
@@ -51,9 +62,14 @@ export default async function handler(req, res) {
         }
       }
       const memories = Array.from(memoriesMap.values()).sort((a, b) => new Date(b.date) - new Date(a.date));
-      res.status(200).json({ memories });
+      res.status(200).json({ memories, timestamp: new Date().toISOString() });
     } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch memories', message: error.message });
+      console.error('Memories API error:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch memories', 
+        message: error.message,
+        memories: [] 
+      });
     }
   } else {
     res.status(405).json({ error: 'Method not allowed' });

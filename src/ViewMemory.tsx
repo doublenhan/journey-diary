@@ -220,6 +220,25 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
           </div>
         )}
 
+        {/* Empty State */}
+        {!isLoading && !error && years.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md">
+              <Heart className="w-16 h-16 text-pink-300 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold mb-2 text-gray-800">No Memories Yet</h3>
+              <p className="text-gray-600 mb-6">
+                Start creating beautiful memories together! Each memory will appear here.
+              </p>
+              <a 
+                href="/create-memory" 
+                className="inline-block bg-pink-500 hover:bg-pink-600 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+              >
+                Create Your First Memory
+              </a>
+            </div>
+          </div>
+        )}
+
         {/* Memories by Year */}
         {!isLoading && !error && years.length > 0 && (
           <div className="memories-by-year">

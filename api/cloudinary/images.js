@@ -1,18 +1,23 @@
-
-const { v2: cloudinary } = require('cloudinary');
+import { v2 as cloudinary } from 'cloudinary';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-console.log('[Cloudinary API] CLOUDINARY_CLOUD_NAME:', process.env.CLOUDINARY_CLOUD_NAME);
-console.log('[Cloudinary API] CLOUDINARY_API_KEY:', process.env.CLOUDINARY_API_KEY);
-
 
 export default async function handler(req, res) {
+  // Set proper content type
+  res.setHeader('Content-Type', 'application/json');
+  
   if (req.method === 'GET') {
     try {
+      // Check credentials
+      if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+        console.warn('⚠️ Cloudinary credentials not configured');
+        return res.status(200).json({ resources: [], next_cursor: null, total_count: 0 });
+      }
+      
       let { folder, tags, max_results = '20', next_cursor, sort_by = 'created_at', sort_order = 'desc' } = req.query;
       let expression = 'resource_type:image';
       if (folder) expression += ` AND folder:${folder}`;
@@ -31,13 +36,12 @@ export default async function handler(req, res) {
         .with_field('context')
         .with_field('metadata')
         .execute();
-      console.log('[Cloudinary API] Search expression:', expression);
-      console.log('[Cloudinary API] Search result:', JSON.stringify(result, null, 2));
       res.status(200).json({ resources: result.resources, next_cursor: result.next_cursor, total_count: result.total_count });
     } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch images', message: error.message });
+      console.error('Images API error:', error);
+      res.status(500).json({ error: 'Failed to fetch images', message: error.message, resources: [] });
     }
   } else {
     res.status(405).json({ error: 'Method not allowed' });
   }
-};
+}
