@@ -192,7 +192,6 @@ function PDFExport({ onBack, currentTheme }: PDFExportProps) {
         reader.readAsDataURL(blob);
       });
     } catch (error) {
-      console.error('Error converting image to base64:', error);
       return '';
     }
   };
@@ -242,7 +241,7 @@ function PDFExport({ onBack, currentTheme }: PDFExportProps) {
               pdf.addImage(base64Image, 'JPEG', (pageWidth - imgWidth) / 2, pageHeight / 2 + 30, imgWidth, imgHeight);
             }
           } catch (error) {
-            console.error('Error adding cover image:', error);
+            // Error adding cover image - continue without it
           }
         }
         
@@ -318,7 +317,7 @@ function PDFExport({ onBack, currentTheme }: PDFExportProps) {
                 yPosition += imgHeight + 10;
               }
             } catch (error) {
-              console.error('Error adding image:', error);
+              // Error adding image - continue without it
             }
           }
         }
@@ -345,7 +344,6 @@ function PDFExport({ onBack, currentTheme }: PDFExportProps) {
       pdf.save(fileName);
 
     } catch (error) {
-      console.error('Error generating PDF:', error);
       alert('Error generating PDF. Please try again.');
     } finally {
       setIsExporting(false);
