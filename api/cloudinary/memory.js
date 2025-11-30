@@ -120,11 +120,14 @@ export default async function handler(req, res) {
         folder,
         tags: ['memory', 'love-journal'],
         context: {
-          title: titleStr,
-          location: locationStr,
-          memory_date: dateStr,
-          memory_text: textStr.substring(0, 255),
-          memory_id: memoryId,
+          custom: {
+            location: locationStr,
+            memory_date: dateStr,
+            memory_id: memoryId,
+            memory_text: textStr.substring(0, 255),
+            title: titleStr,
+            userId: userIdStr,
+          }
         },
         public_id: `memory-${uniqueSuffix}`,
         timeout: 60000, // 60s timeout per upload
