@@ -31,23 +31,30 @@ export default async function handler(req, res) {
       // Group by memory_id and filter by userId if provided
       const memoriesMap = new Map();
       for (const resource of allImages.resources) {
-        let context = resource.context?.custom || resource.context || {};
-        if (context.memory_id) {
-          if (!userId || context.userId === userId || context.custom?.userId === userId) {
-            if (!memoriesMap.has(context.memory_id)) {
-              memoriesMap.set(context.memory_id, {
-                id: context.memory_id,
-                title: context.title || 'Untitled Memory',
-                location: context.location || null,
-                text: context.memory_text || '',
-                date: context.memory_date || resource.created_at,
+        // Handle both context.custom and flat context structure
+        let customContext = resource.context?.custom || {};
+        let flatContext = resource.context || {};
+        
+        // memory_id can be in either place
+        const memoryId = flatContext.memory_id || customContext.memory_id;
+        const userId_context = flatContext.userId || customContext.userId;
+        
+        if (memoryId) {
+          if (!userId || userId_context === userId) {
+            if (!memoriesMap.has(memoryId)) {
+              memoriesMap.set(memoryId, {
+                id: memoryId,
+                title: flatContext.title || customContext.title || 'Untitled Memory',
+                location: flatContext.location || customContext.location || null,
+                text: flatContext.memory_text || customContext.memory_text || '',
+                date: flatContext.memory_date || customContext.memory_date || resource.created_at,
                 images: [],
                 created_at: resource.created_at,
                 tags: resource.tags || [],
                 folder: resource.folder || 'memories',
               });
             }
-            memoriesMap.get(context.memory_id).images.push({
+            memoriesMap.get(memoryId).images.push({
               public_id: resource.public_id,
               secure_url: resource.secure_url,
               width: resource.width,
@@ -56,7 +63,7 @@ export default async function handler(req, res) {
               created_at: resource.created_at,
               tags: resource.tags || [],
               folder: resource.folder,
-              context,
+              context: flatContext,
             });
           }
         }
