@@ -34,13 +34,13 @@ export interface Anniversary {
 
 export const anniversaryApi = {
   async getAll(userId: string): Promise<Anniversary[]> {
-    const anniversariesRef = collection(db, 'AnniversaryEvent');
+    const anniversariesRef = collection(db, getCollectionName('AnniversaryEvent'));
     const q = query(anniversariesRef, where('userId', '==', userId), orderBy('date', 'asc'));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }) as Anniversary);
   },
   async add(userId: string, data: Omit<Anniversary, 'id' | 'userId'>): Promise<string> {
-    const docRef = await addDoc(collection(db, 'AnniversaryEvent'), {
+    const docRef = await addDoc(collection(db, getCollectionName('AnniversaryEvent')), {
       ...data,
       userId,
       createdAt: serverTimestamp(),
@@ -49,13 +49,13 @@ export const anniversaryApi = {
     return docRef.id;
   },
   async update(id: string, data: Partial<Omit<Anniversary, 'id' | 'userId'>>): Promise<void> {
-    const docRef = doc(db, 'AnniversaryEvent', id);
+    const docRef = doc(db, getCollectionName('AnniversaryEvent'), id);
     await updateDoc(docRef, {
       ...data,
       updatedAt: serverTimestamp(),
     });
   },
   async remove(id: string): Promise<void> {
-    await deleteDoc(doc(db, 'AnniversaryEvent', id));
+    await deleteDoc(doc(db, getCollectionName('AnniversaryEvent'), id));
   },
 };

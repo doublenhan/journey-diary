@@ -44,6 +44,11 @@ export default async function handler(req, res) {
           return;
         }
         const { folder = 'love-journal', tags = 'memory', public_id, transformation } = fields;
+        
+        // Add environment prefix to folder
+        const envPrefix = process.env.CLOUDINARY_FOLDER_PREFIX || '';
+        const finalFolder = envPrefix ? `${envPrefix}/${folder}` : folder;
+        
         if (!files.file) {
           res.status(400).json({ error: 'No file provided' });
           return;
@@ -52,7 +57,7 @@ export default async function handler(req, res) {
           resource_type: 'auto',
           quality: 'auto',
           fetch_format: 'auto',
-          folder: Array.isArray(folder) ? folder[0] : folder,
+          folder: finalFolder,
           tags: (Array.isArray(tags) ? tags[0] : tags).split(',').map(tag => tag.trim()),
         };
         if (public_id) uploadOptions.public_id = Array.isArray(public_id) ? public_id[0] : public_id;

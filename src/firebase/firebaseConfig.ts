@@ -23,4 +23,13 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+
+// Environment prefix for collections (empty for production, 'dev_' for development)
+export const ENV_PREFIX = import.meta.env.VITE_ENV_PREFIX || '';
+
+// Helper function to get collection name with environment prefix
+export const getCollectionName = (collectionName: string): string => {
+  return `${ENV_PREFIX}${collectionName}`;
+};
+
 export default app;

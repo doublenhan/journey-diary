@@ -1,5 +1,5 @@
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase/firebaseConfig';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db, getCollectionName } from '../firebase/firebaseConfig';
 
 export interface EffectsSettings {
   particles: boolean;
@@ -30,7 +30,7 @@ export async function saveUserEffects(userId: string, effects: EffectsSettings):
     };
     
     // Save to Firestore only
-    const effectsRef = doc(db, 'userEffects', userId);
+    const effectsRef = doc(db, getCollectionName('userEffects'), userId);
     await setDoc(effectsRef, effectsData);
   } catch (error) {
     console.error('Error saving user effects:', error);
@@ -42,7 +42,7 @@ export async function saveUserEffects(userId: string, effects: EffectsSettings):
 export async function getUserEffects(userId: string): Promise<EffectsSettings | null> {
   try {
     // Load from Firestore
-    const effectsRef = doc(db, 'userEffects', userId);
+    const effectsRef = doc(db, getCollectionName('userEffects'), userId);
     const effectsSnap = await getDoc(effectsRef);
     
     if (effectsSnap.exists()) {
