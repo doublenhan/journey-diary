@@ -8,7 +8,6 @@ import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import CreateMemory from './CreateMemory';
 import ViewMemory from './ViewMemory';
-import JourneyTracker from './JourneyTracker';
 import AnniversaryReminders from './AnniversaryReminders';
 import SettingPage from './SettingPage';
 import LoginPage from './LoginPage';
@@ -112,11 +111,6 @@ function App() {
       icon: <Bell className="w-8 h-8" />,
       title: "Anniversary Reminders",
       description: "Never miss important dates with smart reminders for anniversaries, birthdays, and special moments."
-    },
-    {
-      icon: <Heart className="w-8 h-8" />,
-      title: "Mood Tracking",
-      description: "Track your relationship's journey with mood indicators and relationship milestone celebrations."
     },
     {
       icon: <Download2 className="w-8 h-8" />,
@@ -373,7 +367,6 @@ function App() {
       } />
       <Route path="/create-memory" element={<CreateMemory onBack={() => window.history.back()} currentTheme={currentTheme} />} />
       <Route path="/view-memory" element={<ViewMemory onBack={() => window.history.back()} currentTheme={currentTheme} />} />
-      <Route path="/journey-tracker" element={<JourneyTracker onBack={() => window.history.back()} currentTheme={currentTheme} />} />
       <Route path="/anniversary-reminders" element={<AnniversaryReminders onBack={() => window.history.back()} currentTheme={currentTheme} />} />
       <Route path="/setting-page" element={<SettingPage onBack={() => window.history.back()} currentTheme={currentTheme} setCurrentTheme={setCurrentTheme} />} />
     </Routes>
