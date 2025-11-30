@@ -13,8 +13,6 @@ import MoodTracking from './MoodTracking';
 import { useSyncStatus } from './hooks/useSyncStatus';
 import SyncStatus from './components/SyncStatus';
 import './styles/SettingPage.css';
-import { useMemoriesCache } from './hooks/useMemoriesCache';
-import { useCurrentUserId } from './hooks/useCurrentUserId';
 
 type MenuItemType = 'effects' | 'mood' | 'account';
 
@@ -30,93 +28,7 @@ interface MenuItem {
   icon: React.ReactNode;
 }
 
-interface Memory {
-  id: string;
-  title: string;
-  location: string;
-  description: string;
-  date: string;
-  year: number;
-  images: string[];
-  mood?: string;
-}
-
-interface Event {
-  id: string;
-  title: string;
-  date: string;
-  type: 'dating' | 'wedding' | 'birthday' | 'child_birth' | 'child_birthday' | 'anniversary' | 'custom';
-  description?: string;
-  location?: string;
-  icon?: React.ReactNode;
-  color: string;
-}
-
-// Sample memory data
-const sampleMemories: Memory[] = [
-  {
-    id: '1',
-    title: 'First Date at Central Park',
-    location: 'New York, NY',
-    description: 'Our magical first date walking through Central Park in spring. The cherry blossoms were in full bloom.',
-    date: '2023-04-15',
-    year: 2023,
-    images: ['https://images.pexels.com/photos/1402787/pexels-photo-1402787.jpeg?auto=compress&cs=tinysrgb&w=800'],
-    mood: '😊'
-  },
-  {
-    id: '2',
-    title: 'Beach Sunset Proposal',
-    location: 'Malibu, CA',
-    description: 'The moment you said yes as the sun painted the sky in shades of pink and gold.',
-    date: '2023-08-20',
-    year: 2023,
-    images: [
-      'https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=800',
-      'https://images.pexels.com/photos/1024994/pexels-photo-1024994.jpeg?auto=compress&cs=tinysrgb&w=800'
-    ],
-    mood: '💖'
-  },
-  {
-    id: '3',
-    title: 'Cozy Winter Cabin',
-    location: 'Aspen, CO',
-    description: 'Our first winter getaway together, snuggled by the fireplace with hot cocoa.',
-    date: '2023-12-24',
-    year: 2023,
-    images: ['https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=800'],
-    mood: '🌙'
-  },
-  {
-    id: '4',
-    title: 'Paris Anniversary',
-    location: 'Paris, France',
-    description: 'Celebrating our one year anniversary in the city of love. Dinner at the Eiffel Tower.',
-    date: '2024-04-15',
-    year: 2024,
-    images: [
-      'https://images.pexels.com/photos/1461974/pexels-photo-1461974.jpeg?auto=compress&cs=tinysrgb&w=800',
-      'https://images.pexels.com/photos/1461975/pexels-photo-1461975.jpeg?auto=compress&cs=tinysrgb&w=800',
-      'https://images.pexels.com/photos/1461976/pexels-photo-1461976.jpeg?auto=compress&cs=tinysrgb&w=800'
-    ],
-    mood: '💖'
-  },
-  {
-    id: '5',
-    title: 'Hiking Adventure',
-    location: 'Grand Canyon, AZ',
-    description: 'Conquering new heights together and watching the sunrise over the canyon.',
-    date: '2024-06-10',
-    year: 2024,
-    images: ['https://images.pexels.com/photos/1562058/pexels-photo-1562058.jpeg?auto=compress&cs=tinysrgb&w=800'],
-    mood: '😊'
-  }
-];
-
 function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps) {
-  // Use cache for real memories/photos
-  const { userId: cacheUserId, loading: cacheLoading } = useCurrentUserId();
-  const { memoriesByYear, years, isLoading: memoriesLoading, error: memoriesError } = useMemoriesCache(cacheUserId, cacheLoading);
   const { syncStatus, lastSyncTime, errorMessage, startSync, syncSuccess, syncError } = useSyncStatus();
   
   const [activeMenuItem, setActiveMenuItem] = useState<MenuItemType>('mood');
@@ -368,7 +280,7 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
                   color: isEffectsSaveEnabled ? 'white' : theme.colors.textSecondary
                 }}
               >
-                {isSaving ? 'Đang lưu...' : 'Lưu Cài Đặt Hiệu Ứng'}
+                {isSaving ? 'Đang lưu...' : 'Lưu Cài Đặt'}
               </button>
             </div>
           </div>
