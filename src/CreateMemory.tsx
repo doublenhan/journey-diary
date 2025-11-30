@@ -89,12 +89,12 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     
-    // Limit to 5 images total
-    const remainingSlots = 5 - uploadedImages.length;
+    // Limit to 10 images total
+    const remainingSlots = 10 - uploadedImages.length;
     if (remainingSlots <= 0) {
       setSaveMessage({
         type: 'error',
-        text: 'Tối đa 5 ảnh. Vui lòng xóa ảnh cũ trước khi thêm ảnh mới.'
+        text: 'Tối đa 10 ảnh. Vui lòng xóa ảnh cũ trước khi thêm ảnh mới.'
       });
       setTimeout(() => setSaveMessage(null), 3000);
       return;
@@ -104,11 +104,11 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
     
     for (const file of filesToProcess) {
       if (file.type.startsWith('image/')) {
-        // Check file size (max 10MB before compression)
-        if (file.size > 10 * 1024 * 1024) {
+        // Check file size (max 20MB before compression)
+        if (file.size > 20 * 1024 * 1024) {
           setSaveMessage({
             type: 'error',
-            text: `File ${file.name} quá lớn (>10MB). Vui lòng chọn ảnh nhỏ hơn.`
+            text: `File ${file.name} quá lớn (>20MB). Vui lòng chọn ảnh nhỏ hơn.`
           });
           setTimeout(() => setSaveMessage(null), 3000);
           continue;
