@@ -7,9 +7,12 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 interface ProfileInformationProps {
   theme: any;
+  onSyncStart?: () => void;
+  onSyncSuccess?: () => void;
+  onSyncError?: (message: string) => void;
 }
 
-const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme }) => {
+const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncStart, onSyncSuccess, onSyncError }) => {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState({
     displayName: '',
@@ -60,15 +63,24 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme }) => {
       return;
     }
     setSaving(true);
-    await setDoc(doc(db, 'users', user.uid), {
-      displayName: profile.displayName,
-      phone: profile.phone,
-      dob: profile.dob
-    }, { merge: true });
-    setSaving(false);
-    setSuccess(true);
-    setEditMode(false);
-    setTimeout(() => setSuccess(false), 2000);
+    onSyncStart?.();
+    try {
+      await setDoc(doc(db, 'users', user.uid), {
+        displayName: profile.displayName,
+        phone: profile.phone,
+        dob: profile.dob
+      }, { merge: true });
+      setSaving(false);
+      setSuccess(true);
+      setEditMode(false);
+      onSyncSuccess?.();
+      setTimeout(() => setSuccess(false), 2000);
+    } catch (error) {
+      setSaving(false);
+      onSyncError?.('Lỗi lưu thông tin. Vui lòng thử lại.');
+      setError('Lỗi lưu thông tin. Vui lòng thử lại.');
+      console.error('Error saving profile:', error);
+    }
   };
 
   return (
@@ -240,41 +252,9 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme }) => {
           <h3 className="font-semibold mb-4" style={{ color: theme.colors.textPrimary }}>
             Preferences
           </h3>
-          <div className="space-y-4">
-            {[
-              { label: 'Memory Reminders', desc: 'Get notified about anniversaries and special dates', checked: false },
-              { label: 'Photo Backup', desc: 'Automatically backup your love memories to cloud', checked: false },
-              { label: 'Mood Insights', desc: 'Receive weekly insights about your relationship mood', checked: false },
-              { label: 'Share Memories', desc: 'Allow sharing memories with friends and family', checked: false }
-            ].map((pref, index) => (
-              <div 
-                key={index} 
-                className="flex items-center justify-between"
-              >
-                <div>
-                  <h4 className="font-medium" style={{ color: theme.colors.textPrimary }}>
-                    {pref.label}
-                  </h4>
-                  <p className="text-sm" style={{ color: theme.colors.textSecondary }}>
-                    {pref.desc}
-                  </p>
-                </div>
-                <button
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2`}
-                  style={{ 
-                    backgroundColor: pref.checked ? theme.colors.primary : theme.colors.border,
-                    '--tw-ring-color': theme.colors.primary + '33'
-                  } as React.CSSProperties}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${
-                      pref.checked ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-            ))}
-          </div>
+          <p className="text-sm" style={{ color: theme.colors.textSecondary }}>
+            Các tùy chọn sẽ được thêm vào trong tương lai.
+          </p>
         </div>
       </div>
 

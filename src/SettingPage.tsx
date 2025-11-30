@@ -3,6 +3,7 @@ import { Sparkles, Palette, User, Menu, X, Heart } from 'lucide-react';
 import { auth } from './firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import { saveUserTheme, getUserTheme } from './apis/userThemeApi';
+import { saveUserEffects, getUserEffects, EffectsSettings } from './apis/userEffectsApi';
 import { MoodTheme } from './config/themes';
 import { settingThemes } from './config/settingThemes';
 
@@ -135,6 +136,9 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
     fadeIn: true,
     slideIn: false
   });
+  const [savedEffects, setSavedEffects] = useState<EffectsSettings | null>(null);
+  const isEffectsSaveEnabled = savedEffects ? 
+    JSON.stringify({ ...effectsEnabled, animationSpeed }) !== JSON.stringify(savedEffects) : false;
 
   const theme = settingThemes[currentTheme];
 
@@ -211,7 +215,28 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
     }
   };
 
-  // Get userId and load theme from Firestore on mount
+  // Save effects to Firestore
+  const handleSaveEffects = async () => {
+    if (!userId) return;
+    setIsSaving(true);
+    startSync();
+    try {
+      const effectsData: EffectsSettings = {
+        ...effectsEnabled,
+        animationSpeed
+      };
+      await saveUserEffects(userId, effectsData);
+      setSavedEffects(effectsData);
+      syncSuccess();
+    } catch (error) {
+      syncError('Lỗi lưu hiệu ứng. Vui lòng thử lại.');
+      console.error('Error saving effects:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Get userId and load theme + effects from Firestore on mount
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -220,6 +245,21 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
         if (fetchedTheme && ["happy","calm","romantic","energetic","peaceful","passionate"].includes(fetchedTheme)) {
           setCurrentTheme(fetchedTheme as MoodTheme);
           setSavedTheme(fetchedTheme as MoodTheme);
+        }
+        
+        // Load effects settings
+        const fetchedEffects = await getUserEffects(user.uid);
+        if (fetchedEffects) {
+          setEffectsEnabled({
+            particles: fetchedEffects.particles,
+            hearts: fetchedEffects.hearts,
+            transitions: fetchedEffects.transitions,
+            glow: fetchedEffects.glow,
+            fadeIn: fetchedEffects.fadeIn,
+            slideIn: fetchedEffects.slideIn
+          });
+          setAnimationSpeed(fetchedEffects.animationSpeed);
+          setSavedEffects(fetchedEffects);
         }
       }
     });
@@ -316,6 +356,21 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
                 </div>
               ))}
             </div>
+
+            {/* Save Effects Button */}
+            <div className="flex justify-end">
+              <button
+                onClick={handleSaveEffects}
+                disabled={!isEffectsSaveEnabled || isSaving}
+                className="px-6 py-3 rounded-xl font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
+                style={{
+                  background: isEffectsSaveEnabled ? theme.colors.primary : theme.colors.border,
+                  color: isEffectsSaveEnabled ? 'white' : theme.colors.textSecondary
+                }}
+              >
+                {isSaving ? 'Đang lưu...' : 'Lưu Cài Đặt Hiệu Ứng'}
+              </button>
+            </div>
           </div>
         );
       
@@ -332,7 +387,12 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
         );
       
       case 'account':
-        return <ProfileInformation theme={theme} />;
+        return <ProfileInformation 
+          theme={theme} 
+          onSyncStart={startSync}
+          onSyncSuccess={syncSuccess}
+          onSyncError={syncError}
+        />;
       
       default:
         return <div>Menu</div>;

@@ -13,7 +13,7 @@ const MoodTracking: React.FC<MoodTrackingProps> = ({ theme, currentTheme, handle
   <div className="space-y-6">
     <div>
       <h2 className="text-2xl font-bold mb-2" style={{ color: theme.colors.textPrimary }}>
-        Chọn Giao Diện Tâm Trạng
+        Chọn Giao Diện
       </h2>
       <p style={{ color: theme.colors.textSecondary }}>
         Chọn giao diện phù hợp với tâm trạng của bạn để cá nhân hóa trải nghiệm.
@@ -29,7 +29,7 @@ const MoodTracking: React.FC<MoodTrackingProps> = ({ theme, currentTheme, handle
     >
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold" style={{ color: theme.colors.textPrimary }}>
-          Giao Diện Tâm Trạng
+          Giao Diện
         </h3>
         {onSaveTheme && (
           <button
