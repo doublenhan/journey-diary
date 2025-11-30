@@ -14,56 +14,57 @@ export const config = {
 };
 
 export default async function handler(req, res) {
-  // Set proper content type
   res.setHeader('Content-Type', 'application/json');
   
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
   try {
-    if (req.method === 'POST') {
-      // Re-config cloudinary for this request (environment may not be set initially)
-      const cloud_name = process.env.CLOUDINARY_CLOUD_NAME;
-      const api_key = process.env.CLOUDINARY_API_KEY;
-      const api_secret = process.env.CLOUDINARY_API_SECRET;
-      
-      // Check credentials
-      if (!cloud_name || !api_key || !api_secret) {
-        console.error('Missing Cloudinary config:', {
-          cloud_name: !!cloud_name,
-          api_key: !!api_key,
-          api_secret: !!api_secret
-        });
-        return res.status(403).json({ error: 'Cloudinary not configured', code: 'MISSING_CONFIG' });
-      }
-      
-      // Update config
-      cloudinary.config({
-        cloud_name,
-        api_key,
-        api_secret,
-      });
-      
-      const form = new formidable.IncomingForm({ multiples: true });
+    // Re-config cloudinary for this request
+    const cloud_name = process.env.CLOUDINARY_CLOUD_NAME;
+    const api_key = process.env.CLOUDINARY_API_KEY;
+    const api_secret = process.env.CLOUDINARY_API_SECRET;
+    
+    if (!cloud_name || !api_key || !api_secret) {
+      console.error('Missing Cloudinary credentials');
+      return res.status(403).json({ error: 'Cloudinary not configured' });
+    }
+    
+    cloudinary.config({ cloud_name, api_key, api_secret });
+    
+    // Parse form data
+    const form = new formidable.IncomingForm({ multiples: true });
+    
+    return new Promise((resolve) => {
       form.parse(req, async (err, fields, files) => {
         try {
           if (err) {
             console.error('Form parse error:', err.message);
-            return res.status(400).json({ error: 'Form parse error', message: err.message });
+            res.status(400).json({ error: 'Form parse error', message: err.message });
+            return resolve();
           }
-          const { title, location, text, date, tags = 'memory', userId } = fields;
+
+          const { title, location, text, date, userId } = fields;
           const titleStr = Array.isArray(title) ? title[0] : title;
           const textStr = Array.isArray(text) ? text[0] : text;
           const dateStr = Array.isArray(date) ? date[0] : date;
-          const userIdStr = Array.isArray(userId) ? userId[0] : userId;
-          const locationStr = Array.isArray(location) ? location[0] : location;
+          const userIdStr = Array.isArray(userId) ? userId[0] : userId || '';
+          const locationStr = Array.isArray(location) ? location[0] : location || '';
           
           const images = Array.isArray(files.images) ? files.images : files.images ? [files.images] : [];
+          
           if (!titleStr || !textStr || !dateStr || images.length === 0) {
-            console.warn('Missing fields:', { titleStr: !!titleStr, textStr: !!textStr, dateStr: !!dateStr, images: images.length });
-            return res.status(400).json({ error: 'Missing required fields: title, text, date, or images' });
+            res.status(400).json({ error: 'Missing required fields' });
+            return resolve();
           }
+
           const folder = `love-journal/memories/${new Date(dateStr).getFullYear()}`;
           const memoryId = `memory-${Date.now()}`;
-          const uploadPromises = images.map((file, idx) => {
-            return cloudinary.uploader.upload(file.filepath, {
+          
+          // Upload images to Cloudinary
+          const uploadPromises = images.map((file, idx) =>
+            cloudinary.uploader.upload(file.filepath, {
               resource_type: 'auto',
               quality: 'auto',
               fetch_format: 'auto',
@@ -71,16 +72,18 @@ export default async function handler(req, res) {
               tags: ['memory', 'love-journal'],
               context: {
                 title: titleStr,
-                location: locationStr || '',
+                location: locationStr,
                 memory_date: dateStr,
                 memory_text: textStr.substring(0, 255),
                 memory_id: memoryId,
-                custom: { userId: userIdStr || '' },
+                custom: { userId: userIdStr },
               },
               public_id: `memory-${Date.now()}-${idx}`,
-            });
-          });
+            })
+          );
+
           const uploadedImages = await Promise.all(uploadPromises);
+          
           const memory = {
             id: memoryId,
             title: titleStr,
@@ -95,24 +98,24 @@ export default async function handler(req, res) {
               format: img.format,
               created_at: img.created_at,
               tags: img.tags || [],
-              context: img.context?.custom || {},
               folder: img.folder,
             })),
             created_at: new Date().toISOString(),
             tags: ['memory', 'love-journal'],
             folder,
           };
-          return res.status(200).json({ success: true, memory, message: 'Memory saved successfully!', timestamp: new Date().toISOString() });
+
+          res.status(200).json({ success: true, memory, message: 'Memory saved successfully!' });
+          resolve();
         } catch (error) {
-          console.error('Memory save error in form.parse:', error.message);
-          return res.status(500).json({ error: 'Failed to upload images', message: error.message, code: 'UPLOAD_FAILED' });
+          console.error('Memory handler error:', error.message);
+          res.status(500).json({ error: 'Failed to process request', message: error.message });
+          resolve();
         }
       });
-    } else {
-      res.status(405).json({ error: 'Method not allowed' });
-    }
+    });
   } catch (error) {
-    console.error('Outer error in memory handler:', error.message);
-    return res.status(500).json({ error: 'Internal server error', message: error.message });
+    console.error('Unexpected error:', error.message);
+    res.status(500).json({ error: 'Server error', message: error.message });
   }
 }
