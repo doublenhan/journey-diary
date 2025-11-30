@@ -33,8 +33,10 @@ export default async function handler(req, res) {
     
     cloudinary.config({ cloud_name, api_key, api_secret });
     
-    // Parse form data
-    const form = new formidable.IncomingForm({ multiples: true });
+    // Parse form data with proper formidable v3 config
+    const form = new formidable.IncomingForm({ 
+      keepExtensions: true,
+    });
     
     return new Promise((resolve) => {
       form.parse(req, async (err, fields, files) => {
@@ -47,21 +49,31 @@ export default async function handler(req, res) {
             return resolve();
           }
 
+          // formidable v3 returns fields and files as objects with arrays as values
           console.log('[DEBUG] Fields keys:', Object.keys(fields || {}));
           console.log('[DEBUG] Files keys:', Object.keys(files || {}));
-          console.log('[DEBUG] Fields:', JSON.stringify(fields, null, 2));
-          console.log('[DEBUG] Images count:', Array.isArray(files?.images) ? files.images.length : files?.images ? 1 : 0);
 
-          const { title, location, text, date, userId } = fields || {};
-          const titleStr = Array.isArray(title) ? title[0] : title;
-          const textStr = Array.isArray(text) ? text[0] : text;
-          const dateStr = Array.isArray(date) ? date[0] : date;
-          const userIdStr = Array.isArray(userId) ? userId[0] : userId || '';
-          const locationStr = Array.isArray(location) ? location[0] : location || '';
+          // Extract field values (they come as arrays in formidable v3)
+          const getFieldValue = (fieldName) => {
+            const field = fields?.[fieldName];
+            if (!field) return undefined;
+            return Array.isArray(field) ? field[0] : field;
+          };
+
+          const titleStr = getFieldValue('title');
+          const textStr = getFieldValue('text');
+          const dateStr = getFieldValue('date');
+          const userIdStr = getFieldValue('userId') || '';
+          const locationStr = getFieldValue('location') || '';
           
-          const images = Array.isArray(files?.images) ? files.images : files?.images ? [files.images] : [];
+          // Get images - files.images can be File object or array of File objects
+          let images = files?.images || [];
+          if (images && !Array.isArray(images)) {
+            images = [images];
+          }
           
           console.log('[DEBUG] Extracted fields:', { titleStr: !!titleStr, textStr: !!textStr, dateStr: !!dateStr, imageCount: images.length });
+          console.log('[DEBUG] Image details:', images.map((img, i) => ({ idx: i, path: img.filepath, size: img.size })));
           
           if (!titleStr || !textStr || !dateStr || images.length === 0) {
             console.error('[ERROR] Missing required fields:', { titleStr: !!titleStr, textStr: !!textStr, dateStr: !!dateStr, imageCount: images.length });
