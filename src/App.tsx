@@ -66,9 +66,17 @@ function App() {
   // ✅ Gọi API health check từ serverless Vercel
   useEffect(() => {
     fetch('/api/cloudinary/health')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          console.warn('Health check returned non-ok status:', res.status);
+          return null;
+        }
+        return res.json();
+      })
       .then(data => {
-        console.log('✅ API /health ok:', data);
+        if (data) {
+          console.log('✅ API /health ok:', data);
+        }
       })
       .catch(err => {
         console.error('❌ API /health error:', err);
