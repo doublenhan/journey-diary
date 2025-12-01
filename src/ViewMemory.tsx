@@ -61,7 +61,8 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
     } else if (!isLoading && !loading) {
       if (error) {
         syncError(error);
-      } else if (Object.keys(memoriesByYear).length > 0) {
+      } else {
+        // Always call syncSuccess when loading completes, even with no data
         syncSuccess();
       }
     }
