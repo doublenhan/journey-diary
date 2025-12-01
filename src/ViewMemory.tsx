@@ -72,7 +72,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
         syncSuccess();
       }
     }
-  }, [isLoading, loading, error, memoriesByYear]);
+  }, [isLoading, loading, error, startSync, syncSuccess, syncError]);
 
   // Log all memory images for debugging after fetching
   useEffect(() => {
@@ -136,11 +136,16 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
   const debouncedSearch = useDebouncedValue(searchQuery, 300);
 
   // Filter memories based on search and year
+  // Important: Use years (visible) data, not allYears, to respect pagination
   const filteredMemoriesByYear = useMemo(() => {
     let filtered = { ...memoriesByYear };
 
-    // Filter by year
+    // If searching or filtering by year, we need to check if data exists
+    const hasActiveFilter = debouncedSearch.trim() || selectedYear !== 'ALL';
+
+    // Filter by year first
     if (selectedYear !== 'ALL') {
+      // Only show selected year if it exists in visible data
       filtered = { [selectedYear]: filtered[selectedYear] || [] };
     }
 
@@ -148,12 +153,15 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
     if (debouncedSearch.trim()) {
       const searchLower = debouncedSearch.toLowerCase();
       filtered = Object.entries(filtered).reduce((acc, [year, memories]) => {
-        const matched = memories.filter(m => 
-          m.title.toLowerCase().includes(searchLower) ||
-          m.text.toLowerCase().includes(searchLower) ||
-          m.location?.toLowerCase().includes(searchLower) ||
-          m.date.includes(debouncedSearch)
-        );
+        const matched = memories.filter(m => {
+          // Check all fields
+          const titleMatch = m.title?.toLowerCase().includes(searchLower) || false;
+          const textMatch = m.text?.toLowerCase().includes(searchLower) || false;
+          const locationMatch = m.location?.toLowerCase().includes(searchLower) || false;
+          const dateMatch = m.date?.includes(debouncedSearch) || false;
+          
+          return titleMatch || textMatch || locationMatch || dateMatch;
+        });
         if (matched.length > 0) acc[year] = matched;
         return acc;
       }, {} as MemoriesByYear);
