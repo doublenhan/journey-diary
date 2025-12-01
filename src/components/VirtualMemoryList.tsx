@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react';
-import { VariableSizeList as List, ListChildComponentProps } from 'react-window';
+import { FixedSizeList } from 'react-window';
 import { Calendar } from 'lucide-react';
 import { LazyImage } from './LazyImage';
 import type { Memory } from '../types/Memory';
@@ -29,13 +29,13 @@ const estimateItemHeight = (memory: Memory): number => {
   return baseHeight + imageHeight + textHeight + titleHeight;
 };
 
-const MemoryRow = ({ index, style, data }: ListChildComponentProps<ItemData>) => {
+const MemoryRow = ({ index, style, data }: any) => {
   const { memories, onPhotoClick, formatDate } = data;
   const memory = memories[index];
 
   if (!memory) return null;
 
-  const allPhotos = memory.images.map(img => img.url);
+  const allPhotos = memory.images.map((img: any) => img.secure_url || img.url);
 
   return (
     <div style={style}>
@@ -78,15 +78,15 @@ const MemoryRow = ({ index, style, data }: ListChildComponentProps<ItemData>) =>
             {memory.images && memory.images.length > 0 && (
               <div className="image-gallery">
                 <div className={`gallery-grid gallery-grid-${Math.min(memory.images.length, 4)}`}>
-                  {memory.images.slice(0, 6).map((image, imgIndex) => (
+                  {memory.images.slice(0, 6).map((image: any, imgIndex: number) => (
                     <div
                       key={image.public_id}
                       className={`gallery-item ${imgIndex === 5 && memory.images.length > 6 ? 'gallery-item-more' : ''}`}
-                      onClick={() => onPhotoClick(image.url, allPhotos)}
+                      onClick={() => onPhotoClick(image.secure_url || image.url, allPhotos)}
                       style={{ cursor: 'pointer' }}
                     >
                       <LazyImage 
-                        src={image.url}
+                        src={image.secure_url || image.url}
                         alt={`${memory.title || 'Memory'} - Photo ${imgIndex + 1}`}
                         className="w-full h-full object-cover"
                       />
@@ -115,7 +115,7 @@ export const VirtualMemoryList = ({
   onPhotoClick, 
   formatDate 
 }: VirtualMemoryListProps) => {
-  const listRef = useRef<List>(null);
+  const listRef = useRef<FixedSizeList>(null);
   const itemHeightsRef = useRef(new Map<number, number>());
 
   // Pre-calculate estimated heights
@@ -149,16 +149,16 @@ export const VirtualMemoryList = ({
   );
 
   return (
-    <List
+    <FixedSizeList
       ref={listRef}
       height={listHeight}
       itemCount={memories.length}
-      itemSize={getItemSize}
+      itemSize={600}
       width="100%"
       itemData={itemData}
       overscanCount={2}
     >
       {MemoryRow}
-    </List>
+    </FixedSizeList>
   );
 };

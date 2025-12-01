@@ -34,7 +34,7 @@ interface Memory {
   title: string;
   date: string;
   text: string;
-  location?: string;
+  location?: string | null;
   images: MemoryImage[];
   created_at?: string;
   tags?: string[];
@@ -472,9 +472,9 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                           {Array.isArray(memory.images) && memory.images.length > 0 ? (
                             <ResponsiveGallery
                               images={memory.images}
-                              onImageClick={(image, index) => {
+                              onImageClick={(imageUrl, index) => {
                                 setAllPhotos(memory.images.map((img: any) => img.secure_url));
-                                setSelectedPhoto(image.secure_url);
+                                setSelectedPhoto(imageUrl);
                                 setSelectedPhotoIndex(index);
                               }}
                               memoryTitle={memory.title || "Memory"}
