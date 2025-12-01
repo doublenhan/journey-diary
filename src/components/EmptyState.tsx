@@ -18,9 +18,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 }) => {
   return (
     <div className="empty-state">
-      <div className="empty-state-icon">{icon}</div>
+      <div className="empty-state-icon" style={{ textAlign: 'center', marginBottom: '32px' }}>{icon}</div>
       <h3 className="empty-state-title">{title}</h3>
-      <p className="empty-state-description">{description}</p>
+      <p className="empty-state-description" style={{ marginTop: '16px' }}>{description}</p>
       {actionLabel && onAction && (
         <button className="empty-state-action" onClick={onAction}>
           {actionLabel}

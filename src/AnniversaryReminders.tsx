@@ -77,57 +77,32 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
     if (!userId) return;
     setLoading(true);
     const cacheKey = `anniversariesCache_${userId}`;
-    const cache = localStorage.getItem(cacheKey);
-    let cacheValid = false;
-    if (cache) {
-      try {
-        const { anniversaries, timestamp } = JSON.parse(cache);
-        if (Array.isArray(anniversaries) && timestamp && Date.now() - timestamp < 10 * 60 * 1000) {
-          const today = new Date();
-          const processed = anniversaries.map((anniversary: any) => {
-            const anniversaryDate = new Date(anniversary.date);
-            const thisYearDate = new Date(today.getFullYear(), anniversaryDate.getMonth(), anniversaryDate.getDate());
-            if (thisYearDate < today) thisYearDate.setFullYear(today.getFullYear() + 1);
-            const daysUntil = Math.ceil((thisYearDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-            const yearsSince = today.getFullYear() - anniversaryDate.getFullYear();
-            return {
-              ...anniversary,
-              yearsSince: yearsSince > 0 ? yearsSince : 0,
-              daysUntil,
-              isUpcoming: daysUntil <= anniversary.reminderDays
-            };
-          });
-          processed.sort((a: any, b: any) => (a.daysUntil || 0) - (b.daysUntil || 0));
-          setAnniversaries(processed);
-          setLoading(false);
-          cacheValid = true;
-        }
-      } catch {}
-    }
-    if (!cacheValid) {
-      anniversaryApi.getAll(userId)
-        .then((data) => {
-          const today = new Date();
-          const processed = data.map((anniversary) => {
-            const anniversaryDate = new Date(anniversary.date);
-            const thisYearDate = new Date(today.getFullYear(), anniversaryDate.getMonth(), anniversaryDate.getDate());
-            if (thisYearDate < today) thisYearDate.setFullYear(today.getFullYear() + 1);
-            const daysUntil = Math.ceil((thisYearDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-            const yearsSince = today.getFullYear() - anniversaryDate.getFullYear();
-            return {
-              ...anniversary,
-              yearsSince: yearsSince > 0 ? yearsSince : 0,
-              daysUntil,
-              isUpcoming: daysUntil <= anniversary.reminderDays
-            };
-          });
-          processed.sort((a, b) => (a.daysUntil || 0) - (b.daysUntil || 0));
-          setAnniversaries(processed);
-          // Save to cache
-          localStorage.setItem(cacheKey, JSON.stringify({ anniversaries: data, timestamp: Date.now() }));
-        })
-        .finally(() => setLoading(false));
-    }
+    
+    // Clear cache to always fetch fresh data from Firebase
+    localStorage.removeItem(cacheKey);
+    
+    anniversaryApi.getAll(userId)
+      .then((data) => {
+        const today = new Date();
+        const processed = data.map((anniversary) => {
+          const anniversaryDate = new Date(anniversary.date);
+          const thisYearDate = new Date(today.getFullYear(), anniversaryDate.getMonth(), anniversaryDate.getDate());
+          if (thisYearDate < today) thisYearDate.setFullYear(today.getFullYear() + 1);
+          const daysUntil = Math.ceil((thisYearDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          const yearsSince = today.getFullYear() - anniversaryDate.getFullYear();
+          return {
+            ...anniversary,
+            yearsSince: yearsSince > 0 ? yearsSince : 0,
+            daysUntil,
+            isUpcoming: daysUntil <= anniversary.reminderDays
+          };
+        });
+        processed.sort((a, b) => (a.daysUntil || 0) - (b.daysUntil || 0));
+        setAnniversaries(processed);
+        // Save to cache with 10min TTL
+        localStorage.setItem(cacheKey, JSON.stringify({ anniversaries: data, timestamp: Date.now() }));
+      })
+      .finally(() => setLoading(false));
   }, [userId]);
 
   // Hàm tạo file iCalendar (.ics) để lưu vào calendar
