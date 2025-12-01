@@ -392,50 +392,6 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                     >
                       {/* Memory Card */}
                       <div className="bg-white rounded-3xl shadow-xl border border-pink-100 overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1">
-                        {/* Quick Actions Overlay */}
-                        <div className="quick-actions-overlay">
-                          <button 
-                            className="quick-action-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Share functionality
-                              if (navigator.share) {
-                                navigator.share({
-                                  title: memory.title || 'Memory',
-                                  text: memory.text,
-                                  url: window.location.href + '#' + memory.id
-                                }).catch(() => {});
-                              }
-                            }}
-                            title="Share"
-                          >
-                            <Share2 className="w-4 h-4" />
-                          </button>
-                          <button 
-                            className="quick-action-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Navigate to edit (you'll need to implement this route)
-                              window.location.href = `/edit-memory?id=${memory.id}`;
-                            }}
-                            title="Edit"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button 
-                            className="quick-action-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (confirm('Bạn có chắc muốn xóa kỷ niệm này?')) {
-                                // Delete functionality (you'll need to implement this)
-                                console.log('Delete memory:', memory.id);
-                              }
-                            }}
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
                         {/* Date Header */}
                         <div className="date-header">
                           <div className="flex items-center justify-center space-x-2 text-white">
