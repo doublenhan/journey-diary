@@ -241,16 +241,6 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
           </p>
         </div>
 
-        {/* Search and Filter Bar */}
-        <SearchFilterBar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          selectedYear={selectedYear}
-          onYearChange={setSelectedYear}
-          availableYears={allYears}
-          resultCount={resultCount}
-        />
-
         {/* Dashboard: Your Love Story by the Numbers */}
         <div className="love-story-dashboard mb-8">
           <h2 className="dashboard-title text-xl font-bold mb-4 text-pink-600">Câu Chuyện Tình Yêu Của Bạn</h2>
@@ -339,6 +329,18 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
               setSearchQuery('');
               setSelectedYear('ALL');
             }}
+          />
+        )}
+
+        {/* Search and Filter Bar - Only show when we have data */}
+        {!isLoading && !error && years.length > 0 && (
+          <SearchFilterBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            selectedYear={selectedYear}
+            onYearChange={setSelectedYear}
+            availableYears={allYears}
+            resultCount={resultCount}
           />
         )}
 
@@ -449,12 +451,14 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
               </div>
             ))}
             
-            {/* Infinite Scroll Trigger */}
-            <InfiniteScrollTrigger 
-              onLoadMore={loadMore}
-              isLoading={isLoadingMore}
-              hasMore={hasMore}
-            />
+            {/* Infinite Scroll Trigger - Only show when no active search/filter */}
+            {!searchQuery && selectedYear === 'ALL' && (
+              <InfiniteScrollTrigger 
+                onLoadMore={loadMore}
+                isLoading={isLoadingMore}
+                hasMore={hasMore}
+              />
+            )}
           </div>
         )}
 
