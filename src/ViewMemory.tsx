@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useInfiniteMemories } from './hooks/useInfiniteMemories';
+import { useDebouncedValue } from './hooks/useDebouncedValue';
 import { Heart, Calendar, ArrowLeft, ChevronLeft, ChevronRight, Loader } from 'lucide-react';
 // import { cloudinaryApi, type SavedMemory } from './apis/cloudinaryGalleryApi';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
@@ -11,6 +12,7 @@ import { EmptyState } from './components/EmptyState';
 import { YearSectionSkeleton } from './components/LoadingSkeleton';
 import { LazyImage } from './components/LazyImage';
 import { InfiniteScrollTrigger } from './components/InfiniteScrollTrigger';
+import { SearchFilterBar } from './components/SearchFilterBar';
 import './styles/ViewMemory.css';
 
 // Update Memory interface to match SavedMemory from the API
@@ -54,6 +56,8 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number>(0);
   const [allPhotos, setAllPhotos] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedYear, setSelectedYear] = useState('ALL');
   const theme = themes[currentTheme];
 
   // Show sync status when loading memories
@@ -109,6 +113,65 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
     setSelectedPhotoIndex(index);
     setSelectedPhoto(allPhotos[index]);
   };
+
+  // Preload adjacent images for smooth navigation
+  useEffect(() => {
+    if (selectedPhotoIndex === null || allPhotos.length <= 1) return;
+    
+    const preloadImages = () => {
+      const nextIndex = (selectedPhotoIndex + 1) % allPhotos.length;
+      const prevIndex = (selectedPhotoIndex - 1 + allPhotos.length) % allPhotos.length;
+      
+      // Preload next and previous images
+      const nextImg = new Image();
+      const prevImg = new Image();
+      nextImg.src = allPhotos[nextIndex];
+      prevImg.src = allPhotos[prevIndex];
+    };
+    
+    preloadImages();
+  }, [selectedPhotoIndex, allPhotos]);
+
+  // Debounce search query for better performance
+  const debouncedSearch = useDebouncedValue(searchQuery, 300);
+
+  // Filter memories based on search and year
+  const filteredMemoriesByYear = useMemo(() => {
+    let filtered = { ...memoriesByYear };
+
+    // Filter by year
+    if (selectedYear !== 'ALL') {
+      filtered = { [selectedYear]: filtered[selectedYear] || [] };
+    }
+
+    // Search across title, text, location, and date
+    if (debouncedSearch.trim()) {
+      const searchLower = debouncedSearch.toLowerCase();
+      filtered = Object.entries(filtered).reduce((acc, [year, memories]) => {
+        const matched = memories.filter(m => 
+          m.title.toLowerCase().includes(searchLower) ||
+          m.text.toLowerCase().includes(searchLower) ||
+          m.location?.toLowerCase().includes(searchLower) ||
+          m.date.includes(debouncedSearch)
+        );
+        if (matched.length > 0) acc[year] = matched;
+        return acc;
+      }, {} as MemoriesByYear);
+    }
+
+    return filtered;
+  }, [memoriesByYear, debouncedSearch, selectedYear]);
+
+  // Calculate total result count
+  const resultCount = useMemo(() => {
+    return Object.values(filteredMemoriesByYear).reduce((sum, memories) => sum + memories.length, 0);
+  }, [filteredMemoriesByYear]);
+
+  // Update allYears to match filtered results
+  const filteredYears = useMemo(() => {
+    return Object.keys(filteredMemoriesByYear).sort((a, b) => parseInt(b) - parseInt(a));
+  }, [filteredMemoriesByYear]);
+
 
   // Removed unused createFloatingHeart function
 
@@ -177,6 +240,16 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
             Mỗi khoảnh khắc chúng ta chia sẻ, mỗi lần cười, mỗi cuộc phiêu lưu - tất cả đều được lưu lại ở câu chuyện tình yêu.
           </p>
         </div>
+
+        {/* Search and Filter Bar */}
+        <SearchFilterBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          selectedYear={selectedYear}
+          onYearChange={setSelectedYear}
+          availableYears={allYears}
+          resultCount={resultCount}
+        />
 
         {/* Dashboard: Your Love Story by the Numbers */}
         <div className="love-story-dashboard mb-8">
@@ -255,10 +328,24 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
           />
         )}
 
+        {/* No Results State */}
+        {!isLoading && !error && years.length > 0 && resultCount === 0 && (
+          <EmptyState
+            icon="🔍"
+            title="Không tìm thấy kỷ niệm"
+            description="Thử điều chỉnh bộ lọc hoặc tìm kiếm với từ khóa khác."
+            actionLabel="Xóa Bộ Lọc"
+            onAction={() => {
+              setSearchQuery('');
+              setSelectedYear('ALL');
+            }}
+          />
+        )}
+
         {/* Memories by Year */}
-        {!isLoading && !error && years.length > 0 && (
+        {!isLoading && !error && years.length > 0 && resultCount > 0 && (
           <div className="memories-by-year">
-            {years.map((year: string) => (
+            {filteredYears.map((year: string) => (
               <div key={year} className="year-section">
                 {/* Year Header */}
                 <div className="year-header">
@@ -268,7 +355,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
 
                 {/* Memories for this year */}
                 <div className="memory-timeline">
-                  {memoriesByYear[year].map((memory: any, memoryIndex: number) => (
+                  {filteredMemoriesByYear[year].map((memory: any, memoryIndex: number) => (
                     <div 
                       key={memory.id} 
                       className="memory-card animate-fade-in"
