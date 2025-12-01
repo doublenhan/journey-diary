@@ -279,6 +279,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
     if (loading) return; // Prevent duplicate submissions
     if (!newAnniversary.title || !newAnniversary.date || !userId) return;
     setLoading(true);
+    startSync(); // Start sync status
     try {
       const { title, date, type, reminderDays, isNotificationEnabled } = newAnniversary;
       let formattedDate = date;
@@ -304,6 +305,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       };
 
       await anniversaryApi.add(userId, payload);
+      syncSuccess(); // Show sync success
       setShowAddForm(false);
       setNewAnniversary({
         title: '',
@@ -338,6 +340,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
     } catch (err) {
       // Log error for debugging
       console.error('Failed to add anniversary:', err);
+      syncError(err instanceof Error ? err.message : 'Lỗi thêm kỷ niệm');
       alert('Failed to add anniversary.');
     } finally {
       setLoading(false);
@@ -360,12 +363,14 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
   const handleUpdateAnniversary = async () => {
     if (!editingAnniversary || !newAnniversary.title || !newAnniversary.date || !userId) return;
     setLoading(true);
+    startSync(); // Start sync status
     try {
       // Allow all types for update
       await anniversaryApi.update(
         editingAnniversary.id,
         newAnniversary as Partial<Omit<ApiAnniversary, 'id' | 'userId'>>
       );
+      syncSuccess(); // Show sync success
       setEditingAnniversary(null);
       setShowAddForm(false);
       setNewAnniversary({
@@ -394,6 +399,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       processed.sort((a, b) => (a.daysUntil || 0) - (b.daysUntil || 0));
       setAnniversaries(processed);
     } catch (err) {
+      syncError(err instanceof Error ? err.message : 'Lỗi cập nhật kỷ niệm');
       alert('Failed to update anniversary.');
     } finally {
       setLoading(false);
@@ -412,8 +418,10 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
     if (!userId || !deleteId) return;
     setLoading(true);
     setShowDeleteConfirm(false);
+    startSync(); // Start sync status
     try {
       await anniversaryApi.remove(deleteId);
+      syncSuccess(); // Show sync success
       // Reload anniversaries
       const data = await anniversaryApi.getAll(userId);
       const today = new Date();
@@ -433,6 +441,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       processed.sort((a, b) => (a.daysUntil || 0) - (b.daysUntil || 0));
       setAnniversaries(processed);
     } catch (err) {
+      syncError(err instanceof Error ? err.message : 'Lỗi xóa kỷ niệm');
       alert('Failed to delete anniversary.');
     } finally {
       setLoading(false);
