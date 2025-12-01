@@ -239,18 +239,15 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
   // Format date to always show the correct day regardless of timezone
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
-    // Always parse as local date (no timezone offset)
-    // This works for yyyy-mm-dd and yyyy/mm/dd
-    let date = new Date(dateString + 'T00:00:00');
-    if (isNaN(date.getTime())) {
-      // fallback to Date constructor
-      date = new Date(dateString);
-    }
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    
+    // Parse date string directly to avoid timezone offset
+    const [year, month, day] = dateString.split('-');
+    if (!year || !month || !day) return dateString;
+    
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    return `${monthNames[parseInt(month) - 1]} ${parseInt(day)}, ${year}`;
   };
 
   const getDurationString = (fromDate: Date, toDate: Date) => {

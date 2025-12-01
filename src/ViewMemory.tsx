@@ -75,12 +75,14 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
 
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    // Parse date string directly to avoid timezone offset
+    const [year, month, day] = dateString.split('-');
+    if (!year || !month || !day) return dateString;
+    
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    return `${monthNames[parseInt(month) - 1]} ${parseInt(day)}, ${year}`;
   };
 
   // Removed unused openLightbox function
