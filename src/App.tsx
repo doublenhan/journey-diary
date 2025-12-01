@@ -12,7 +12,6 @@ import ViewMemory from './ViewMemory';
 import AnniversaryReminders from './AnniversaryReminders';
 import SettingPage from './SettingPage';
 import LoginPage from './LoginPage';
-import { DebugEnv } from './DebugEnv';
 import './styles/App.css';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 
@@ -350,7 +349,6 @@ function App() {
       <Route path="/anniversary-reminders" element={<AnniversaryReminders onBack={() => window.history.back()} currentTheme={currentTheme} />} />
       <Route path="/setting-page" element={<SettingPage onBack={() => window.history.back()} currentTheme={currentTheme} setCurrentTheme={setCurrentTheme} />} />
     </Routes>
-    <DebugEnv />
     </>
   );
 }
