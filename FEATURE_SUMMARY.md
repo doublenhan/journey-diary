@@ -2,7 +2,7 @@
 
 ## 🎉 Tổng Quan
 
-Tính năng **"Lưu Event"** đã được triển khai thành công trên trang **Nhắc Nhở Kỷ Niệm** (Anniversary Reminders).
+Tính năng **"Lưu Event"** đã được triển khai thành công trên trang ** Sự Kiện Kỷ Niệm** (Anniversary Reminders).
 
 Người dùng bây giờ có thể:
 - ✅ Lưu các sự kiện kỷ niệm vào calendar của điện thoại/máy tính
@@ -189,8 +189,8 @@ e39a3b8 → feat
 
 ## 💡 Cách Sử Dụng
 
-### Bước 1: Mở Trang Nhắc Nhở Kỷ Niệm
-Vào menu chính, chọn "Nhắc Nhở Kỷ Niệm"
+### Bước 1: Mở Trang  Sự Kiện Kỷ Niệm
+Vào menu chính, chọn " Sự Kiện Kỷ Niệm"
 
 ### Bước 2: Bấm Icon Download ⬇️
 Trên bất kỳ sự kiện nào, bấm nút xanh lá cây (Download)

@@ -246,9 +246,9 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
         {!isLoading && !error && years.length === 0 && (
           <EmptyState
             icon="📸"
-            title="No memories yet"
-            description="Start creating beautiful memories together! Every moment you capture will appear here."
-            actionLabel="Create Your First Memory"
+            title="Chưa có kỷ niệm nào"
+            description="Bắt đầu tạo những kỷ niệm đẹp cùng nhau! Mỗi khoảnh khắc bạn ghi lại sẽ xuất hiện ở đây."
+            actionLabel="Tạo Kỷ Niệm Đầu Tiên"
             onAction={() => window.location.href = '/create-memory'}
           />
         )}

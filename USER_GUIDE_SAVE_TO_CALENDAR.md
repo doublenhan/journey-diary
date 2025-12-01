@@ -13,7 +13,7 @@ Bạn có thể **lưu các sự kiện kỷ niệm trực tiếp vào ứng d�
 
 ## 🟢 Vị Trí Icon "Lưu Event"
 
-Trên mỗi card sự kiện trong **Nhắc Nhở Kỷ Niệm**, bạn sẽ thấy:
+Trên mỗi card sự kiện trong ** Sự Kiện Kỷ Niệm**, bạn sẽ thấy:
 
 ```
 ┌───────────────────────────────────────┐
@@ -32,15 +32,15 @@ Trên mỗi card sự kiện trong **Nhắc Nhở Kỷ Niệm**, bạn sẽ th�
 
 ## 📋 Các Bước Lưu Event
 
-### 🔹 **Bước 1**: Mở Trang Nhắc Nhở Kỷ Niệm
+### 🔹 **Bước 1**: Mở Trang  Sự Kiện Kỷ Niệm
 
-Vào menu chính, chọn **"Nhắc Nhở Kỷ Niệm"**
+Vào menu chính, chọn **" Sự Kiện Kỷ Niệm"**
 
 ```
 Love Journey
 ├── 📝 Tạo Kỷ Niệm
 ├── 👀 Xem Kỷ Niệm
-├── 🔔 Nhắc Nhở Kỷ Niệm  ← Chọn đây
+├── 🔔  Sự Kiện Kỷ Niệm  ← Chọn đây
 └── ⚙️ Cài Đặt
 ```
 
