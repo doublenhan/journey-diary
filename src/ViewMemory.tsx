@@ -315,7 +315,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
           </div>
         )}
 
-        {/* Empty State */}
+        {/* Empty State - NO DATA AT ALL */}
         {!isLoading && !error && years.length === 0 && (
           <EmptyState
             icon="📸"
@@ -326,35 +326,35 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
           />
         )}
 
-        {/* No Results State */}
-        {!isLoading && !error && years.length > 0 && resultCount === 0 && (
-          <EmptyState
-            icon="🔍"
-            title="Không tìm thấy kỷ niệm"
-            description="Thử điều chỉnh bộ lọc hoặc tìm kiếm với từ khóa khác."
-            actionLabel="Xóa Bộ Lọc"
-            onAction={() => {
-              setSearchQuery('');
-              setSelectedYear('ALL');
-            }}
-          />
-        )}
-
-        {/* Search and Filter Bar - Only show when we have data */}
+        {/* Search and Filter Bar - Show when we have data (even if filtered results = 0) */}
         {!isLoading && !error && years.length > 0 && (
-          <SearchFilterBar
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            selectedYear={selectedYear}
-            onYearChange={setSelectedYear}
-            availableYears={allYears}
-            resultCount={resultCount}
-          />
-        )}
+          <>
+            <SearchFilterBar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              selectedYear={selectedYear}
+              onYearChange={setSelectedYear}
+              availableYears={allYears}
+              resultCount={resultCount}
+            />
 
-        {/* Memories by Year */}
-        {!isLoading && !error && years.length > 0 && resultCount > 0 && (
-          <div className="memories-by-year">
+            {/* No Results State - Show BELOW search bar when filtered results = 0 */}
+            {resultCount === 0 && (
+              <EmptyState
+                icon="🔍"
+                title="Không tìm thấy kỷ niệm"
+                description="Thử điều chỉnh bộ lọc hoặc tìm kiếm với từ khóa khác."
+                actionLabel="Xóa Bộ Lọc"
+                onAction={() => {
+                  setSearchQuery('');
+                  setSelectedYear('ALL');
+                }}
+              />
+            )}
+
+            {/* Memories by Year - Only show when we have filtered results */}
+            {resultCount > 0 && (
+              <div className="memories-by-year">
             {filteredYears.map((year: string) => (
               <div key={year} className="year-section">
                 {/* Year Header */}
@@ -467,7 +467,9 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                 hasMore={hasMore}
               />
             )}
-          </div>
+            </div>
+          )}
+        </>
         )}
 
         {/* Lightbox Modal - only render once at the root level */}
