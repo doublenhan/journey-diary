@@ -9,7 +9,6 @@ import {
   updateDoc,
   deleteDoc,
   doc,
-  orderBy,
   serverTimestamp,
 } from 'firebase/firestore';
 
@@ -35,9 +34,12 @@ export interface Anniversary {
 export const anniversaryApi = {
   async getAll(userId: string): Promise<Anniversary[]> {
     const anniversariesRef = collection(db, getCollectionName('AnniversaryEvent'));
-    const q = query(anniversariesRef, where('userId', '==', userId), orderBy('date', 'asc'));
+    // Remove orderBy to avoid composite index requirement, sort in FE instead
+    const q = query(anniversariesRef, where('userId', '==', userId));
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }) as Anniversary);
+    const results = querySnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }) as Anniversary);
+    // Sort by date in frontend
+    return results.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   },
   async add(userId: string, data: Omit<Anniversary, 'id' | 'userId'>): Promise<string> {
     const docRef = await addDoc(collection(db, getCollectionName('AnniversaryEvent')), {

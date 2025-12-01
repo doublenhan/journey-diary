@@ -187,7 +187,6 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       alert(`✅ Sự kiện "${anniversary.title}" đã sẵn sàng để lưu vào calendar!`);
     } catch (err) {
       alert('❌ Không thể tạo file calendar. Vui lòng thử lại.');
-      console.error('Error creating ICS:', err);
     }
   };
 
@@ -338,10 +337,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       processed.sort((a, b) => (a.daysUntil || 0) - (b.daysUntil || 0));
       setAnniversaries(processed);
     } catch (err) {
-      // Log error for debugging
-      console.error('Failed to add anniversary:', err);
       syncError(err instanceof Error ? err.message : 'Lỗi thêm kỷ niệm');
-      alert('Failed to add anniversary.');
     } finally {
       setLoading(false);
     }
