@@ -864,13 +864,15 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
 
         {/* Empty State */}
         {anniversaries.length === 0 && !loading && (
-          <EmptyState
-            icon="📅"
-            title="No anniversaries yet"
-            description="Add your first special date to start tracking important moments in your relationship!"
-            actionLabel="Add Your First Special Date"
-            onAction={() => setShowAddForm(true)}
-          />
+          <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <EmptyState
+              icon="📅"
+              title="No anniversaries yet"
+              description="Add your first special date to start tracking important moments in your relationship!"
+              actionLabel="Add Your First Special Date"
+              onAction={() => setShowAddForm(true)}
+            />
+          </div>
         )}
       </main>
 

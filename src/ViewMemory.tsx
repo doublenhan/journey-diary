@@ -306,7 +306,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                           </p>
 
                           {/* Images Grid */}
-                          {Array.isArray(memory.images) && memory.images.length > 0 && (
+                          {Array.isArray(memory.images) && memory.images.length > 0 ? (
                             <div className="relative">
                               <div className="photo-grid">
                                 {memory.images.slice(0, 3).map((image: any, imageIndex: number) => (
@@ -343,6 +343,10 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                                   </button>
                                 )}
                               </div>
+                            </div>
+                          ) : (
+                            <div className="text-center py-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                              <p className="text-gray-400 text-sm">📷 No images available</p>
                             </div>
                           )}
                         </div>
