@@ -170,6 +170,7 @@ function App() {
   }, [galleryImages, imagesPerPage]);
 
   return (
+    <>
     <Routes>
       <Route path="/" element={<LoginPage currentTheme={currentTheme} />} />
       <Route path="/landing" element={
@@ -350,6 +351,7 @@ function App() {
       <Route path="/setting-page" element={<SettingPage onBack={() => window.history.back()} currentTheme={currentTheme} setCurrentTheme={setCurrentTheme} />} />
     </Routes>
     <DebugEnv />
+    </>
   );
 }
 
