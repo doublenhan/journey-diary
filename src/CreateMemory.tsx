@@ -8,6 +8,8 @@ import { MoodTheme, themes } from './config/themes';
 import VisualEffects from './components/VisualEffects';
 import SyncStatus from './components/SyncStatus';
 import { UploadProgress, UploadProgressItem } from './components/UploadProgress';
+import { addMemoryToCache, updateCacheAndNotify, removeMemoryFromCache } from './utils/memoryCacheUtils';
+import type { Memory } from './hooks/useMemoriesCache';
 import './styles/CreateMemory.css';
 
 interface CreateMemoryProps {
@@ -277,10 +279,10 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
         setUploadProgress([]);
         setSaveMessage(null);
         setValidationAttempted(false);
-        // Refresh cache from API to get real data
+        // Refresh cache from API to get real data with updated images
         if (userId) {
-          localStorage.removeItem(`memoriesCache_${userId}`);
-          window.dispatchEvent(new CustomEvent('memoryCacheInvalidated', { detail: { userId } }));
+          removeMemoryFromCache(userId, optimisticMemoryId);
+          updateCacheAndNotify(userId);
         }
       }, 2000);
     } catch (error) {
@@ -288,21 +290,11 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
       
       // Rollback optimistic update
       if (userId) {
-        const cacheKey = `memoriesCache_${userId}`;
-        const cache = localStorage.getItem(cacheKey);
-        if (cache) {
-          try {
-            const { memories, timestamp } = JSON.parse(cache);
-            // Remove optimistic memory (first item with temp id)
-            const rolledBackMemories = memories.filter((m: any) => !m.id.startsWith('temp-'));
-            localStorage.setItem(cacheKey, JSON.stringify({ 
-              memories: rolledBackMemories, 
-              timestamp 
-            }));
-            window.dispatchEvent(new CustomEvent('memoryCacheInvalidated', { detail: { userId } }));
-          } catch (e) {
-            console.error('Failed to rollback cache:', e);
-          }
+        try {
+          removeMemoryFromCache(userId, optimisticMemoryId);
+          updateCacheAndNotify(userId);
+        } catch (e) {
+          console.error('Failed to rollback cache:', e);
         }
       }
       
