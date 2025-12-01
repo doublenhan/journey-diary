@@ -75,35 +75,63 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
 
   useEffect(() => {
     if (!userId) return;
-    setLoading(true);
-    const cacheKey = `anniversariesCache_${userId}`;
     
-    // Clear cache to always fetch fresh data from Firebase
-    localStorage.removeItem(cacheKey);
+    const cacheKey = `anniversariesCache_${userId}`;
+    const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+    
+    // Helper function to process anniversary data
+    const processAnniversaries = (data: any[]) => {
+      const today = new Date();
+      const processed = data.map((anniversary) => {
+        const anniversaryDate = new Date(anniversary.date);
+        const thisYearDate = new Date(today.getFullYear(), anniversaryDate.getMonth(), anniversaryDate.getDate());
+        if (thisYearDate < today) thisYearDate.setFullYear(today.getFullYear() + 1);
+        const daysUntil = Math.ceil((thisYearDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        const yearsSince = today.getFullYear() - anniversaryDate.getFullYear();
+        return {
+          ...anniversary,
+          yearsSince: yearsSince > 0 ? yearsSince : 0,
+          daysUntil,
+          isUpcoming: daysUntil <= anniversary.reminderDays
+        };
+      });
+      return processed.sort((a, b) => (a.daysUntil || 0) - (b.daysUntil || 0));
+    };
+    
+    // Try to load from cache first (instant load)
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        const { anniversaries: cachedData, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_TTL) {
+          // Cache is fresh, use it immediately (no loading state)
+          setAnniversaries(processAnniversaries(cachedData));
+          syncSuccess(); // Show success immediately
+          return; // Skip Firebase fetch
+        }
+      } catch (e) {
+        console.error('Cache parse error:', e);
+      }
+    }
+    
+    // No cache or cache expired, fetch from Firebase
+    setLoading(true);
+    startSync();
     
     anniversaryApi.getAll(userId)
       .then((data) => {
-        const today = new Date();
-        const processed = data.map((anniversary) => {
-          const anniversaryDate = new Date(anniversary.date);
-          const thisYearDate = new Date(today.getFullYear(), anniversaryDate.getMonth(), anniversaryDate.getDate());
-          if (thisYearDate < today) thisYearDate.setFullYear(today.getFullYear() + 1);
-          const daysUntil = Math.ceil((thisYearDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-          const yearsSince = today.getFullYear() - anniversaryDate.getFullYear();
-          return {
-            ...anniversary,
-            yearsSince: yearsSince > 0 ? yearsSince : 0,
-            daysUntil,
-            isUpcoming: daysUntil <= anniversary.reminderDays
-          };
-        });
-        processed.sort((a, b) => (a.daysUntil || 0) - (b.daysUntil || 0));
+        const processed = processAnniversaries(data);
         setAnniversaries(processed);
-        // Save to cache with 10min TTL
+        // Save to cache
         localStorage.setItem(cacheKey, JSON.stringify({ anniversaries: data, timestamp: Date.now() }));
+        syncSuccess();
+      })
+      .catch((error) => {
+        console.error('Error fetching anniversaries:', error);
+        syncError(error.message || 'Không thể tải dữ liệu');
       })
       .finally(() => setLoading(false));
-  }, [userId]);
+  }, [userId, startSync, syncSuccess, syncError]);
 
   // Hàm tạo file iCalendar (.ics) để lưu vào calendar
   const generateICS = (anniversary: Anniversary): string => {
@@ -321,6 +349,10 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
 
       await anniversaryApi.add(userId, payload);
       
+      // Clear cache to force fresh data on next load
+      const cacheKey = `anniversariesCache_${userId}`;
+      localStorage.removeItem(cacheKey);
+      
       // Reload from API to get real data
       const data = await anniversaryApi.getAll(userId);
       const processed = data.map((anniversary) => {
@@ -436,6 +468,10 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
     startSync(); // Start sync status
     try {
       await anniversaryApi.remove(deleteId);
+      
+      // Clear cache to force fresh data on next load
+      const cacheKey = `anniversariesCache_${userId}`;
+      localStorage.removeItem(cacheKey);
       
       // Reload from API to confirm
       const data = await anniversaryApi.getAll(userId);
@@ -553,15 +589,6 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         lastSyncTime={lastSyncTime}
         errorMessage={errorMessage || undefined}
       />
-      
-      {loading && (
-        <div className="anniversaries-grid" style={{ padding: '20px' }}>
-          <AnniversaryItemSkeleton />
-          <AnniversaryItemSkeleton />
-          <AnniversaryItemSkeleton />
-          <AnniversaryItemSkeleton />
-        </div>
-      )}
       {/* Header */}
       <header className="anniversary-header">
         <div className="anniversary-header-container">
@@ -732,8 +759,16 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
             </div>
           </div>
           
-          <div className="anniversaries-grid">
-            {otherAnniversaries.map((anniversary, index) => (
+          {loading ? (
+            <div className="anniversaries-grid">
+              <AnniversaryItemSkeleton />
+              <AnniversaryItemSkeleton />
+              <AnniversaryItemSkeleton />
+              <AnniversaryItemSkeleton />
+            </div>
+          ) : otherAnniversaries.length > 0 ? (
+            <div className="anniversaries-grid">
+              {otherAnniversaries.map((anniversary, index) => (
               <div 
                 key={anniversary.id}
                 className="anniversary-card"
@@ -835,6 +870,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
               </div>
             ))}
           </div>
+          ) : null}
         </section>
 
         {/* Empty State */}

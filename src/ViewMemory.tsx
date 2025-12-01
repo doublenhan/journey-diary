@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useMemoriesCache } from './hooks/useMemoriesCache';
+import { useInfiniteMemories } from './hooks/useInfiniteMemories';
 import { Heart, Calendar, ArrowLeft, ChevronLeft, ChevronRight, Loader } from 'lucide-react';
 // import { cloudinaryApi, type SavedMemory } from './apis/cloudinaryGalleryApi';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
@@ -9,6 +9,8 @@ import { useSyncStatus } from './hooks/useSyncStatus';
 import SyncStatus from './components/SyncStatus';
 import { EmptyState } from './components/EmptyState';
 import { YearSectionSkeleton } from './components/LoadingSkeleton';
+import { LazyImage } from './components/LazyImage';
+import { InfiniteScrollTrigger } from './components/InfiniteScrollTrigger';
 import './styles/ViewMemory.css';
 
 // Update Memory interface to match SavedMemory from the API
@@ -46,7 +48,7 @@ interface ViewMemoryProps {
 function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
   // All hooks must come first
   const { userId, loading } = useCurrentUserId();
-  const { memoriesByYear, years, isLoading, error } = useMemoriesCache(userId, loading);
+  const { memoriesByYear, years, allYears, isLoading, isLoadingMore, error, hasMore, loadMore } = useInfiniteMemories(userId, loading);
   const { syncStatus, lastSyncTime, errorMessage, startSync, syncSuccess, syncError } = useSyncStatus();
   // Remove unused floatingHearts state
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
@@ -189,7 +191,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
             </div>
             <div className="dashboard-card bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
               <Calendar className="w-8 h-8 text-blue-500 mb-2" />
-              <div className="dashboard-number text-2xl font-bold">{years.length}</div>
+              <div className="dashboard-number text-2xl font-bold">{allYears.length}</div>
               <div className="dashboard-label text-sm text-gray-500">Năm</div>
             </div>
             <div className="dashboard-card bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
@@ -314,18 +316,20 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                                   <div
                                     key={image.public_id}
                                     className="gradient-border-image-rounded transform hover:scale-105 transition-all duration-300"
-                                    onClick={() => {
-                                      setAllPhotos(memory.images.map((img: any) => img.secure_url));
-                                      setSelectedPhoto(image.secure_url);
-                                      setSelectedPhotoIndex(imageIndex);
-                                    }}
                                   >
                                     <div className="gradient-border-inner">
-                                      <img
+                                      <LazyImage
                                         src={image.secure_url}
                                         alt={`${memory.title || "Memory"} ${imageIndex + 1}`}
                                         className="photo-img enhanced-photo-img"
-                                        onError={e => { e.currentTarget.style.display = 'none'; }}
+                                        width={image.width}
+                                        height={image.height}
+                                        transformations="f_auto,q_auto,w_800,c_limit"
+                                        onClick={() => {
+                                          setAllPhotos(memory.images.map((img: any) => img.secure_url));
+                                          setSelectedPhoto(image.secure_url);
+                                          setSelectedPhotoIndex(imageIndex);
+                                        }}
                                       />
                                     </div>
                                   </div>
@@ -357,6 +361,13 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                 </div>
               </div>
             ))}
+            
+            {/* Infinite Scroll Trigger */}
+            <InfiniteScrollTrigger 
+              onLoadMore={loadMore}
+              isLoading={isLoadingMore}
+              hasMore={hasMore}
+            />
           </div>
         )}
 

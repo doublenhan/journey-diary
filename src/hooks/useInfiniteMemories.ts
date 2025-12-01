@@ -1,0 +1,168 @@
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { MemoriesByYear, Memory } from './useMemoriesCache';
+
+const YEARS_PER_PAGE = 2; // Load 2 years at a time
+
+export function useInfiniteMemories(userId: string | null, loading: boolean) {
+  const [memoriesByYear, setMemoriesByYear] = useState<MemoriesByYear>({});
+  const [allYears, setAllYears] = useState<string[]>([]);
+  const [visibleYears, setVisibleYears] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const loadedYearsRef = useRef(0);
+
+  // Listen for memory cache invalidation events
+  useEffect(() => {
+    const handleCacheInvalidated = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const eventUserId = customEvent.detail?.userId;
+      
+      if (!eventUserId || eventUserId === userId) {
+        console.log('[DEBUG] Memory cache invalidated, triggering refresh');
+        // Reset pagination
+        loadedYearsRef.current = 0;
+        setVisibleYears([]);
+        setRefreshTrigger(t => t + 1);
+      }
+    };
+
+    window.addEventListener('memoryCacheInvalidated', handleCacheInvalidated);
+    return () => window.removeEventListener('memoryCacheInvalidated', handleCacheInvalidated);
+  }, [userId]);
+
+  // Initial load - fetch all memories and setup pagination
+  useEffect(() => {
+    if (loading || !userId) return;
+    
+    setIsLoading(true);
+    setError(null);
+    const cacheKey = `memoriesCache_${userId}`;
+    const cache = localStorage.getItem(cacheKey);
+    let cacheValid = false;
+
+    // Try to load from cache first
+    if (cache) {
+      try {
+        const { memories, timestamp } = JSON.parse(cache);
+        if (memories && Array.isArray(memories) && timestamp && Date.now() - timestamp < 5 * 60 * 1000) {
+          processMemories(memories, true);
+          cacheValid = true;
+        }
+      } catch (e) {
+        console.debug('Cache parse error:', e);
+      }
+    }
+
+    // If no valid cache, fetch from API
+    if (!cacheValid) {
+      (async () => {
+        try {
+          const params = userId ? `?userId=${encodeURIComponent(userId)}` : '';
+          const res = await fetch(`/api/cloudinary/memories${params}`);
+          
+          if (!res.ok) {
+            console.warn(`Memories API returned ${res.status}`);
+            setMemoriesByYear({});
+            setAllYears([]);
+            setVisibleYears([]);
+            setIsLoading(false);
+            return;
+          }
+          
+          const data = await res.json();
+          const memories = data.memories || [];
+          
+          // Save to cache
+          localStorage.setItem(cacheKey, JSON.stringify({ memories, timestamp: Date.now() }));
+          
+          processMemories(memories, true);
+          
+          if (memories.length === 0) {
+            console.log('No memories found for user');
+          } else {
+            console.log(`✅ Loaded ${memories.length} memories`);
+          }
+        } catch (e) {
+          console.error('Memories fetch error:', e);
+          setError('Failed to load memories. Please try again.');
+          setMemoriesByYear({});
+          setAllYears([]);
+          setVisibleYears([]);
+        } finally {
+          setIsLoading(false);
+        }
+      })();
+    }
+  }, [userId, loading, refreshTrigger]);
+
+  // Process memories and set up pagination
+  const processMemories = useCallback((memories: Memory[], initial: boolean) => {
+    const byYear: MemoriesByYear = {};
+    memories.forEach((memory: Memory) => {
+      const year = new Date(memory.date).getFullYear().toString();
+      if (!byYear[year]) byYear[year] = [];
+      byYear[year].push(memory);
+    });
+    
+    const years = Object.keys(byYear).sort((a, b) => Number(b) - Number(a));
+    
+    setMemoriesByYear(byYear);
+    setAllYears(years);
+    
+    if (initial) {
+      // Load first batch
+      const firstBatch = years.slice(0, YEARS_PER_PAGE);
+      setVisibleYears(firstBatch);
+      loadedYearsRef.current = firstBatch.length;
+      setHasMore(years.length > YEARS_PER_PAGE);
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Load more years
+  const loadMore = useCallback(() => {
+    if (isLoadingMore || !hasMore) return;
+    
+    setIsLoadingMore(true);
+    
+    // Simulate network delay for smooth UX
+    setTimeout(() => {
+      const nextBatch = allYears.slice(
+        loadedYearsRef.current,
+        loadedYearsRef.current + YEARS_PER_PAGE
+      );
+      
+      if (nextBatch.length > 0) {
+        setVisibleYears(prev => [...prev, ...nextBatch]);
+        loadedYearsRef.current += nextBatch.length;
+        setHasMore(loadedYearsRef.current < allYears.length);
+      } else {
+        setHasMore(false);
+      }
+      
+      setIsLoadingMore(false);
+    }, 300);
+  }, [allYears, hasMore, isLoadingMore]);
+
+  // Get visible memories by year
+  const visibleMemoriesByYear: MemoriesByYear = {};
+  visibleYears.forEach(year => {
+    if (memoriesByYear[year]) {
+      visibleMemoriesByYear[year] = memoriesByYear[year];
+    }
+  });
+
+  return {
+    memoriesByYear: visibleMemoriesByYear,
+    years: visibleYears,
+    allYears,
+    isLoading,
+    isLoadingMore,
+    error,
+    hasMore,
+    loadMore
+  };
+}

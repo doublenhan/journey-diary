@@ -7,6 +7,7 @@ import type { MemoryData } from './apis/cloudinaryGalleryApi';
 import { MoodTheme, themes } from './config/themes';
 import VisualEffects from './components/VisualEffects';
 import SyncStatus from './components/SyncStatus';
+import { UploadProgress, UploadProgressItem } from './components/UploadProgress';
 import './styles/CreateMemory.css';
 
 interface CreateMemoryProps {
@@ -29,6 +30,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [validationAttempted, setValidationAttempted] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgressItem[]>([]);
 
   // Compress image before upload
   const compressImage = (file: File): Promise<File> => {
@@ -140,6 +142,15 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
     setSaveMessage(null);
     startSync(); // Start sync animation
     
+    // Initialize upload progress for each image
+    const progressItems: UploadProgressItem[] = uploadedImages.map((file, index) => ({
+      id: `upload-${index}-${Date.now()}`,
+      filename: file.name,
+      progress: 0,
+      status: 'pending' as const
+    }));
+    setUploadProgress(progressItems);
+    
     // Create optimistic memory object
     const optimisticMemory = {
       id: `temp-${Date.now()}`,
@@ -204,17 +215,52 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
       formData.append('date', memoryData.date);
       if (memoryData.tags?.length) formData.append('tags', memoryData.tags.join(','));
       if (memoryData.userId) formData.append('userId', memoryData.userId);
+      
+      // Update progress as "uploading"
+      setUploadProgress(prev => prev.map(item => ({
+        ...item,
+        status: 'uploading' as const,
+        progress: 10
+      })));
+      
       uploadedImages.forEach((file) => {
         formData.append('images', file);
       });
+      
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => prev.map(item => {
+          if (item.status === 'uploading' && item.progress < 90) {
+            return { ...item, progress: Math.min(item.progress + 10, 90) };
+          }
+          return item;
+        }));
+      }, 300);
+      
       const response = await fetch('/api/cloudinary/memory', {
         method: 'POST',
         body: formData,
       });
       
+      clearInterval(progressInterval);
+      
       if (!response.ok) {
+        // Mark all as error
+        setUploadProgress(prev => prev.map(item => ({
+          ...item,
+          status: 'error' as const,
+          error: 'Upload failed',
+          progress: 0
+        })));
         throw new Error('Failed to save memory');
       }
+      
+      // Mark all as success
+      setUploadProgress(prev => prev.map(item => ({
+        ...item,
+        status: 'success' as const,
+        progress: 100
+      })));
       
       const data = await response.json();
       
@@ -228,6 +274,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
         setSelectedYear(new Date().getFullYear());
         setUploadedImages([]);
         setImagePreviews([]);
+        setUploadProgress([]);
         setSaveMessage(null);
         setValidationAttempted(false);
         // Refresh cache from API to get real data
@@ -486,6 +533,11 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
                 </div>
               )}
             </div>
+
+            {/* Upload Progress */}
+            {uploadProgress.length > 0 && (
+              <UploadProgress items={uploadProgress} />
+            )}
 
             {/* Save Button */}
             <div className="save-section">
