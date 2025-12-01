@@ -1,5 +1,5 @@
 import { Search, Filter, X } from 'lucide-react';
-import './SearchFilterBar.css';
+import '../styles/SearchFilterBar.css';
 
 interface SearchFilterBarProps {
   searchQuery: string;

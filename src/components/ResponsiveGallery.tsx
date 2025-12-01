@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { LazyImage } from './LazyImage';
-import './ResponsiveGallery.css';
+import '../styles/ResponsiveGallery.css';
 
 interface GalleryImage {
   public_id: string;

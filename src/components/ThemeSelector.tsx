@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CustomTheme, themePresets, saveThemePreference } from '../utils/themeSystem';
 import { Palette, Check } from 'lucide-react';
-import './ThemeSelector.css';
+import '../styles/ThemeSelector.css';
 
 interface ThemeSelectorProps {
   currentTheme: CustomTheme;

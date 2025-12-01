@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { MapPin, Calendar, X } from 'lucide-react';
-import './MapView.css';
+import '../styles/MapView.css';
 
 interface Memory {
   id: string;

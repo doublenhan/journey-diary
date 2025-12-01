@@ -1,4 +1,4 @@
-import './UploadProgress.css';
+import '../styles/UploadProgress.css';
 
 export interface UploadProgressItem {
   id: string;

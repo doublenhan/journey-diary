@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import './LazyImage.css';
+import '../styles/LazyImage.css';
 
 interface LazyImageProps {
   src: string;
