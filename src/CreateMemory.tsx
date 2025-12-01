@@ -139,6 +139,54 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
     setIsLoading(true);
     setSaveMessage(null);
     startSync(); // Start sync animation
+    
+    // Create optimistic memory object
+    const optimisticMemory = {
+      id: `temp-${Date.now()}`,
+      title: title.trim(),
+      location: location.trim() || undefined,
+      text: memoryText.trim(),
+      date: `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`,
+      images: imagePreviews.map((preview, index) => ({
+        public_id: `temp-${index}`,
+        secure_url: preview,
+        width: 800,
+        height: 600,
+        format: 'jpg',
+        created_at: new Date().toISOString(),
+        tags: ['memory', 'love-journal']
+      })),
+      created_at: new Date().toISOString(),
+      tags: ['memory', 'love-journal']
+    };
+    
+    // Optimistically update cache
+    if (userId) {
+      const cacheKey = `memoriesCache_${userId}`;
+      const cache = localStorage.getItem(cacheKey);
+      if (cache) {
+        try {
+          const { memories, timestamp } = JSON.parse(cache);
+          const updatedMemories = [optimisticMemory, ...memories];
+          localStorage.setItem(cacheKey, JSON.stringify({ 
+            memories: updatedMemories, 
+            timestamp 
+          }));
+          // Dispatch event to update UI immediately
+          window.dispatchEvent(new CustomEvent('memoryCacheInvalidated', { detail: { userId } }));
+        } catch (e) {
+          console.error('Failed to update cache optimistically:', e);
+        }
+      }
+    }
+    
+    // Show success message immediately (optimistic)
+    setSaveMessage({
+      type: 'success',
+      text: `Memory "${title}" saved successfully! 💕`
+    });
+    syncSuccess(); // Show sync success animation
+    
     try {
       const memoryData: MemoryData & { userId?: string } = {
         title: title.trim(),
@@ -163,14 +211,14 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
         method: 'POST',
         body: formData,
       });
-      if (!response.ok) throw new Error('Failed to save memory');
+      
+      if (!response.ok) {
+        throw new Error('Failed to save memory');
+      }
+      
       const data = await response.json();
-      setSaveMessage({
-        type: 'success',
-        text: `Memory "${title}" saved successfully! 💕`
-      });
-      syncSuccess(); // Show sync success animation
-      // Clear form after successful save
+      
+      // API succeeded - clear form
       setTimeout(() => {
         setTitle('');
         setLocation('');
@@ -182,15 +230,35 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
         setImagePreviews([]);
         setSaveMessage(null);
         setValidationAttempted(false);
-        // Remove cache so next view reloads from API
+        // Refresh cache from API to get real data
         if (userId) {
           localStorage.removeItem(`memoriesCache_${userId}`);
-          // Dispatch custom event to notify other components
           window.dispatchEvent(new CustomEvent('memoryCacheInvalidated', { detail: { userId } }));
         }
       }, 2000);
     } catch (error) {
       console.error('Failed to save memory:', error);
+      
+      // Rollback optimistic update
+      if (userId) {
+        const cacheKey = `memoriesCache_${userId}`;
+        const cache = localStorage.getItem(cacheKey);
+        if (cache) {
+          try {
+            const { memories, timestamp } = JSON.parse(cache);
+            // Remove optimistic memory (first item with temp id)
+            const rolledBackMemories = memories.filter((m: any) => !m.id.startsWith('temp-'));
+            localStorage.setItem(cacheKey, JSON.stringify({ 
+              memories: rolledBackMemories, 
+              timestamp 
+            }));
+            window.dispatchEvent(new CustomEvent('memoryCacheInvalidated', { detail: { userId } }));
+          } catch (e) {
+            console.error('Failed to rollback cache:', e);
+          }
+        }
+      }
+      
       // Enhanced error reporting
       if (error instanceof Error) {
         syncError(error.message || 'Lỗi lưu kỷ niệm');

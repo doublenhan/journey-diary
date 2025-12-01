@@ -7,6 +7,8 @@ import { MoodTheme, themes } from './config/themes';
 import VisualEffects from './components/VisualEffects';
 import { useSyncStatus } from './hooks/useSyncStatus';
 import SyncStatus from './components/SyncStatus';
+import { EmptyState } from './components/EmptyState';
+import { YearSectionSkeleton } from './components/LoadingSkeleton';
 import './styles/ViewMemory.css';
 
 // Update Memory interface to match SavedMemory from the API
@@ -218,9 +220,9 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
 
         {/* Loading State */}
         {isLoading && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader className="w-10 h-10 text-pink-500 animate-spin mb-4" />
-            <p className="text-lg text-gray-600">Đang tải những kỷ niệm quý giá của bạn...</p>
+          <div>
+            <YearSectionSkeleton />
+            <YearSectionSkeleton />
           </div>
         )}
 
@@ -241,21 +243,13 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
 
         {/* Empty State */}
         {!isLoading && !error && years.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md">
-              <Heart className="w-16 h-16 text-pink-300 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold mb-2 text-gray-800">Chưa Có Kỷ Niệm Nào</h3>
-              <p className="text-gray-600 mb-6">
-                Bắt đầu tạo những kỷ niệm đẹp cùng nhau! Mỗi kỷ niệm sẽ xuất hiện ở đây.
-              </p>
-              <a 
-                href="/create-memory" 
-                className="inline-block bg-pink-500 hover:bg-pink-600 text-white font-medium py-2 px-6 rounded-lg transition-colors"
-              >
-                Tạo Kỷ Niệm Đầu Tiên
-              </a>
-            </div>
-          </div>
+          <EmptyState
+            icon="📸"
+            title="No memories yet"
+            description="Start creating beautiful memories together! Every moment you capture will appear here."
+            actionLabel="Create Your First Memory"
+            onAction={() => window.location.href = '/create-memory'}
+          />
         )}
 
         {/* Memories by Year */}
