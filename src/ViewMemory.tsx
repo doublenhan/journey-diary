@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useInfiniteMemories } from './hooks/useInfiniteMemories';
 import { useDebouncedValue } from './hooks/useDebouncedValue';
-import { Heart, Calendar, ArrowLeft, ChevronLeft, ChevronRight, Loader } from 'lucide-react';
+import { Heart, Calendar, ArrowLeft, ChevronLeft, ChevronRight, Loader, Map, Share2, Edit, Trash2 } from 'lucide-react';
 // import { cloudinaryApi, type SavedMemory } from './apis/cloudinaryGalleryApi';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { MoodTheme, themes } from './config/themes';
@@ -9,11 +9,16 @@ import VisualEffects from './components/VisualEffects';
 import { useSyncStatus } from './hooks/useSyncStatus';
 import SyncStatus from './components/SyncStatus';
 import { EmptyState } from './components/EmptyState';
-import { YearSectionSkeleton } from './components/LoadingSkeleton';
+import { YearSectionSkeleton, DashboardSkeleton } from './components/LoadingSkeleton';
 import { LazyImage } from './components/LazyImage';
 import { InfiniteScrollTrigger } from './components/InfiniteScrollTrigger';
 import { SearchFilterBar } from './components/SearchFilterBar';
+import { ResponsiveGallery } from './components/ResponsiveGallery';
+import { ThemeSelector } from './components/ThemeSelector';
+import { MapView } from './components/MapView';
+import { CustomTheme, themePresets, getThemePreference, getThemeById } from './utils/themeSystem';
 import './styles/ViewMemory.css';
+import './styles/MemoryCardHover.css';
 
 // Update Memory interface to match SavedMemory from the API
 interface MemoryImage {
@@ -58,6 +63,8 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
   const [allPhotos, setAllPhotos] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedYear, setSelectedYear] = useState('ALL');
+  const [showMapView, setShowMapView] = useState(false);
+  const [customTheme, setCustomTheme] = useState<CustomTheme>(() => getThemeById(getThemePreference()));
   const theme = themes[currentTheme];
 
   // Show sync status when loading memories
