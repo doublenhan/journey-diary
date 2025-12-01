@@ -1,0 +1,86 @@
+.lazy-image-wrapper {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    90deg,
+    rgba(240, 240, 240, 0.3) 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(240, 240, 240, 0.3) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 12px;
+  min-height: 200px;
+}
+
+.lazy-image-wrapper.loading {
+  animation: shimmer 1.5s infinite;
+}
+
+.lazy-image-wrapper.loaded {
+  animation: none;
+  background: transparent;
+}
+
+.lazy-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.4s ease-in-out;
+  border-radius: 12px;
+}
+
+.lazy-image-wrapper.loaded .lazy-image {
+  opacity: 1;
+}
+
+.lazy-image-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(240, 240, 240, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.lazy-image-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ec4899;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .lazy-image-wrapper {
+    min-height: 150px;
+  }
+  
+  .lazy-image-spinner {
+    width: 30px;
+    height: 30px;
+    border-width: 2px;
+  }
+}
