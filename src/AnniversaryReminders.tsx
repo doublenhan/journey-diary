@@ -7,6 +7,8 @@ import { MoodTheme, themes } from './config/themes';
 import VisualEffects from './components/VisualEffects';
 import { useSyncStatus } from './hooks/useSyncStatus';
 import SyncStatus from './components/SyncStatus';
+import { EmptyState } from './components/EmptyState';
+import { AnniversaryItemSkeleton } from './components/LoadingSkeleton';
 import './styles/AnniversaryReminders.css';
 import anniversaryTimeline from "./data/anniversaryTimeline.json";
 
@@ -276,23 +278,64 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
     if (!newAnniversary.title || !newAnniversary.date || !userId) return;
     setLoading(true);
     startSync(); // Start sync status
-    try {
-      const { title, date, type, reminderDays, isNotificationEnabled } = newAnniversary;
-      let formattedDate = date;
-      if (date) {
-        // Parse date string as local date to avoid timezone offset
-        const [year, month, day] = date.split('-');
-        if (year && month && day) {
-          const mm = String(month).padStart(2, '0');
-          const dd = String(day).padStart(2, '0');
-          formattedDate = `${year}-${mm}-${dd}`;
-        }
+    
+    // Create optimistic anniversary
+    const optimisticId = `temp-${Date.now()}`;
+    let formattedDate = newAnniversary.date;
+    if (newAnniversary.date) {
+      const [year, month, day] = newAnniversary.date.split('-');
+      if (year && month && day) {
+        const mm = String(month).padStart(2, '0');
+        const dd = String(day).padStart(2, '0');
+        formattedDate = `${year}-${mm}-${dd}`;
       }
-
+    }
+    
+    const now = new Date();
+    const anniversaryDate = new Date(formattedDate);
+    const thisYearDate = new Date(now.getFullYear(), anniversaryDate.getMonth(), anniversaryDate.getDate());
+    if (thisYearDate < now) thisYearDate.setFullYear(now.getFullYear() + 1);
+    const daysUntil = Math.ceil((thisYearDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const yearsSince = now.getFullYear() - anniversaryDate.getFullYear();
+    
+    const optimisticAnniversary: Anniversary = {
+      id: optimisticId,
+      userId: userId,
+      title: newAnniversary.title,
+      date: formattedDate,
+      type: newAnniversary.type as AnniversaryType,
+      reminderDays: newAnniversary.reminderDays,
+      isNotificationEnabled: newAnniversary.isNotificationEnabled,
+      yearsSince: yearsSince > 0 ? yearsSince : 0,
+      daysUntil,
+      isUpcoming: daysUntil <= newAnniversary.reminderDays,
+      meaning: null,
+      milestoneTitle: null,
+      milestoneMeaning: null
+    };
+    
+    // Optimistically update UI
+    const updatedAnniversaries = [...anniversaries, optimisticAnniversary].sort(
+      (a, b) => (a.daysUntil || 0) - (b.daysUntil || 0)
+    );
+    setAnniversaries(updatedAnniversaries);
+    syncSuccess(); // Show sync success immediately
+    setShowAddForm(false);
+    
+    const formData = { ...newAnniversary };
+    setNewAnniversary({
+      title: '',
+      date: '',
+      type: 'custom',
+      reminderDays: 1,
+      isNotificationEnabled: true
+    });
+    
+    try {
+      const { title, date, type, reminderDays, isNotificationEnabled } = formData;
       const safeType = type as AnniversaryType;
       const safeReminderDays = Number.isFinite(reminderDays) ? reminderDays : 1;
 
-      // Only include fields defined in Omit<Anniversary, 'id' | 'userId'>
       const payload = {
         title: title || '',
         date: formattedDate || '',
@@ -302,19 +345,9 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       };
 
       await anniversaryApi.add(userId, payload);
-      syncSuccess(); // Show sync success
-      setShowAddForm(false);
-      setNewAnniversary({
-        title: '',
-        date: '',
-        type: 'custom',
-        reminderDays: 1,
-        isNotificationEnabled: true
-      });
-
-      // Hiển thị tất cả sự kiện thuộc userId sau khi thêm mới
+      
+      // Reload from API to get real data
       const data = await anniversaryApi.getAll(userId);
-      const now = new Date();
       const processed = data.map((anniversary) => {
         const anniversaryDate = new Date(anniversary.date);
         const thisYearDate = new Date(now.getFullYear(), anniversaryDate.getMonth(), anniversaryDate.getDate());
@@ -335,6 +368,9 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       processed.sort((a, b) => (a.daysUntil || 0) - (b.daysUntil || 0));
       setAnniversaries(processed);
     } catch (err) {
+      // Rollback on error
+      const rolledBack = anniversaries.filter(a => a.id !== optimisticId);
+      setAnniversaries(rolledBack);
       syncError(err instanceof Error ? err.message : 'Lỗi thêm kỷ niệm');
     } finally {
       setLoading(false);
@@ -410,13 +446,23 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
   // Actually perform the delete after confirm
   const confirmDeleteAnniversary = async () => {
     if (!userId || !deleteId) return;
-    setLoading(true);
     setShowDeleteConfirm(false);
+    
+    // Store deleted anniversary for rollback
+    const deletedAnniversary = anniversaries.find(a => a.id === deleteId);
+    if (!deletedAnniversary) return;
+    
+    // Optimistically remove from UI
+    const optimisticAnniversaries = anniversaries.filter(a => a.id !== deleteId);
+    setAnniversaries(optimisticAnniversaries);
+    syncSuccess(); // Show success immediately
+    
+    setLoading(true);
     startSync(); // Start sync status
     try {
       await anniversaryApi.remove(deleteId);
-      syncSuccess(); // Show sync success
-      // Reload anniversaries
+      
+      // Reload from API to confirm
       const data = await anniversaryApi.getAll(userId);
       const today = new Date();
       const processed = data.map((anniversary) => {
@@ -435,6 +481,11 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       processed.sort((a, b) => (a.daysUntil || 0) - (b.daysUntil || 0));
       setAnniversaries(processed);
     } catch (err) {
+      // Rollback on error - restore deleted item
+      const rolledBack = [...anniversaries, deletedAnniversary].sort(
+        (a, b) => (a.daysUntil || 0) - (b.daysUntil || 0)
+      );
+      setAnniversaries(rolledBack);
       syncError(err instanceof Error ? err.message : 'Lỗi xóa kỷ niệm');
       alert('Failed to delete anniversary.');
     } finally {
@@ -529,9 +580,11 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       />
       
       {loading && (
-        <div className="loading-overlay">
-          <div className="loading-spinner"></div>
-          <div className="loading-text">Đang tải...</div>
+        <div className="anniversaries-grid" style={{ padding: '20px' }}>
+          <AnniversaryItemSkeleton />
+          <AnniversaryItemSkeleton />
+          <AnniversaryItemSkeleton />
+          <AnniversaryItemSkeleton />
         </div>
       )}
       {/* Header */}
@@ -810,19 +863,14 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         </section>
 
         {/* Empty State */}
-        {anniversaries.length === 0 && (
-          <div className="empty-state">
-            <Heart className="empty-state-icon" />
-            <h3 className="empty-state-title">Chưa có kỷ niệm nào</h3>
-            <p className="empty-state-text">Thêm kỷ niệm đầu tiên của bạn để bắt đầu theo dõi những khoảnh khắc đặc biệt!</p>
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="empty-state-button"
-            >
-              <Plus className="w-5 h-5" />
-              Thêm Kỷ Niệm
-            </button>
-          </div>
+        {anniversaries.length === 0 && !loading && (
+          <EmptyState
+            icon="📅"
+            title="No anniversaries yet"
+            description="Add your first special date to start tracking important moments in your relationship!"
+            actionLabel="Add Your First Special Date"
+            onAction={() => setShowAddForm(true)}
+          />
         )}
       </main>
 
