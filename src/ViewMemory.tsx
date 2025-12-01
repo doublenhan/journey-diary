@@ -238,7 +238,23 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
               </span>
             </div>
             
-            <div className="w-16"></div>
+            <div className="flex items-center space-x-3">
+              {/* Map View Button */}
+              <button
+                onClick={() => setShowMapView(true)}
+                className="flex items-center space-x-2 px-3 py-2 bg-white border border-pink-200 rounded-lg hover:bg-pink-50 transition-colors"
+                title="View on Map"
+              >
+                <Map className="w-4 h-4 text-pink-600" />
+                <span className="text-sm font-medium text-gray-700">Map</span>
+              </button>
+              
+              {/* Theme Selector */}
+              <ThemeSelector 
+                currentTheme={customTheme}
+                onThemeChange={setCustomTheme}
+              />
+            </div>
           </div>
         </div>
       </header>
@@ -551,6 +567,20 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
               )}
             </div>
           </div>
+        )}
+
+        {/* Map View Modal */}
+        {showMapView && (
+          <MapView
+            memories={Object.values(memoriesByYear).flat()}
+            onMemoryClick={(memory) => {
+              setShowMapView(false);
+              // Scroll to memory card
+              const element = document.getElementById(memory.id);
+              element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }}
+            onClose={() => setShowMapView(false)}
+          />
         )}
       </main>
     </div>
