@@ -62,7 +62,6 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedYear, setSelectedYear] = useState('ALL');
   const [showMapView, setShowMapView] = useState(false);
-  const [customTheme, setCustomTheme] = useState<CustomTheme>(() => getThemeById(getThemePreference()));
   const theme = themes[currentTheme];
 
   // Show sync status when loading memories
