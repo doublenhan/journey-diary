@@ -283,11 +283,12 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       const { title, date, type, reminderDays, isNotificationEnabled } = newAnniversary;
       let formattedDate = date;
       if (date) {
-        const d = new Date(date);
-        if (!isNaN(d.getTime())) {
-          const mm = String(d.getMonth() + 1).padStart(2, '0');
-          const dd = String(d.getDate()).padStart(2, '0');
-          formattedDate = `${d.getFullYear()}-${mm}-${dd}`;
+        // Parse date string as local date to avoid timezone offset
+        const [year, month, day] = date.split('-');
+        if (year && month && day) {
+          const mm = String(month).padStart(2, '0');
+          const dd = String(day).padStart(2, '0');
+          formattedDate = `${year}-${mm}-${dd}`;
         }
       }
 
