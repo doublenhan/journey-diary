@@ -14,9 +14,7 @@ import { LazyImage } from './components/LazyImage';
 import { InfiniteScrollTrigger } from './components/InfiniteScrollTrigger';
 import { SearchFilterBar } from './components/SearchFilterBar';
 import { ResponsiveGallery } from './components/ResponsiveGallery';
-import { ThemeSelector } from './components/ThemeSelector';
 import { MapView } from './components/MapView';
-import { CustomTheme, themePresets, getThemePreference, getThemeById } from './utils/themeSystem';
 import './styles/ViewMemory.css';
 import './styles/MemoryCardHover.css';
 
@@ -248,12 +246,6 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                 <Map className="w-4 h-4 text-pink-600" />
                 <span className="text-sm font-medium text-gray-700">Map</span>
               </button>
-              
-              {/* Theme Selector */}
-              <ThemeSelector 
-                currentTheme={customTheme}
-                onThemeChange={setCustomTheme}
-              />
             </div>
           </div>
         </div>
@@ -275,6 +267,9 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
         {/* Dashboard: Your Love Story by the Numbers */}
         <div className="love-story-dashboard mb-8">
           <h2 className="dashboard-title text-xl font-bold mb-4 text-pink-600">Câu Chuyện Tình Yêu Của Bạn</h2>
+          {isLoading ? (
+            <DashboardSkeleton />
+          ) : (
           <div className="dashboard-grid grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="dashboard-card bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
               <Heart className="w-8 h-8 text-pink-500 mb-2" />
@@ -313,6 +308,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
               }</div>
             </div>
           </div>
+          )}
         </div>
 
         {/* Loading State */}
@@ -391,11 +387,56 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                   {filteredMemoriesByYear[year].map((memory: any, memoryIndex: number) => (
                     <div 
                       key={memory.id} 
-                      className="memory-card animate-fade-in"
+                      id={memory.id}
+                      className="memory-card memory-card-hover animate-fade-in"
                       style={{ animationDelay: `${memoryIndex * 0.2}s` }}
                     >
                       {/* Memory Card */}
                       <div className="bg-white rounded-3xl shadow-xl border border-pink-100 overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1">
+                        {/* Quick Actions Overlay */}
+                        <div className="quick-actions-overlay">
+                          <button 
+                            className="quick-action-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Share functionality
+                              if (navigator.share) {
+                                navigator.share({
+                                  title: memory.title || 'Memory',
+                                  text: memory.text,
+                                  url: window.location.href + '#' + memory.id
+                                }).catch(() => {});
+                              }
+                            }}
+                            title="Share"
+                          >
+                            <Share2 className="w-4 h-4" />
+                          </button>
+                          <button 
+                            className="quick-action-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Navigate to edit (you'll need to implement this route)
+                              window.location.href = `/edit-memory?id=${memory.id}`;
+                            }}
+                            title="Edit"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button 
+                            className="quick-action-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm('Bạn có chắc muốn xóa kỷ niệm này?')) {
+                                // Delete functionality (you'll need to implement this)
+                                console.log('Delete memory:', memory.id);
+                              }
+                            }}
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                         {/* Date Header */}
                         <div className="date-header">
                           <div className="flex items-center justify-center space-x-2 text-white">
@@ -430,45 +471,15 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
 
                           {/* Images Grid */}
                           {Array.isArray(memory.images) && memory.images.length > 0 ? (
-                            <div className="relative">
-                              <div className="photo-grid">
-                                {memory.images.slice(0, 3).map((image: any, imageIndex: number) => (
-                                  <div
-                                    key={image.public_id}
-                                    className="gradient-border-image-rounded transform hover:scale-105 transition-all duration-300"
-                                  >
-                                    <div className="gradient-border-inner">
-                                      <LazyImage
-                                        src={image.secure_url}
-                                        alt={`${memory.title || "Memory"} ${imageIndex + 1}`}
-                                        className="photo-img enhanced-photo-img"
-                                        width={image.width}
-                                        height={image.height}
-                                        transformations="f_auto,q_auto,w_800,c_limit"
-                                        onClick={() => {
-                                          setAllPhotos(memory.images.map((img: any) => img.secure_url));
-                                          setSelectedPhoto(image.secure_url);
-                                          setSelectedPhotoIndex(imageIndex);
-                                        }}
-                                      />
-                                    </div>
-                                  </div>
-                                ))}
-                                {memory.images.length > 3 && (
-                                  <button
-                                    className="view-all-photos-btn"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setAllPhotos(memory.images.map((img: any) => img.secure_url));
-                                      setSelectedPhoto(memory.images[3].secure_url);
-                                      setSelectedPhotoIndex(3);
-                                    }}
-                                  >
-                                    +{memory.images.length - 3} ảnh
-                                  </button>
-                                )}
-                              </div>
-                            </div>
+                            <ResponsiveGallery
+                              images={memory.images}
+                              onImageClick={(image, index) => {
+                                setAllPhotos(memory.images.map((img: any) => img.secure_url));
+                                setSelectedPhoto(image.secure_url);
+                                setSelectedPhotoIndex(index);
+                              }}
+                              memoryTitle={memory.title || "Memory"}
+                            />
                           ) : (
                             <div className="text-center py-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
                               <p className="text-gray-400 text-sm">📷 No images available</p>

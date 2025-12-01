@@ -150,7 +150,10 @@ function App() {
   useEffect(() => {
     async function fetchImages() {
       try {
-        const res = await fetchCloudinaryImages({ maxResults: 20 });
+        // Limit results based on screen size
+        const isMobile = window.innerWidth <= 600;
+        const maxResults = isMobile ? 6 : 20;
+        const res = await fetchCloudinaryImages({ maxResults });
         setGalleryImages(res.resources.map((img: { secure_url: any; }) => img.secure_url));
       } catch (e) {
         setGalleryImages([]);
@@ -287,7 +290,10 @@ function App() {
                         <span className="gallery-title-highlight">Bộ Sưu Tập Ảnh</span>
                       </h2>
                       <p className="gallery-description">
-                        Những khoảnh khắc đẹp mà bạn có thể lưu giữ.
+                        {galleryImages.length > 0 
+                          ? `${galleryImages.length} khoảnh khắc đẹp mà bạn có thể lưu giữ.`
+                          : 'Những khoảnh khắc đẹp mà bạn có thể lưu giữ.'
+                        }
                       </p>
                     </div>
                     <div className="gallery-carousel-wrapper">
