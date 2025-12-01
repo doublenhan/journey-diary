@@ -1,0 +1,177 @@
+/* Memory Card Enhanced Hover Effects */
+.memory-card {
+    position: relative;
+    perspective: 1000px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.memory-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    z-index: 20;
+}
+
+.memory-card::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 28px;
+    background: linear-gradient(135deg, #ec4899, #f472b6, #fb7185, #fbbf24);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: -1;
+    filter: blur(20px);
+}
+
+.memory-card:hover::before {
+    opacity: 0.6;
+    animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+    0%, 100% {
+        opacity: 0.4;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Quick Actions on Hover */
+.memory-card-quick-actions {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.memory-card:hover .memory-card-quick-actions {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.quick-action-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(236, 72, 153, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.quick-action-btn:hover {
+    background: #ec4899;
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+}
+
+.quick-action-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Parallax Image Effect */
+.memory-card-image-wrapper {
+    position: relative;
+    overflow: hidden;
+    border-radius: 20px;
+}
+
+.memory-card:hover .memory-card-image-wrapper img {
+    transform: scale(1.08);
+}
+
+/* Content fade-in on hover */
+.memory-card-content {
+    transition: all 0.3s ease;
+}
+
+.memory-card:hover .memory-card-content {
+    transform: translateY(-2px);
+}
+
+/* Love effect on hover */
+.memory-card-hearts {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.memory-card:hover .memory-card-hearts::before,
+.memory-card:hover .memory-card-hearts::after {
+    content: '💖';
+    position: absolute;
+    font-size: 24px;
+    animation: float-heart 3s ease-out forwards;
+    opacity: 0;
+}
+
+.memory-card:hover .memory-card-hearts::before {
+    left: 20%;
+    animation-delay: 0.1s;
+}
+
+.memory-card:hover .memory-card-hearts::after {
+    right: 20%;
+    animation-delay: 0.3s;
+}
+
+@keyframes float-heart {
+    0% {
+        bottom: 0;
+        opacity: 0;
+        transform: translateY(0) scale(0);
+    }
+    20% {
+        opacity: 1;
+        transform: translateY(-20px) scale(1);
+    }
+    100% {
+        bottom: 100%;
+        opacity: 0;
+        transform: translateY(-100px) scale(0.5) rotate(15deg);
+    }
+}
+
+/* Shimmer effect on title */
+.memory-card:hover .memory-title {
+    background: linear-gradient(90deg, #ec4899, #f472b6, #fb7185, #ec4899);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer-text 3s linear infinite;
+}
+
+@keyframes shimmer-text {
+    to {
+        background-position: 200% center;
+    }
+}
+
+/* Mobile - reduce effects */
+@media (max-width: 768px) {
+    .memory-card:hover {
+        transform: translateY(-4px) scale(1.01);
+    }
+
+    .memory-card::before {
+        display: none;
+    }
+
+    .memory-card-hearts {
+        display: none;
+    }
+}
