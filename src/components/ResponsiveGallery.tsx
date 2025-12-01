@@ -20,8 +20,9 @@ export const ResponsiveGallery: React.FC<ResponsiveGalleryProps> = ({
   memoryTitle = 'Memory',
   onImageClick
 }) => {
-  const imageCount = images.length;
-  const allPhotoUrls = useMemo(() => images.map(img => img.secure_url), [images]);
+  const imageCount = Math.min(images.length, 6);
+  const limitedImages = images.slice(0, 6);
+  const allPhotoUrls = useMemo(() => limitedImages.map(img => img.secure_url), [limitedImages]);
 
   // Determine grid layout based on number of images
   const getGridClass = () => {
@@ -39,9 +40,9 @@ export const ResponsiveGallery: React.FC<ResponsiveGalleryProps> = ({
     }
   };
 
-  // For 5+ images, show first 6 with "+X more" overlay
-  const visibleImages = imageCount > 6 ? images.slice(0, 6) : images;
-  const remainingCount = imageCount > 6 ? imageCount - 6 : 0;
+  // Show max 6 images
+  const visibleImages = limitedImages;
+  const remainingCount = images.length > 6 ? images.length - 6 : 0;
 
   return (
     <div className={`responsive-gallery ${getGridClass()}`}>
