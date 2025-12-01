@@ -1,5 +1,5 @@
 // src/api/anniversaryApi.ts
-import { db } from '../firebase/firebaseConfig';
+import { db, getCollectionName } from '../firebase/firebaseConfig';
 import {
   collection,
   query,
