@@ -108,7 +108,7 @@ function App() {
     },
     {
       icon: <Bell className="w-8 h-8" />,
-      title: "Nhắc Nhở Kỷ Niệm",
+      title: " Sự Kiện Kỷ Niệm",
       description: "Không bao giờ bỏ lỡ những ngày quan trọng với nhắc nhở thông minh cho kỷ niệm, sinh nhật và những khoảnh khắc đặc biệt."
     },
     {
@@ -187,7 +187,7 @@ function App() {
                     <nav className="nav-desktop">
                       <a href="/create-memory" className="nav-link">Tạo Kỷ Niệm</a>
                       <a href="/view-memory" className="nav-link">Xem Kỷ Niệm</a>
-                      <a href="/anniversary-reminders" className="nav-link">Nhắc Nhở Kỷ Niệm</a>
+                      <a href="/anniversary-reminders" className="nav-link"> Sự Kiện Kỷ Niệm</a>
                       <a href="/setting-page" className="nav-link">Cài Đặt</a>
                     </nav>
                     <button className="mobile-menu-button" onClick={() => setMobileMenuOpen(true)} aria-label="Open menu">
@@ -216,7 +216,7 @@ function App() {
                       <a href="/anniversary-reminders" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
                         <span className="mobile-menu-link-row">
                           <Bell size={20} className="mobile-menu-link-icon" />
-                          Nhắc Nhở Kỷ Niệm
+                           Sự Kiện Kỷ Niệm
                         </span>
                       </a>
                       <a href="/setting-page" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>

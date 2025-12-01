@@ -21,7 +21,7 @@ The entire Love Journey app has been successfully translated to Vietnamese. This
 **Key Translations**:
 - "Love Journaling" → "Nhật Ký Tình Yêu"
 - "Photo Memories" → "Bộ Sưu Tập Ảnh"
-- "Anniversary Reminders" → "Nhắc Nhở Kỷ Niệm"
+- "Anniversary Reminders" → " Sự Kiện Kỷ Niệm"
 - "Cloud Sync" → "Đồng Bộ Cloud"
 
 ### 2. **LoginPage.tsx** (Authentication)

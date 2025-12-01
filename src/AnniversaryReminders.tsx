@@ -597,7 +597,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         {/* Page Header */}
         <div className="page-header">
           <h1 className="page-title">
-            Nhắc Nhở Kỷ Niệm
+            Sự Kiện Kỷ Niệm
           </h1>
           <p className="page-subtitle">
             Không bao giờ bỏ lỡ những ngày quan trọng - theo dõi tất cả các cột mốc trong mối quan hệ của bạn
@@ -842,9 +842,9 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
           <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <EmptyState
               icon="📅"
-              title="No anniversaries yet"
-              description="Add your first special date to start tracking important moments in your relationship!"
-              actionLabel="Add Your First Special Date"
+              title="Chưa Có Kỷ Niệm Nào"
+              description="Thêm ngày đặc biệt đầu tiên của bạn để bắt đầu theo dõi những khoảnh khắc quan trọng trong mối quan hệ của bạn!"
+              actionLabel="Thêm Ngày Đặc Biệt Đầu Tiên"
               onAction={() => setShowAddForm(true)}
             />
           </div>
