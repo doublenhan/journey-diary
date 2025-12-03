@@ -23,5 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 .env
-
 .vercel
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!firebase.json
