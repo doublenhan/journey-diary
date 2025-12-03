@@ -536,15 +536,9 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
         )}
 
         {/* Map View Modal */}
-        {showMapView && (
+        {showMapView && userId && (
           <MapView
-            memories={Object.values(memoriesByYear).flat()}
-            onMemoryClick={(memory) => {
-              setShowMapView(false);
-              // Scroll to memory card
-              const element = document.getElementById(memory.id);
-              element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }}
+            userId={userId}
             onClose={() => setShowMapView(false)}
           />
         )}

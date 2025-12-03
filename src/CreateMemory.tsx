@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { useSyncStatus } from './hooks/useSyncStatus';
-import { Heart, Camera, Calendar, Save, ArrowLeft, X, Upload, MapPin, Type, CheckCircle, AlertCircle } from 'lucide-react';
+import { Heart, Camera, Calendar, Save, ArrowLeft, X, Upload, MapPin, Type, CheckCircle, AlertCircle, Navigation } from 'lucide-react';
 import type { MemoryData } from './apis/cloudinaryGalleryApi';
 import { MoodTheme, themes } from './config/themes';
 import VisualEffects from './components/VisualEffects';
@@ -10,6 +10,8 @@ import SyncStatus from './components/SyncStatus';
 import { UploadProgress, UploadProgressItem } from './components/UploadProgress';
 import { addMemoryToCache, updateCacheAndNotify, removeMemoryFromCache } from './utils/memoryCacheUtils';
 import type { Memory } from './hooks/useMemoriesCache';
+import { usePlacesAutocomplete } from './hooks/usePlacesAutocomplete';
+import { saveMemoryToFirestore } from './utils/memoryFirestore';
 import './styles/CreateMemory.css';
 
 interface CreateMemoryProps {
@@ -23,6 +25,8 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
   const { syncStatus, lastSyncTime, errorMessage, startSync, syncSuccess, syncError } = useSyncStatus();
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
+  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [memoryText, setMemoryText] = useState('');
   const [selectedDay, setSelectedDay] = useState<number>(new Date().getDate());
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1); // 1-based
@@ -33,6 +37,92 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [validationAttempted, setValidationAttempted] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgressItem[]>([]);
+  
+  // OpenStreetMap Nominatim Autocomplete (FREE!)
+  const locationInputRef = useRef<HTMLInputElement>(null);
+  const { place, suggestions, isLoading: isSearching, showDropdown, selectPlace, dropdownRef, isLoaded: isPlacesLoaded } = usePlacesAutocomplete(locationInputRef);
+  
+  // Update location and coordinates when place is selected
+  useEffect(() => {
+    if (place) {
+      setLocation(place.address);
+      setCoordinates({ lat: place.lat, lng: place.lng });
+      setSaveMessage({
+        type: 'success',
+        text: `✓ Đã chọn: ${place.address}`
+      });
+      setTimeout(() => setSaveMessage(null), 3000);
+    }
+  }, [place]);
+
+  // Get current location using browser Geolocation API + Nominatim reverse geocoding
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setSaveMessage({
+        type: 'error',
+        text: 'Trình duyệt của bạn không hỗ trợ định vị GPS'
+      });
+      setTimeout(() => setSaveMessage(null), 3000);
+      return;
+    }
+
+    setIsGettingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const coords = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+        setCoordinates(coords);
+        
+        // Reverse geocode using Nominatim (FREE!)
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?` +
+            `format=json&lat=${coords.lat}&lon=${coords.lng}&zoom=18&addressdetails=1`,
+            {
+              headers: {
+                'Accept': 'application/json',
+                'User-Agent': 'LoveJournalApp/1.0'
+              }
+            }
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            setLocation(data.display_name);
+          }
+        } catch (error) {
+          console.error('Reverse geocoding error:', error);
+        }
+        
+        setIsGettingLocation(false);
+        setSaveMessage({
+          type: 'success',
+          text: `✓ Đã lấy vị trí GPS: ${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`
+        });
+        setTimeout(() => setSaveMessage(null), 3000);
+      },
+      (error) => {
+        setIsGettingLocation(false);
+        let errorMsg = 'Không thể lấy vị trí';
+        if (error.code === error.PERMISSION_DENIED) {
+          errorMsg = 'Bạn đã từ chối quyền truy cập vị trí';
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          errorMsg = 'Vị trí không khả dụng';
+        } else if (error.code === error.TIMEOUT) {
+          errorMsg = 'Hết thời gian lấy vị trí';
+        }
+        setSaveMessage({ type: 'error', text: errorMsg });
+        setTimeout(() => setSaveMessage(null), 3000);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  };
 
   // Compress image before upload
   const compressImage = (file: File): Promise<File> => {
@@ -266,10 +356,34 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
       
       const data = await response.json();
       
+      // Save to Firestore with coordinates
+      if (userId && data.memory) {
+        try {
+          await saveMemoryToFirestore({
+            id: data.memory.id,
+            userId: userId,
+            title: data.memory.title,
+            text: data.memory.text,
+            date: data.memory.date,
+            location: data.memory.location,
+            latitude: coordinates?.lat,
+            longitude: coordinates?.lng,
+            cloudinaryPublicIds: data.memory.images.map((img: any) => img.public_id),
+            cloudinaryFolder: data.memory.folder,
+            tags: data.memory.tags || ['memory', 'love-journal']
+          });
+          console.log('✓ Memory saved to Firestore with coordinates');
+        } catch (firestoreError) {
+          console.error('Failed to save to Firestore:', firestoreError);
+          // Don't fail the whole operation if Firestore fails
+        }
+      }
+      
       // API succeeded - clear form
       setTimeout(() => {
         setTitle('');
         setLocation('');
+        setCoordinates(null);
         setMemoryText('');
         setSelectedDay(new Date().getDate());
         setSelectedMonth(new Date().getMonth() + 1);
@@ -420,14 +534,133 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
                   Nơi này xảy ra ở đâu? <span className="required-field">*</span>
                 </span>
               </label>
-              <input
-                type="text"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="Ví dụ: Công viên trung tâm, Tháp Eiffel, Quán cà phê yêu thích..."
-                className="form-input"
-                required
-              />
+              <div style={{ position: 'relative' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start', width: '100%' }}>
+                  <input
+                    ref={locationInputRef}
+                    type="text"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="Gõ để tìm kiếm địa điểm... (VD: Hanoi, Vietnam)"
+                    className="form-input"
+                    style={{ flex: 1 }}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={getCurrentLocation}
+                    disabled={isGettingLocation}
+                    className="location-btn"
+                    title="Sử dụng vị trí hiện tại (GPS)"
+                    style={{
+                      padding: '0.75rem 1rem',
+                      borderRadius: '12px',
+                      border: '2px solid #ec4899',
+                      background: coordinates ? '#ec4899' : 'white',
+                      color: coordinates ? 'white' : '#ec4899',
+                      cursor: isGettingLocation ? 'wait' : 'pointer',
+                      transition: 'all 0.3s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      fontWeight: '600',
+                      whiteSpace: 'nowrap',
+                      opacity: isGettingLocation ? 0.6 : 1,
+                      minWidth: '110px',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <Navigation className="w-5 h-5" style={{ 
+                      animation: isGettingLocation ? 'spin 1s linear infinite' : 'none' 
+                    }} />
+                    {isGettingLocation ? 'Đang lấy...' : coordinates ? '✓ GPS' : 'GPS'}
+                  </button>
+                </div>
+                
+                {/* Autocomplete Dropdown */}
+                {showDropdown && suggestions.length > 0 && (
+                  <div 
+                    ref={dropdownRef}
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: '120px',
+                      marginTop: '0.5rem',
+                      background: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '12px',
+                      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                      zIndex: 1000,
+                      maxHeight: '300px',
+                      overflowY: 'auto'
+                    }}
+                  >
+                    {suggestions.map((suggestion) => (
+                      <div
+                        key={suggestion.place_id}
+                        onClick={() => selectPlace(suggestion)}
+                        style={{
+                          padding: '0.75rem 1rem',
+                          cursor: 'pointer',
+                          borderBottom: '1px solid #f3f4f6',
+                          transition: 'background 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                      >
+                        <MapPin className="w-4 h-4" style={{ color: '#ec4899', flexShrink: 0 }} />
+                        <span style={{ fontSize: '0.875rem', color: '#374151' }}>
+                          {suggestion.display_name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {isSearching && (
+                  <div style={{
+                    marginTop: '0.5rem',
+                    fontSize: '0.875rem',
+                    color: '#6b7280',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}>
+                    <div style={{ 
+                      width: '16px', 
+                      height: '16px', 
+                      border: '2px solid #e5e7eb', 
+                      borderTopColor: '#ec4899',
+                      borderRadius: '50%',
+                      animation: 'spin 0.6s linear infinite'
+                    }} />
+                    Đang tìm kiếm...
+                  </div>
+                )}
+              </div>
+              
+              {coordinates && (
+                <div style={{
+                  marginTop: '0.5rem',
+                  padding: '0.75rem',
+                  background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+                  border: '1px solid #86efac',
+                  borderRadius: '8px',
+                  fontSize: '0.875rem',
+                  color: '#166534',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  <MapPin className="w-4 h-4" style={{ color: '#22c55e' }} />
+                  <span style={{ fontWeight: '600' }}>Tọa độ:</span>
+                  <span>{coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}</span>
+                </div>
+              )}
             </div>
 
             {/* Date Selection - manual dropdowns */}

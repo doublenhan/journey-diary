@@ -1,90 +1,93 @@
-import React, { useState, useMemo } from 'react';
-import { MapPin, Calendar, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapPin, Calendar, X, Loader } from 'lucide-react';
+import { getMemoriesWithCoordinates, MemoryFirestore } from '../utils/memoryFirestore';
+import 'leaflet/dist/leaflet.css';
 import '../styles/MapView.css';
 
-interface Memory {
-  id: string;
-  title: string;
-  date: string;
-  text: string;
-  location?: string | null;
-  images: any[];
-}
+// Fix Leaflet default marker icon issue with Vite
+import L from 'leaflet';
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
 
 interface MapViewProps {
-  memories: Memory[];
-  onMemoryClick?: (memory: Memory) => void;
+  userId: string;
   onClose: () => void;
 }
 
-// Simple coordinate generator based on location string
-// In real app, use Google Maps Geocoding API
-const getCoordinates = (location: string): { lat: number; lng: number } | null => {
-  if (!location) return null;
+// Component to fit map bounds to markers
+function FitBounds({ coordinates }: { coordinates: Array<{ lat: number; lng: number }> }) {
+  const map = useMap();
   
-  // Simple hash function to generate consistent coordinates
-  let hash = 0;
-  for (let i = 0; i < location.length; i++) {
-    hash = ((hash << 5) - hash) + location.charCodeAt(i);
-    hash = hash & hash;
-  }
+  useEffect(() => {
+    if (coordinates.length > 0) {
+      const bounds = L.latLngBounds(coordinates.map(c => [c.lat, c.lng]));
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+    }
+  }, [coordinates, map]);
   
-  // Vietnam bounds approximately
-  const lat = 10 + (Math.abs(hash % 100) / 100) * 12; // 10-22°N
-  const lng = 102 + (Math.abs((hash >> 8) % 100) / 100) * 12; // 102-114°E
-  
-  return { lat, lng };
-};
+  return null;
+}
 
-export const MapView: React.FC<MapViewProps> = ({ memories, onMemoryClick, onClose }) => {
-  const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
-  const [hoveredMemory, setHoveredMemory] = useState<string | null>(null);
+export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
+  const [memories, setMemories] = useState<MemoryFirestore[]>([]);
+  const [selectedMemory, setSelectedMemory] = useState<MemoryFirestore | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Filter memories with location and get coordinates
-  const memoriesWithLocation = useMemo(() => {
-    return memories
-      .filter(m => m.location)
-      .map(m => ({
-        ...m,
-        coords: getCoordinates(m.location!)
-      }))
-      .filter(m => m.coords !== null);
-  }, [memories]);
+  useEffect(() => {
+    const fetchMemories = async () => {
+      if (!userId) return;
+      
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const data = await getMemoriesWithCoordinates(userId);
+        setMemories(data);
+        
+        if (data.length === 0) {
+          setError('Chưa có kỷ niệm nào với tọa độ. Hãy tạo memory mới với GPS!');
+        }
+      } catch (err) {
+        console.error('Failed to fetch memories:', err);
+        setError('Không thể tải memories. Vui lòng thử lại.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMemories();
+  }, [userId]);
 
   // Group memories by location
-  const groupedByLocation = useMemo(() => {
-    const groups: { [key: string]: typeof memoriesWithLocation } = {};
-    memoriesWithLocation.forEach(m => {
-      const key = m.location!;
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(m);
-    });
-    return groups;
-  }, [memoriesWithLocation]);
-
-  // Calculate map bounds
-  const bounds = useMemo(() => {
-    if (memoriesWithLocation.length === 0) {
-      return { minLat: 10, maxLat: 22, minLng: 102, maxLng: 114 };
+  const groupedByLocation = memories.reduce((acc, memory) => {
+    if (!memory.coordinates) return acc;
+    
+    const key = `${memory.coordinates.latitude},${memory.coordinates.longitude}`;
+    if (!acc[key]) {
+      acc[key] = [];
     }
-    
-    const lats = memoriesWithLocation.map(m => m.coords!.lat);
-    const lngs = memoriesWithLocation.map(m => m.coords!.lng);
-    
-    return {
-      minLat: Math.min(...lats) - 1,
-      maxLat: Math.max(...lats) + 1,
-      minLng: Math.min(...lngs) - 1,
-      maxLng: Math.max(...lngs) + 1
-    };
-  }, [memoriesWithLocation]);
+    acc[key].push(memory);
+    return acc;
+  }, {} as Record<string, MemoryFirestore[]>);
 
-  // Convert lat/lng to SVG coordinates
-  const toSvgCoords = (lat: number, lng: number) => {
-    const x = ((lng - bounds.minLng) / (bounds.maxLng - bounds.minLng)) * 100;
-    const y = 100 - ((lat - bounds.minLat) / (bounds.maxLat - bounds.minLat)) * 100;
-    return { x, y };
-  };
+  const coordinates = memories
+    .filter(m => m.coordinates)
+    .map(m => ({ lat: m.coordinates!.latitude, lng: m.coordinates!.longitude }));
+
+  const defaultCenter: [number, number] = coordinates.length > 0
+    ? [coordinates[0].lat, coordinates[0].lng]
+    : [21.0285, 105.8542]; // Hanoi default
 
   return (
     <div className="map-view-overlay">
@@ -96,8 +99,128 @@ export const MapView: React.FC<MapViewProps> = ({ memories, onMemoryClick, onClo
               Memory Map
             </h2>
             <p className="map-view-subtitle">
-              {memoriesWithLocation.length} memories across {Object.keys(groupedByLocation).length} locations
+              {isLoading ? 'Đang tải...' : `${memories.length} memories trên bản đồ`}
             </p>
+          </div>
+          <button className="map-view-close" onClick={onClose}>
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="map-view-content" style={{ position: 'relative' }}>
+          {isLoading ? (
+            <div className="map-loading">
+              <Loader className="w-8 h-8 animate-spin" style={{ color: '#ec4899' }} />
+              <p>Đang tải bản đồ...</p>
+            </div>
+          ) : error ? (
+            <div className="map-error">
+              <MapPin className="w-12 h-12" style={{ color: '#ef4444' }} />
+              <p>{error}</p>
+            </div>
+          ) : (
+            <>
+              {/* Leaflet Map */}
+              <MapContainer
+                center={defaultCenter}
+                zoom={13}
+                style={{ height: '100%', width: '100%', borderRadius: '12px' }}
+                scrollWheelZoom={true}
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                
+                <FitBounds coordinates={coordinates} />
+                
+                {/* Markers */}
+                {Object.entries(groupedByLocation).map(([key, mems]) => {
+                  const memory = mems[0];
+                  if (!memory.coordinates) return null;
+                  
+                  return (
+                    <Marker
+                      key={key}
+                      position={[memory.coordinates.latitude, memory.coordinates.longitude]}
+                      eventHandlers={{
+                        click: () => setSelectedMemory(memory)
+                      }}
+                    >
+                      <Popup>
+                        <div style={{ minWidth: '200px' }}>
+                          <h3 style={{ margin: '0 0 0.5rem', fontWeight: '600' }}>
+                            {memory.title}
+                          </h3>
+                          {memory.location && (
+                            <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: '#6b7280' }}>
+                              📍 {memory.location}
+                            </p>
+                          )}
+                          <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: '#6b7280' }}>
+                            📅 {new Date(memory.date).toLocaleDateString('vi-VN')}
+                          </p>
+                          {mems.length > 1 && (
+                            <p style={{ margin: '0.5rem 0 0', fontSize: '0.875rem', color: '#ec4899', fontWeight: '600' }}>
+                              +{mems.length - 1} memories khác tại đây
+                            </p>
+                          )}
+                        </div>
+                      </Popup>
+                    </Marker>
+                  );
+                })}
+              </MapContainer>
+
+              {/* Location List */}
+              <div className="map-locations-list">
+                <h3 className="locations-list-title">Địa điểm ({Object.keys(groupedByLocation).length})</h3>
+                <div className="locations-list-items">
+                  {Object.entries(groupedByLocation).map(([key, mems]) => (
+                    <div
+                      key={key}
+                      className={`location-item ${selectedMemory?.id === mems[0].id ? 'selected' : ''}`}
+                      onClick={() => setSelectedMemory(mems[0])}
+                    >
+                      <MapPin className="w-4 h-4 text-pink-500" />
+                      <div className="location-item-content">
+                        <div className="location-name">{mems[0].location || 'Không có tên'}</div>
+                        <div className="location-count">{mems.length} {mems.length === 1 ? 'memory' : 'memories'}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Selected Memory Detail */}
+        {selectedMemory && (
+          <div className="map-memory-detail">
+            <div className="memory-detail-header">
+              <h3>{selectedMemory.title}</h3>
+              <button onClick={() => setSelectedMemory(null)}>×</button>
+            </div>
+            <div className="memory-detail-content">
+              <div className="memory-detail-meta">
+                <Calendar className="w-4 h-4" />
+                <span>{new Date(selectedMemory.date).toLocaleDateString('vi-VN')}</span>
+              </div>
+              {selectedMemory.location && (
+                <div className="memory-detail-meta">
+                  <MapPin className="w-4 h-4" />
+                  <span>{selectedMemory.location}</span>
+                </div>
+              )}
+              <p className="memory-detail-text">{selectedMemory.text.slice(0, 150)}...</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
           </div>
           <button className="map-view-close" onClick={onClose}>
             <X className="w-6 h-6" />
