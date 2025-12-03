@@ -55,10 +55,16 @@ export default async function handler(req, res) {
     try {
       const userId = req.query.userId;
       
+      console.log(`🔍 API called with userId: ${userId}`);
+      console.log(`🔍 Full query:`, req.query);
+      
       // Check if Cloudinary credentials exist
       if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+        console.error('❌ Cloudinary credentials missing');
         return res.status(200).json({ memories: [] });
       }
+      
+      console.log(`✓ Cloudinary configured: ${process.env.CLOUDINARY_CLOUD_NAME}`);
       
       // Fetch all images with pagination
       let allImages = [];
@@ -82,6 +88,8 @@ export default async function handler(req, res) {
         finalPrefix = envPrefix ? `${envPrefix}/${basePrefix}` : basePrefix;
       }
       
+      console.log(`🔍 Searching Cloudinary with prefix: ${finalPrefix}`);
+      
       do {
         const queryParams = {
           type: 'upload',
@@ -101,6 +109,8 @@ export default async function handler(req, res) {
         nextCursor = response.next_cursor;
         pageNum++;
       } while (nextCursor);
+      
+      console.log(`🔍 Found ${allImages.length} total images in Cloudinary`);
       
       // Group by memory_id and filter by userId if provided
       const memoriesMap = new Map();
@@ -162,6 +172,9 @@ export default async function handler(req, res) {
           context: contextData,
         });
       }
+      
+      console.log(`📊 Cloudinary stats: ${allImages.length} images, ${totalImagesProcessed} processed, ${imagesWithoutMemoryId} without memory_id, ${imagesFiltered} filtered`);
+      console.log(`📊 Created ${memoriesMap.size} memories`);
       
       const memories = Array.from(memoriesMap.values()).sort((a, b) => new Date(b.date) - new Date(a.date));
       
