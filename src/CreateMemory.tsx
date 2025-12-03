@@ -67,16 +67,41 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
     }
 
     setIsGettingLocation(true);
+    setSaveMessage({
+      type: 'info',
+      text: '📍 Đang yêu cầu quyền truy cập vị trí...'
+    });
+
+    // Tăng timeout lên 30 giây
+    const timeoutId = setTimeout(() => {
+      setIsGettingLocation(false);
+      setSaveMessage({
+        type: 'error',
+        text: 'Timeout! GPS mất quá lâu. Vui lòng thử lại hoặc nhập địa chỉ thủ công.'
+      });
+      setTimeout(() => setSaveMessage(null), 5000);
+    }, 30000);
+
     navigator.geolocation.getCurrentPosition(
       async (position) => {
+        clearTimeout(timeoutId);
+        
         const coords = {
           lat: position.coords.latitude,
           lng: position.coords.longitude
         };
         setCoordinates(coords);
         
+        setSaveMessage({
+          type: 'info',
+          text: '🌍 Đang chuyển đổi tọa độ thành địa chỉ...'
+        });
+        
         // Reverse geocode using Nominatim (FREE!)
         try {
+          const controller = new AbortController();
+          const reverseTimeout = setTimeout(() => controller.abort(), 10000);
+          
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?` +
             `format=json&lat=${coords.lat}&lon=${coords.lng}&zoom=18&addressdetails=1`,
@@ -84,41 +109,52 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
               headers: {
                 'Accept': 'application/json',
                 'User-Agent': 'LoveJournalApp/1.0'
-              }
+              },
+              signal: controller.signal
             }
           );
+          
+          clearTimeout(reverseTimeout);
           
           if (response.ok) {
             const data = await response.json();
             setLocation(data.display_name);
+            setIsGettingLocation(false);
+            setSaveMessage({
+              type: 'success',
+              text: `✓ Đã lấy vị trí thành công!`
+            });
+            setTimeout(() => setSaveMessage(null), 3000);
+          } else {
+            throw new Error('Nominatim API error');
           }
         } catch (error) {
           console.error('Reverse geocoding error:', error);
+          setIsGettingLocation(false);
+          setSaveMessage({
+            type: 'success',
+            text: `✓ Đã lấy GPS (${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}). Nhập địa chỉ thủ công.`
+          });
+          setTimeout(() => setSaveMessage(null), 4000);
         }
-        
-        setIsGettingLocation(false);
-        setSaveMessage({
-          type: 'success',
-          text: `✓ Đã lấy vị trí GPS: ${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`
-        });
-        setTimeout(() => setSaveMessage(null), 3000);
       },
       (error) => {
+        clearTimeout(timeoutId);
         setIsGettingLocation(false);
         let errorMsg = 'Không thể lấy vị trí';
         if (error.code === error.PERMISSION_DENIED) {
-          errorMsg = 'Bạn đã từ chối quyền truy cập vị trí';
+          errorMsg = '❌ Bạn đã từ chối quyền truy cập vị trí. Hãy bật GPS trong cài đặt trình duyệt.';
         } else if (error.code === error.POSITION_UNAVAILABLE) {
-          errorMsg = 'Vị trí không khả dụng';
+          errorMsg = '❌ Vị trí không khả dụng. Kiểm tra GPS/wifi của thiết bị.';
         } else if (error.code === error.TIMEOUT) {
-          errorMsg = 'Hết thời gian lấy vị trí';
+          errorMsg = '❌ Hết thời gian lấy vị trí. Kiểm tra kết nối GPS.';
         }
         setSaveMessage({ type: 'error', text: errorMsg });
-        setTimeout(() => setSaveMessage(null), 3000);
+        setTimeout(() => setSaveMessage(null), 5000);
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 30000,
         maximumAge: 0
       }
     );
