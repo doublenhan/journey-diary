@@ -22,36 +22,24 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
     }
     
-    // Dev Memories collection (development environment)
+    // Dev Memories collection (development environment) - TEMPORARY OPEN FOR DEBUGGING
     match /dev_memories/{memoryId} {
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
-      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow read, write: if isSignedIn();
     }
     
     // Production Memories collection
     match /memories/{memoryId} {
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
-      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow read, write: if isSignedIn();
     }
     
     // Dev Anniversary Events
     match /dev_AnniversaryEvent/{eventId} {
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
-      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow read, write: if isSignedIn();
     }
     
     // Production Anniversary Events
     match /AnniversaryEvent/{eventId} {
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
-      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow read, write: if isSignedIn();
     }
     
     // User Effects collections
