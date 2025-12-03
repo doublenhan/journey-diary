@@ -105,14 +105,18 @@ export async function getUserMemoriesFromFirestore(userId: string): Promise<Memo
 export async function getMemoriesWithCoordinates(userId: string): Promise<MemoryFirestore[]> {
   const collectionName = getCollectionName(COLLECTION_NAME);
   const memoriesRef = collection(db, collectionName);
+  
+  // Simple query without compound index requirement
   const q = query(
     memoriesRef,
-    where('userId', '==', userId),
-    where('coordinates', '!=', null),
-    orderBy('coordinates'),
-    orderBy('date', 'desc')
+    where('userId', '==', userId)
   );
 
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => doc.data() as MemoryFirestore);
+  
+  // Filter and sort in memory (client-side)
+  return querySnapshot.docs
+    .map(doc => doc.data() as MemoryFirestore)
+    .filter(memory => memory.coordinates != null)
+    .sort((a, b) => b.date.localeCompare(a.date));
 }
