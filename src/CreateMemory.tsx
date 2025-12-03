@@ -337,6 +337,8 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
       const formData = new FormData();
       formData.append('title', memoryData.title);
       if (memoryData.location) formData.append('location', memoryData.location);
+      if (coordinates?.lat) formData.append('latitude', coordinates.lat.toString());
+      if (coordinates?.lng) formData.append('longitude', coordinates.lng.toString());
       formData.append('text', memoryData.text);
       formData.append('date', memoryData.date);
       if (memoryData.tags?.length) formData.append('tags', memoryData.tags.join(','));
@@ -400,13 +402,13 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
             text: data.memory.text,
             date: data.memory.date,
             location: data.memory.location,
-            latitude: coordinates?.lat,
-            longitude: coordinates?.lng,
+            latitude: data.memory.coordinates?.latitude || coordinates?.lat,
+            longitude: data.memory.coordinates?.longitude || coordinates?.lng,
             cloudinaryPublicIds: data.memory.images.map((img: any) => img.public_id),
             cloudinaryFolder: data.memory.folder,
             tags: data.memory.tags || ['memory', 'love-journal']
           });
-          console.log('✓ Memory saved to Firestore with coordinates');
+          console.log('✓ Memory saved to Firestore with coordinates:', data.memory.coordinates);
         } catch (firestoreError) {
           console.error('Failed to save to Firestore:', firestoreError);
           // Don't fail the whole operation if Firestore fails

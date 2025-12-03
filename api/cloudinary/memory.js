@@ -86,6 +86,19 @@ export default async function handler(req, res) {
     const dateStr = getFieldValue('date');
     const userIdStr = getFieldValue('userId') || '';
     const locationStr = getFieldValue('location') || '';
+    const latitudeStr = getFieldValue('latitude');
+    const longitudeStr = getFieldValue('longitude');
+    
+    // Parse coordinates if provided
+    const coordinates = {};
+    if (latitudeStr && longitudeStr) {
+      const lat = parseFloat(latitudeStr);
+      const lng = parseFloat(longitudeStr);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        coordinates.latitude = lat;
+        coordinates.longitude = lng;
+      }
+    }
     
     // Get images array
     let images = files?.images || [];
@@ -160,6 +173,7 @@ export default async function handler(req, res) {
       location: locationStr || null,
       text: textStr,
       date: dateStr,
+      coordinates: Object.keys(coordinates).length > 0 ? coordinates : null,
       images: uploadedImages.map(img => ({
         public_id: img.public_id,
         secure_url: img.secure_url,
