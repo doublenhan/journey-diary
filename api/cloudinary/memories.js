@@ -232,7 +232,29 @@ export default async function handler(req, res) {
       
       const totalImages = memories.reduce((sum, m) => sum + m.images.length, 0);
       
-      res.status(200).json({ memories, timestamp: new Date().toISOString() });
+      // Return debug info in response (temporary for debugging)
+      const debugInfo = {
+        userId: userId,
+        envPrefix: process.env.CLOUDINARY_FOLDER_PREFIX,
+        hasFirebaseCredentials: {
+          projectId: !!process.env.FIREBASE_PROJECT_ID,
+          clientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: !!process.env.FIREBASE_PRIVATE_KEY
+        },
+        cloudinaryStats: {
+          totalImages: allImages.length,
+          memoriesCreated: memories.length,
+          totalProcessed: totalImagesProcessed,
+          withoutMemoryId: imagesWithoutMemoryId,
+          filtered: imagesFiltered
+        }
+      };
+      
+      res.status(200).json({ 
+        memories, 
+        timestamp: new Date().toISOString(),
+        debug: debugInfo
+      });
     } catch (error) {
       res.status(500).json({ 
         error: 'Failed to fetch memories', 
