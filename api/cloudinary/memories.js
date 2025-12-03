@@ -1,37 +1,51 @@
 import { v2 as cloudinary } from 'cloudinary';
 
-// Try to initialize Firebase Admin, but make it optional
-let db = null;
-try {
-  const { initializeApp, getApps, cert } = await import('firebase-admin/app');
-  const { getFirestore } = await import('firebase-admin/firestore');
-  
-  // Only initialize if credentials are available
-  if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
-    if (getApps().length === 0) {
-      initializeApp({
-        credential: cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-        }),
-      });
-    }
-    db = getFirestore();
-    console.log('✓ Firebase Admin initialized');
-  } else {
-    console.warn('⚠ Firebase Admin credentials not found, will use Cloudinary context only');
-  }
-} catch (error) {
-  console.error('Firebase Admin initialization failed:', error.message);
-  db = null;
-}
-
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+// Initialize Firebase Admin lazily
+let db = null;
+let firebaseInitialized = false;
+
+async function getFirestoreDb() {
+  if (firebaseInitialized) {
+    return db;
+  }
+  
+  try {
+    // Check if credentials are available
+    if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
+      console.warn('⚠ Firebase Admin credentials not found');
+      firebaseInitialized = true;
+      return null;
+    }
+    
+    const { initializeApp, getApps, cert } = await import('firebase-admin/app');
+    const { getFirestore } = await import('firebase-admin/firestore');
+    
+    if (getApps().length === 0) {
+      initializeApp({
+        credential: cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        }),
+      });
+    }
+    
+    db = getFirestore();
+    firebaseInitialized = true;
+    console.log('✓ Firebase Admin initialized');
+    return db;
+  } catch (error) {
+    console.error('Firebase Admin initialization failed:', error.message);
+    firebaseInitialized = true;
+    return null;
+  }
+}
 
 export default async function handler(req, res) {
   // Set correct content type
@@ -152,32 +166,35 @@ export default async function handler(req, res) {
       const memories = Array.from(memoriesMap.values()).sort((a, b) => new Date(b.date) - new Date(a.date));
       
       // Fetch metadata from Firestore to get full title, location, text (if Firebase Admin is available)
-      if (userId && db) {
+      if (userId) {
         try {
-          const envPrefix = process.env.CLOUDINARY_FOLDER_PREFIX || '';
-          const collectionName = envPrefix ? `${envPrefix}memories` : 'memories';
-          const memoriesSnapshot = await db.collection(collectionName)
-            .where('userId', '==', userId)
-            .get();
-          
-          const firestoreData = new Map();
-          memoriesSnapshot.docs.forEach(doc => {
-            const data = doc.data();
-            firestoreData.set(doc.id, data);
-          });
-          
-          // Merge Firestore data with Cloudinary data
-          memories.forEach(memory => {
-            const fsData = firestoreData.get(memory.id);
-            if (fsData) {
-              memory.title = fsData.title || memory.title;
-              memory.location = fsData.location || memory.location;
-              memory.text = fsData.text || memory.text;
-              memory.date = fsData.date || memory.date;
-            }
-          });
-          
-          console.log(`✓ Merged ${memoriesSnapshot.size} memories from Firestore`);
+          const db = await getFirestoreDb();
+          if (db) {
+            const envPrefix = process.env.CLOUDINARY_FOLDER_PREFIX || '';
+            const collectionName = envPrefix ? `${envPrefix}memories` : 'memories';
+            const memoriesSnapshot = await db.collection(collectionName)
+              .where('userId', '==', userId)
+              .get();
+            
+            const firestoreData = new Map();
+            memoriesSnapshot.docs.forEach(doc => {
+              const data = doc.data();
+              firestoreData.set(doc.id, data);
+            });
+            
+            // Merge Firestore data with Cloudinary data
+            memories.forEach(memory => {
+              const fsData = firestoreData.get(memory.id);
+              if (fsData) {
+                memory.title = fsData.title || memory.title;
+                memory.location = fsData.location || memory.location;
+                memory.text = fsData.text || memory.text;
+                memory.date = fsData.date || memory.date;
+              }
+            });
+            
+            console.log(`✓ Merged ${memoriesSnapshot.size} memories from Firestore`);
+          }
         } catch (fsError) {
           console.error('Firestore fetch error:', fsError);
           // Continue with Cloudinary data only
