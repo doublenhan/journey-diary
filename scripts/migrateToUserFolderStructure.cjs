@@ -24,17 +24,35 @@ const monthNames = [
 ];
 
 // Helper to extract userId from context
-function extractUserIdFromContext(context) {
-  if (!context || !context.custom) return null;
+function extractUserIdFromContext(resource) {
+  // Check metadata first (Cloudinary structured metadata)
+  if (resource.metadata && resource.metadata.userId) {
+    return resource.metadata.userId;
+  }
   
-  // Try to parse context string (format: key=value|key=value)
-  const contextStr = context.custom;
-  const pairs = contextStr.split('|');
+  // Check context
+  if (!resource.context) return null;
   
-  for (const pair of pairs) {
-    const [key, value] = pair.split('=');
-    if (key === 'userId' && value) {
-      return value;
+  // Format 1: Direct userId property
+  if (resource.context.userId) {
+    return resource.context.userId;
+  }
+  
+  // Format 2: Custom object or string
+  if (resource.context.custom) {
+    // If custom is a string (pipe-delimited: key=value|key=value)
+    if (typeof resource.context.custom === 'string') {
+      const pairs = resource.context.custom.split('|');
+      for (const pair of pairs) {
+        const [key, value] = pair.split('=');
+        if (key === 'userId' && value) {
+          return value;
+        }
+      }
+    }
+    // If custom is an object
+    else if (typeof resource.context.custom === 'object' && resource.context.custom.userId) {
+      return resource.context.custom.userId;
     }
   }
   
@@ -43,15 +61,35 @@ function extractUserIdFromContext(context) {
 
 // Helper to extract date from context or filename
 function extractDate(resource) {
-  // Try context first
-  if (resource.context && resource.context.custom) {
-    const contextStr = resource.context.custom;
-    const pairs = contextStr.split('|');
+  // Try structured metadata first
+  if (resource.context) {
+    // Format 1: Direct property
+    if (resource.context.memory_date) {
+      return new Date(resource.context.memory_date);
+    }
+    if (resource.context['memory...']) {
+      // Try to extract from memory... field
+      const dateMatch = resource.context['memory...'].match(/\d{4}-\d{2}-\d{2}/);
+      if (dateMatch) {
+        return new Date(dateMatch[0]);
+      }
+    }
     
-    for (const pair of pairs) {
-      const [key, value] = pair.split('=');
-      if (key === 'memory_date' && value) {
-        return new Date(value);
+    // Format 2: Custom string (pipe-delimited)
+    if (resource.context.custom && typeof resource.context.custom === 'string') {
+      const pairs = resource.context.custom.split('|');
+      for (const pair of pairs) {
+        const [key, value] = pair.split('=');
+        if (key === 'memory_date' && value) {
+          return new Date(value);
+        }
+      }
+    }
+    
+    // Format 3: Custom object
+    if (resource.context.custom && typeof resource.context.custom === 'object') {
+      if (resource.context.custom.memory_date) {
+        return new Date(resource.context.custom.memory_date);
       }
     }
   }
@@ -92,6 +130,7 @@ async function migrateImages() {
         .expression(`folder:${oldFolder}/*`)
         .with_field('tags')
         .with_field('context')
+        .with_field('metadata')
         .max_results(500)
         .next_cursor(nextCursor)
         .execute();
@@ -112,11 +151,19 @@ async function migrateImages() {
     // Group images by userId
     const imagesByUser = {};
     const noUserIdImages = [];
+    let totalImagesProcessed = 0;
     
-    for (const resource of allResources) {
-      const userId = extractUserIdFromContext(resource);
-      
-      if (userId) {
+      for (const resource of allResources) {
+        // Debug: Log context structure for first image
+        if (totalImagesProcessed === 0) {
+          console.log('\n🔍 DEBUG: Sample context structure:');
+          console.log('  public_id:', resource.public_id);
+          console.log('  context:', JSON.stringify(resource.context, null, 2));
+          console.log('  metadata:', JSON.stringify(resource.metadata, null, 2));
+          console.log('');
+        }
+        
+        const userId = extractUserIdFromContext(resource);      if (userId) {
         if (!imagesByUser[userId]) {
           imagesByUser[userId] = [];
         }
