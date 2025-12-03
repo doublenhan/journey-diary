@@ -16,9 +16,18 @@ async function getFirestoreDb() {
   }
   
   try {
-    // Check if credentials are available
-    if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
-      console.warn('⚠ Firebase Admin credentials not found');
+    // Check if credentials are available with detailed logging
+    const hasProjectId = !!process.env.FIREBASE_PROJECT_ID;
+    const hasClientEmail = !!process.env.FIREBASE_CLIENT_EMAIL;
+    const hasPrivateKey = !!process.env.FIREBASE_PRIVATE_KEY;
+    
+    console.log('🔐 Firebase credentials check:');
+    console.log(`  FIREBASE_PROJECT_ID: ${hasProjectId ? '✓' : '✗'} ${hasProjectId ? process.env.FIREBASE_PROJECT_ID : ''}`);
+    console.log(`  FIREBASE_CLIENT_EMAIL: ${hasClientEmail ? '✓' : '✗'}`);
+    console.log(`  FIREBASE_PRIVATE_KEY: ${hasPrivateKey ? '✓ (length: ' + process.env.FIREBASE_PRIVATE_KEY?.length + ')' : '✗'}`);
+    
+    if (!hasProjectId || !hasClientEmail || !hasPrivateKey) {
+      console.warn('⚠️ Firebase Admin credentials incomplete - skipping Firebase integration');
       firebaseInitialized = true;
       return null;
     }
@@ -27,21 +36,38 @@ async function getFirestoreDb() {
     const { getFirestore } = await import('firebase-admin/firestore');
     
     if (getApps().length === 0) {
+      // Process the private key to handle different formats
+      let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+      
+      // Replace escaped newlines with actual newlines
+      if (privateKey.includes('\\n')) {
+        privateKey = privateKey.replace(/\\n/g, '\n');
+      }
+      
+      console.log('🔑 Private key format check:', {
+        hasBeginMarker: privateKey.includes('-----BEGIN PRIVATE KEY-----'),
+        hasEndMarker: privateKey.includes('-----END PRIVATE KEY-----'),
+        firstChars: privateKey.substring(0, 30),
+      });
+      
       initializeApp({
         credential: cert({
           projectId: process.env.FIREBASE_PROJECT_ID,
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+          privateKey: privateKey,
         }),
       });
+      
+      console.log('✅ Firebase Admin app initialized');
     }
     
     db = getFirestore();
     firebaseInitialized = true;
-    console.log('✓ Firebase Admin initialized');
+    console.log('✅ Firestore database connection established');
     return db;
   } catch (error) {
-    console.error('Firebase Admin initialization failed:', error.message);
+    console.error('❌ Firebase Admin initialization failed:', error.message);
+    console.error('Error details:', error);
     firebaseInitialized = true;
     return null;
   }
