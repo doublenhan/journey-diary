@@ -97,18 +97,16 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
           text: '🌍 Đang chuyển đổi tọa độ thành địa chỉ...'
         });
         
-        // Reverse geocode using Nominatim (FREE!)
+        // Reverse geocode using Nominatim via proxy (FREE!)
         try {
           const controller = new AbortController();
           const reverseTimeout = setTimeout(() => controller.abort(), 10000);
           
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?` +
-            `format=json&lat=${coords.lat}&lon=${coords.lng}&zoom=18&addressdetails=1`,
+            `/api/nominatim/reverse?lat=${coords.lat}&lon=${coords.lng}`,
             {
               headers: {
-                'Accept': 'application/json',
-                'User-Agent': 'LoveJournalApp/1.0'
+                'Accept': 'application/json'
               },
               signal: controller.signal
             }
