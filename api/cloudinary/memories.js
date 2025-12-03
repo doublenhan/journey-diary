@@ -167,18 +167,29 @@ export default async function handler(req, res) {
       
       // Fetch metadata from Firestore to get full title, location, text (if Firebase Admin is available)
       if (userId) {
+        console.log(`📊 Fetching Firestore data for userId: ${userId}`);
+        console.log(`📊 CLOUDINARY_FOLDER_PREFIX: ${process.env.CLOUDINARY_FOLDER_PREFIX}`);
+        console.log(`📊 Has FIREBASE_PROJECT_ID: ${!!process.env.FIREBASE_PROJECT_ID}`);
+        console.log(`📊 Has FIREBASE_CLIENT_EMAIL: ${!!process.env.FIREBASE_CLIENT_EMAIL}`);
+        console.log(`📊 Has FIREBASE_PRIVATE_KEY: ${!!process.env.FIREBASE_PRIVATE_KEY}`);
+        
         try {
           const db = await getFirestoreDb();
           if (db) {
             const envPrefix = process.env.CLOUDINARY_FOLDER_PREFIX || '';
             const collectionName = envPrefix ? `${envPrefix}memories` : 'memories';
+            console.log(`📊 Querying Firestore collection: ${collectionName}`);
+            
             const memoriesSnapshot = await db.collection(collectionName)
               .where('userId', '==', userId)
               .get();
             
+            console.log(`📊 Found ${memoriesSnapshot.size} memories in Firestore`);
+            
             const firestoreData = new Map();
             memoriesSnapshot.docs.forEach(doc => {
               const data = doc.data();
+              console.log(`📊 Firestore memory: ${doc.id} - ${data.title}`);
               firestoreData.set(doc.id, data);
             });
             
@@ -186,14 +197,19 @@ export default async function handler(req, res) {
             memories.forEach(memory => {
               const fsData = firestoreData.get(memory.id);
               if (fsData) {
+                console.log(`✓ Merging Firestore data for: ${memory.id}`);
                 memory.title = fsData.title || memory.title;
                 memory.location = fsData.location || memory.location;
                 memory.text = fsData.text || memory.text;
                 memory.date = fsData.date || memory.date;
+              } else {
+                console.log(`⚠ No Firestore data for memory: ${memory.id}`);
               }
             });
             
             console.log(`✓ Merged ${memoriesSnapshot.size} memories from Firestore`);
+          } else {
+            console.log('⚠ Firebase Admin not initialized, using Cloudinary context only');
           }
         } catch (fsError) {
           console.error('Firestore fetch error:', fsError);
