@@ -27,20 +27,20 @@
   will-change: transform;
   height: 320px;
   background: transparent;
-  gap: 24px;
-  /* Added gap for spacing between images */
+  gap: 0;
+  /* No gap on desktop to fit 3 images properly */
 }
 
 .gallery-carousel .gallery-item {
-  min-width: 33.3333%;
-  /* 3 ảnh/trang mặc định */
+  min-width: calc(33.3333% - 0px);
+  /* 3 ảnh/trang mặc định - exact 1/3 width */
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
   height: 320px;
   background: transparent;
-  padding: 0;
+  padding: 0 8px;
   flex-shrink: 0;
 }
 
