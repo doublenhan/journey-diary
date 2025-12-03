@@ -1,5 +1,3 @@
-
-
 /* =================================
    CREATE MEMORY PAGE STYLES
    ================================= */
@@ -8,6 +6,7 @@
   align-items: center;
   gap: 0.5rem;
 }
+
 /* Base Layout */
 .create-memory-page {
   min-height: 100vh;
@@ -433,8 +432,13 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Save Messages */
@@ -495,11 +499,11 @@
   .memory-card-header {
     padding: 2rem 1rem;
   }
-  
+
   .form-content {
     padding: 1.5rem;
   }
-  
+
   .tips-section {
     padding: 1rem;
   }
@@ -529,6 +533,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -539,6 +544,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
