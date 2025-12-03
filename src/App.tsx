@@ -90,12 +90,8 @@ function App() {
   // Handle menu open with proper animation timing
   useEffect(() => {
     if (mobileMenuOpen) {
-      // Force reflow to ensure animation plays
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setMenuMounted(true);
-        });
-      });
+      // Set mounted immediately to show full height
+      setMenuMounted(true);
     } else {
       setMenuMounted(false);
     }
@@ -194,9 +190,8 @@ function App() {
   useEffect(() => {
     async function fetchImages() {
       try {
-        // Limit results based on screen size
-        const isMobile = window.innerWidth <= 600;
-        const maxResults = isMobile ? 6 : 20;
+        // Always limit to max 6 images for both desktop and mobile
+        const maxResults = 6;
         const res = await fetchCloudinaryImages({ maxResults });
         setGalleryImages(res.resources.map((img: { secure_url: any; }) => img.secure_url));
       } catch (e) {
@@ -374,7 +369,7 @@ function App() {
                         {galleryImages.length === 0 ? (
                           <div style={{width:'100%',textAlign:'center',padding:'2rem',color:'#aaa'}}>Không tìm thấy hình ảnh.</div>
                         ) : (
-                          galleryImages.map((img, idx) => (
+                          galleryImages.slice(0, 6).map((img, idx) => (
                             <div
                               className="gallery-item"
                               key={idx}

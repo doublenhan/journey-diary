@@ -42,6 +42,10 @@
   background: transparent;
 }
 
+.gallery-carousel .gallery-item img {
+  margin: 0 auto;
+}
+
 .gallery-carousel .gallery-item:last-child {
   /* No margin needed, spacing handled by gap */
 }
@@ -96,7 +100,7 @@
 /* Base Layout */
 .landing-page {
   min-height: 100vh;
-  background-color: white;
+  background: linear-gradient(to bottom right, #fdf2f8, white, #fef7ed);
 }
 
 /* Header Styles */
