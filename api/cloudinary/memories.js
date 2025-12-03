@@ -6,70 +6,81 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Initialize Firebase Admin lazily
-let db = null;
-let firebaseInitialized = false;
-
-async function getFirestoreDb() {
-  if (firebaseInitialized) {
-    return db;
+// Fetch memories from Firestore using REST API
+async function getMemoriesFromFirestore(userId) {
+  const projectId = process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID;
+  const apiKey = process.env.VITE_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY;
+  
+  if (!projectId || !apiKey) {
+    console.warn('⚠️ Firebase credentials not found, skipping Firestore fetch');
+    return [];
   }
   
   try {
-    // Check if credentials are available with detailed logging
-    const hasProjectId = !!process.env.FIREBASE_PROJECT_ID;
-    const hasClientEmail = !!process.env.FIREBASE_CLIENT_EMAIL;
-    const hasPrivateKey = !!process.env.FIREBASE_PRIVATE_KEY;
+    const envPrefix = process.env.CLOUDINARY_FOLDER_PREFIX || '';
+    const collectionName = envPrefix ? `${envPrefix}_memories` : 'memories';
     
-    console.log('🔐 Firebase credentials check:');
-    console.log(`  FIREBASE_PROJECT_ID: ${hasProjectId ? '✓' : '✗'} ${hasProjectId ? process.env.FIREBASE_PROJECT_ID : ''}`);
-    console.log(`  FIREBASE_CLIENT_EMAIL: ${hasClientEmail ? '✓' : '✗'}`);
-    console.log(`  FIREBASE_PRIVATE_KEY: ${hasPrivateKey ? '✓ (length: ' + process.env.FIREBASE_PRIVATE_KEY?.length + ')' : '✗'}`);
+    console.log(`📊 Fetching from Firestore collection: ${collectionName} for userId: ${userId}`);
     
-    if (!hasProjectId || !hasClientEmail || !hasPrivateKey) {
-      console.warn('⚠️ Firebase Admin credentials incomplete - skipping Firebase integration');
-      firebaseInitialized = true;
-      return null;
+    // Firestore REST API endpoint
+    const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collectionName}`;
+    
+    // Query for memories with matching userId
+    const response = await fetch(firestoreUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      console.error(`❌ Firestore API error: ${response.status} ${response.statusText}`);
+      return [];
     }
     
-    const { initializeApp, getApps, cert } = await import('firebase-admin/app');
-    const { getFirestore } = await import('firebase-admin/firestore');
+    const data = await response.json();
     
-    if (getApps().length === 0) {
-      // Process the private key to handle different formats
-      let privateKey = process.env.FIREBASE_PRIVATE_KEY;
-      
-      // Replace escaped newlines with actual newlines
-      if (privateKey.includes('\\n')) {
-        privateKey = privateKey.replace(/\\n/g, '\n');
-      }
-      
-      console.log('🔑 Private key format check:', {
-        hasBeginMarker: privateKey.includes('-----BEGIN PRIVATE KEY-----'),
-        hasEndMarker: privateKey.includes('-----END PRIVATE KEY-----'),
-        firstChars: privateKey.substring(0, 30),
-      });
-      
-      initializeApp({
-        credential: cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: privateKey,
-        }),
-      });
-      
-      console.log('✅ Firebase Admin app initialized');
+    if (!data.documents || data.documents.length === 0) {
+      console.log('📭 No documents found in Firestore');
+      return [];
     }
     
-    db = getFirestore();
-    firebaseInitialized = true;
-    console.log('✅ Firestore database connection established');
-    return db;
+    // Filter by userId and transform Firestore documents to memory objects
+    const memories = data.documents
+      .filter(doc => {
+        const fields = doc.fields;
+        const docUserId = fields?.userId?.stringValue;
+        return docUserId === userId;
+      })
+      .map(doc => {
+        const fields = doc.fields;
+        const memory = {
+          id: fields?.id?.stringValue || doc.name.split('/').pop(),
+          title: fields?.title?.stringValue || 'Untitled Memory',
+          text: fields?.text?.stringValue || '',
+          location: fields?.location?.stringValue || null,
+          date: fields?.date?.stringValue || new Date().toISOString(),
+          userId: fields?.userId?.stringValue,
+        };
+        
+        // Parse coordinates if available
+        if (fields?.coordinates?.mapValue?.fields) {
+          const coordFields = fields.coordinates.mapValue.fields;
+          memory.coordinates = {
+            latitude: coordFields?.latitude?.doubleValue || coordFields?.latitude?.integerValue,
+            longitude: coordFields?.longitude?.doubleValue || coordFields?.longitude?.integerValue,
+          };
+        }
+        
+        return memory;
+      });
+    
+    console.log(`✅ Found ${memories.length} memories in Firestore for userId: ${userId}`);
+    return memories;
+    
   } catch (error) {
-    console.error('❌ Firebase Admin initialization failed:', error.message);
-    console.error('Error details:', error);
-    firebaseInitialized = true;
-    return null;
+    console.error('❌ Error fetching from Firestore:', error.message);
+    return [];
   }
 }
 
@@ -200,86 +211,56 @@ export default async function handler(req, res) {
       }
       
       console.log(`📊 Cloudinary stats: ${allImages.length} images, ${totalImagesProcessed} processed, ${imagesWithoutMemoryId} without memory_id, ${imagesFiltered} filtered`);
-      console.log(`📊 Created ${memoriesMap.size} memories`);
+      console.log(`📊 Created ${memoriesMap.size} memories from Cloudinary`);
       
       const memories = Array.from(memoriesMap.values()).sort((a, b) => new Date(b.date) - new Date(a.date));
       
-      // Fetch metadata from Firestore to get full title, location, text (if Firebase Admin is available)
+      // Fetch full metadata from Firestore using REST API
       if (userId) {
-        console.log(`📊 Fetching Firestore data for userId: ${userId}`);
-        console.log(`📊 CLOUDINARY_FOLDER_PREFIX: ${process.env.CLOUDINARY_FOLDER_PREFIX}`);
-        console.log(`📊 Has FIREBASE_PROJECT_ID: ${!!process.env.FIREBASE_PROJECT_ID}`);
-        console.log(`📊 Has FIREBASE_CLIENT_EMAIL: ${!!process.env.FIREBASE_CLIENT_EMAIL}`);
-        console.log(`📊 Has FIREBASE_PRIVATE_KEY: ${!!process.env.FIREBASE_PRIVATE_KEY}`);
+        console.log(`🔥 Fetching full metadata from Firestore for userId: ${userId}`);
         
         try {
-          const db = await getFirestoreDb();
-          if (db) {
-            const envPrefix = process.env.CLOUDINARY_FOLDER_PREFIX || '';
-            const collectionName = envPrefix ? `${envPrefix}memories` : 'memories';
-            console.log(`📊 Querying Firestore collection: ${collectionName}`);
-            
-            const memoriesSnapshot = await db.collection(collectionName)
-              .where('userId', '==', userId)
-              .get();
-            
-            console.log(`📊 Found ${memoriesSnapshot.size} memories in Firestore`);
-            
-            const firestoreData = new Map();
-            memoriesSnapshot.docs.forEach(doc => {
-              const data = doc.data();
-              console.log(`📊 Firestore memory: ${doc.id} - ${data.title}`);
-              firestoreData.set(doc.id, data);
+          const firestoreMemories = await getMemoriesFromFirestore(userId);
+          
+          if (firestoreMemories.length > 0) {
+            // Create a map for quick lookup
+            const firestoreMap = new Map();
+            firestoreMemories.forEach(fm => {
+              firestoreMap.set(fm.id, fm);
             });
             
-            // Merge Firestore data with Cloudinary data
+            // Merge Firestore metadata with Cloudinary images
             memories.forEach(memory => {
-              const fsData = firestoreData.get(memory.id);
+              const fsData = firestoreMap.get(memory.id);
               if (fsData) {
-                console.log(`✓ Merging Firestore data for: ${memory.id}`);
-                memory.title = fsData.title || memory.title;
-                memory.location = fsData.location || memory.location;
-                memory.text = fsData.text || memory.text;
-                memory.date = fsData.date || memory.date;
+                console.log(`✅ Merging Firestore data for memory: ${memory.id}`);
+                memory.title = fsData.title;
+                memory.text = fsData.text;
+                memory.location = fsData.location;
+                memory.date = fsData.date;
+                memory.coordinates = fsData.coordinates;
               } else {
-                console.log(`⚠ No Firestore data for memory: ${memory.id}`);
+                console.log(`⚠️ No Firestore data found for memory: ${memory.id}`);
               }
             });
             
-            console.log(`✓ Merged ${memoriesSnapshot.size} memories from Firestore`);
+            console.log(`✅ Successfully merged ${firestoreMemories.length} memories from Firestore`);
           } else {
-            console.log('⚠ Firebase Admin not initialized, using Cloudinary context only');
+            console.log('📭 No memories found in Firestore, using Cloudinary context only');
           }
         } catch (fsError) {
-          console.error('Firestore fetch error:', fsError);
+          console.error('❌ Firestore fetch error:', fsError.message);
           // Continue with Cloudinary data only
         }
       }
       
       const totalImages = memories.reduce((sum, m) => sum + m.images.length, 0);
       
-      // Return debug info in response (temporary for debugging)
-      const debugInfo = {
-        userId: userId,
-        envPrefix: process.env.CLOUDINARY_FOLDER_PREFIX,
-        hasFirebaseCredentials: {
-          projectId: !!process.env.FIREBASE_PROJECT_ID,
-          clientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: !!process.env.FIREBASE_PRIVATE_KEY
-        },
-        cloudinaryStats: {
-          totalImages: allImages.length,
-          memoriesCreated: memories.length,
-          totalProcessed: totalImagesProcessed,
-          withoutMemoryId: imagesWithoutMemoryId,
-          filtered: imagesFiltered
-        }
-      };
+      console.log(`📤 Returning ${memories.length} memories with ${totalImages} total images`);
       
       res.status(200).json({ 
         memories, 
         timestamp: new Date().toISOString(),
-        debug: debugInfo
       });
     } catch (error) {
       res.status(500).json({ 
