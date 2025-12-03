@@ -129,8 +129,8 @@ export default async function handler(req, res) {
       // Create unique public_id with timestamp + random + index
       const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${idx}`;
       
-      // Cloudinary context (keep minimal to avoid length limits)
-      // Location is stored in Firestore, not needed in Cloudinary context
+      // Store only minimal metadata in Cloudinary context
+      // Full metadata (title, text, location) is stored in Firestore
       const contextStr = `memory_id=${memoryId}|date=${dateStr}|userId=${userIdStr}`;
       
       return cloudinary.uploader.upload(file.filepath, {
