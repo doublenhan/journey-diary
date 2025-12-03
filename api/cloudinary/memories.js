@@ -26,8 +26,20 @@ export default async function handler(req, res) {
       
       // Add environment prefix to folder for DEV/PROD separation
       const envPrefix = process.env.CLOUDINARY_FOLDER_PREFIX || '';
-      const basePrefix = 'love-journal/memories/';
-      const finalPrefix = envPrefix ? `${envPrefix}/${basePrefix}` : basePrefix;
+      
+      // New structure: users/{userId}/{year}/{month}/memories/
+      // Old structure: love-journal/memories/ (fallback for backwards compatibility)
+      let finalPrefix;
+      
+      if (userId) {
+        // Search in new user-based structure
+        const basePrefix = `love-journal/users/${userId}`;
+        finalPrefix = envPrefix ? `${envPrefix}/${basePrefix}` : basePrefix;
+      } else {
+        // Fallback to old structure if no userId provided
+        const basePrefix = 'love-journal/memories/';
+        finalPrefix = envPrefix ? `${envPrefix}/${basePrefix}` : basePrefix;
+      }
       
       do {
         const queryParams = {
