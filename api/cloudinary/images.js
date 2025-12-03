@@ -18,14 +18,31 @@ export default async function handler(req, res) {
         return res.status(200).json({ resources: [], next_cursor: null, total_count: 0 });
       }
       
-      let { folder, tags, max_results = '20', next_cursor, sort_by = 'created_at', sort_order = 'desc' } = req.query;
+      let { folder, tags, max_results = '20', next_cursor, sort_by = 'created_at', sort_order = 'desc', userId } = req.query;
       
       // Add environment prefix to folder for DEV/PROD separation
       const envPrefix = process.env.CLOUDINARY_FOLDER_PREFIX || '';
-      const finalFolder = (folder && envPrefix) ? `${envPrefix}/${folder}` : (folder || '');
+      
+      // If userId provided, search in users/{userId}/** structure
+      let finalFolder = folder;
+      if (userId && !folder) {
+        // Search all folders under this user
+        finalFolder = `love-journal/users/${userId}`;
+      } else if (folder) {
+        // Use provided folder
+        finalFolder = folder;
+      }
+      
+      // Apply environment prefix
+      if (finalFolder && envPrefix) {
+        finalFolder = `${envPrefix}/${finalFolder}`;
+      }
       
       let expression = 'resource_type:image';
-      if (finalFolder) expression += ` AND folder:${finalFolder}`;
+      if (finalFolder) {
+        // Use wildcard to search in folder and subfolders
+        expression += ` AND folder:${finalFolder}/*`;
+      }
       if (tags) {
         const tagArray = tags.split(',');
         const tagExpression = tagArray.map(tag => `tags:${tag.trim()}`).join(' AND ');
