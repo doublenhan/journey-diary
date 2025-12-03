@@ -431,7 +431,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
         setValidationAttempted(false);
         // Refresh cache from API to get real data with updated images
         if (userId) {
-          removeMemoryFromCache(userId, optimisticMemoryId);
+          removeMemoryFromCache(userId, optimisticMemory.id);
           updateCacheAndNotify(userId);
         }
       }, 2000);
@@ -441,7 +441,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
       // Rollback optimistic update
       if (userId) {
         try {
-          removeMemoryFromCache(userId, optimisticMemoryId);
+          removeMemoryFromCache(userId, optimisticMemory.id);
           updateCacheAndNotify(userId);
         } catch (e) {
           console.error('Failed to rollback cache:', e);
