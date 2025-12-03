@@ -473,10 +473,10 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
           <div className="create-memory-header-content">
             <button 
               onClick={onBack}
-              className="back-button"
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-pink-200 hover:bg-pink-50 hover:border-pink-300 transition-all duration-300 shadow-sm hover:shadow-md active:scale-90 active:shadow-inner"
+              title="Quay Lại"
             >
-              <ArrowLeft className="w-5 h-5" />
-              <span className="back-button-text">Quay Lại</span>
+              <ArrowLeft className="w-5 h-5 text-pink-600" />
             </button>
             
             <div className="header-logo">
