@@ -35,6 +35,7 @@ export interface FetchOptions {
   nextCursor?: string;
   sortBy?: 'created_at' | 'uploaded_at' | 'public_id';
   sortOrder?: 'asc' | 'desc';
+  userId?: string;
 }
 
 export interface MemoryData {

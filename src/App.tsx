@@ -22,6 +22,7 @@ type FetchCloudinaryOptions = {
   nextCursor?: string;
   sortBy?: string;
   sortOrder?: string;
+  userId?: string;
 };
 
 async function fetchCloudinaryImages(options: FetchCloudinaryOptions = {}) {
@@ -32,6 +33,7 @@ async function fetchCloudinaryImages(options: FetchCloudinaryOptions = {}) {
   if (options.nextCursor) params.append('next_cursor', options.nextCursor);
   if (options.sortBy) params.append('sort_by', options.sortBy);
   if (options.sortOrder) params.append('sort_order', options.sortOrder);
+  if (options.userId) params.append('userId', options.userId);
   const res = await fetch(`/api/cloudinary/images?${params.toString()}`);
   if (!res.ok) throw new Error('Failed to fetch images');
   return await res.json();
@@ -192,7 +194,14 @@ function App() {
       try {
         // Always limit to max 6 images for both desktop and mobile
         const maxResults = 6;
-        const res = await fetchCloudinaryImages({ maxResults });
+        const fetchOptions: FetchCloudinaryOptions = { maxResults };
+        
+        // Add userId if available to fetch from user-specific folder
+        if (userId) {
+          fetchOptions.userId = userId;
+        }
+        
+        const res = await fetchCloudinaryImages(fetchOptions);
         setGalleryImages(res.resources.map((img: { secure_url: any; }) => img.secure_url));
       } catch (e) {
         setGalleryImages([]);

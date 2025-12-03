@@ -7,6 +7,20 @@ export const config = {
   },
 };
 
+// Helper function to generate folder path: users/{userId}/{year}/{month}/memories
+function generateFolderPath(userId, dateStr, type = 'memories') {
+  const date = new Date(dateStr);
+  const year = date.getFullYear();
+  const monthNames = [
+    'january', 'february', 'march', 'april', 'may', 'june',
+    'july', 'august', 'september', 'october', 'november', 'december'
+  ];
+  const month = monthNames[date.getMonth()];
+  
+  // Structure: love-journal/users/{userId}/{year}/{month}/{type}
+  return `love-journal/users/${userId}/${year}/${month}/${type}`;
+}
+
 // Helper function to parse form with timeout
 async function parseFormWithTimeout(req, timeoutMs = 30000) {
   return new Promise((resolve, reject) => {
@@ -88,7 +102,8 @@ export default async function handler(req, res) {
       });
     }
 
-    const folder = `love-journal/memories/${new Date(dateStr).getFullYear()}`;
+    // Generate folder path: users/{userId}/{year}/{month}/memories
+    const folder = generateFolderPath(userIdStr || 'anonymous', dateStr, 'memories');
     
     // Add environment prefix to folder for DEV/PROD separation
     const envPrefix = process.env.CLOUDINARY_FOLDER_PREFIX || '';
