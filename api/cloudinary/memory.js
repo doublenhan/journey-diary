@@ -129,9 +129,9 @@ export default async function handler(req, res) {
       // Create unique public_id with timestamp + random + index
       const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${idx}`;
       
-      // Cloudinary context must be key=value format, not nested objects
-      // Use pipe | as delimiter for multiple values
-      const contextStr = `memory_id=${memoryId}|memory_date=${dateStr}|title=${titleStr.substring(0, 50)}|location=${(locationStr || '').substring(0, 30)}|memory_text=${textStr.substring(0, 60)}|userId=${userIdStr}`;
+      // Cloudinary context (keep minimal to avoid length limits)
+      // Location is stored in Firestore, not needed in Cloudinary context
+      const contextStr = `memory_id=${memoryId}|date=${dateStr}|userId=${userIdStr}`;
       
       return cloudinary.uploader.upload(file.filepath, {
         resource_type: 'auto',
