@@ -12,6 +12,7 @@ import ViewMemory from './ViewMemory';
 import AnniversaryReminders from './AnniversaryReminders';
 import SettingPage from './SettingPage';
 import LoginPage from './LoginPage';
+import BottomNav from './components/BottomNav';
 import './styles/App.css';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 
@@ -238,20 +239,31 @@ function App() {
                   </div>
                 </div>
                 {mobileMenuOpen && (
-                  <div className={`mobile-menu ${menuMounted ? 'mobile-menu-mounted' : ''}`}>
-                    <div className="mobile-menu-content">
-                      <button 
-                        className="mobile-menu-button" 
-                        onClick={() => setMobileMenuOpen(false)} 
-                        aria-label="Close menu"
-                      >
-                        <X size={28} />
-                      </button>
-                      <a 
-                        href="/create-memory" 
-                        className="mobile-menu-link" 
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
+                  <>
+                    {/* Backdrop Overlay */}
+                    <div 
+                      className={`mobile-menu-backdrop ${menuMounted ? 'mobile-menu-backdrop-visible' : ''}`}
+                      onClick={() => setMobileMenuOpen(false)}
+                      aria-label="Close menu"
+                    />
+                    <div className={`mobile-menu ${menuMounted ? 'mobile-menu-mounted' : ''}`}>
+                      <div className="mobile-menu-content">
+                        <button 
+                          className="mobile-menu-button" 
+                          onClick={() => setMobileMenuOpen(false)} 
+                          aria-label="Close menu"
+                        >
+                          <X size={28} />
+                        </button>
+                        <a 
+                          href="/create-memory" 
+                          className={`mobile-menu-link ${window.location.pathname === '/create-memory' ? 'active' : ''}`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setTimeout(() => window.location.href = '/create-memory', 300);
+                            setMobileMenuOpen(false);
+                          }}
+                        >
                         <span className="mobile-menu-link-row">
                           <BookOpen size={20} className="mobile-menu-link-icon" />
                           Tạo Kỷ Niệm
@@ -259,8 +271,12 @@ function App() {
                       </a>
                       <a 
                         href="/view-memory" 
-                        className="mobile-menu-link" 
-                        onClick={() => setMobileMenuOpen(false)}
+                        className={`mobile-menu-link ${window.location.pathname === '/view-memory' ? 'active' : ''}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setTimeout(() => window.location.href = '/view-memory', 300);
+                          setMobileMenuOpen(false);
+                        }}
                       >
                         <span className="mobile-menu-link-row">
                           <Camera size={20} className="mobile-menu-link-icon" />
@@ -269,8 +285,12 @@ function App() {
                       </a>
                       <a 
                         href="/anniversary-reminders" 
-                        className="mobile-menu-link" 
-                        onClick={() => setMobileMenuOpen(false)}
+                        className={`mobile-menu-link ${window.location.pathname === '/anniversary-reminders' ? 'active' : ''}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setTimeout(() => window.location.href = '/anniversary-reminders', 300);
+                          setMobileMenuOpen(false);
+                        }}
                       >
                         <span className="mobile-menu-link-row">
                           <Bell size={20} className="mobile-menu-link-icon" />
@@ -279,8 +299,12 @@ function App() {
                       </a>
                       <a 
                         href="/setting-page" 
-                        className="mobile-menu-link" 
-                        onClick={() => setMobileMenuOpen(false)}
+                        className={`mobile-menu-link ${window.location.pathname === '/setting-page' ? 'active' : ''}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setTimeout(() => window.location.href = '/setting-page', 300);
+                          setMobileMenuOpen(false);
+                        }}
                       >
                         <span className="mobile-menu-link-row">
                           <Download2 size={20} className="mobile-menu-link-icon" />
@@ -289,6 +313,7 @@ function App() {
                       </a>
                     </div>
                   </div>
+                  </>
                 )}
               </header>
               <main>
@@ -374,7 +399,13 @@ function App() {
                               className="gallery-item"
                               key={idx}
                             >
-                              <img src={img} alt="Memory" className="gallery-image" />
+                              <img 
+                                src={img} 
+                                alt="Memory" 
+                                className="gallery-image" 
+                                loading="lazy"
+                                decoding="async"
+                              />
                               <div className="gallery-overlay"></div>
                               <Heart className="gallery-heart" />
                             </div>
@@ -414,6 +445,7 @@ function App() {
       <Route path="/anniversary-reminders" element={<AnniversaryReminders onBack={() => window.history.back()} currentTheme={currentTheme} />} />
       <Route path="/setting-page" element={<SettingPage onBack={() => window.history.back()} currentTheme={currentTheme} setCurrentTheme={setCurrentTheme} />} />
     </Routes>
+    <BottomNav />
     </>
   );
 }
