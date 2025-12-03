@@ -85,14 +85,58 @@ function App() {
   }, []);
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [menuMounted, setMenuMounted] = useState(false);
+  
+  // Handle menu open with proper animation timing
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      // Force reflow to ensure animation plays
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setMenuMounted(true);
+        });
+      });
+    } else {
+      setMenuMounted(false);
+    }
+  }, [mobileMenuOpen]);
+
   const [currentTheme, setCurrentThemeState] = useState<MoodTheme>(() => {
     const stored = localStorage.getItem('currentTheme');
     return (stored && isValidTheme(stored)) ? stored : 'romantic';
   });
 
+  // Listen for theme changes from other components (like SettingPage)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'currentTheme' && e.newValue && isValidTheme(e.newValue)) {
+        setCurrentThemeState(e.newValue);
+      }
+    };
+
+    const handleThemeChange = (e: CustomEvent<MoodTheme>) => {
+      if (isValidTheme(e.detail)) {
+        setCurrentThemeState(e.detail);
+      }
+    };
+
+    // Listen to storage events (for multi-tab sync)
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Listen to custom theme change event (for same-tab updates)
+    window.addEventListener('themechange' as any, handleThemeChange as any);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('themechange' as any, handleThemeChange as any);
+    };
+  }, []);
+
   const setCurrentTheme = (theme: MoodTheme) => {
     setCurrentThemeState(theme);
     localStorage.setItem('currentTheme', theme);
+    // Dispatch custom event for same-tab communication
+    window.dispatchEvent(new CustomEvent('themechange', { detail: theme }));
   };
 
   const features = [
@@ -199,30 +243,50 @@ function App() {
                   </div>
                 </div>
                 {mobileMenuOpen && (
-                  <div className="mobile-menu">
+                  <div className={`mobile-menu ${menuMounted ? 'mobile-menu-mounted' : ''}`}>
                     <div className="mobile-menu-content">
-                      <button className="mobile-menu-button" onClick={() => setMobileMenuOpen(false)} aria-label="Close menu">
+                      <button 
+                        className="mobile-menu-button" 
+                        onClick={() => setMobileMenuOpen(false)} 
+                        aria-label="Close menu"
+                      >
                         <X size={28} />
                       </button>
-                      <a href="/create-memory" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
+                      <a 
+                        href="/create-memory" 
+                        className="mobile-menu-link" 
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
                         <span className="mobile-menu-link-row">
                           <BookOpen size={20} className="mobile-menu-link-icon" />
                           Tạo Kỷ Niệm
                         </span>
                       </a>
-                      <a href="/view-memory" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
+                      <a 
+                        href="/view-memory" 
+                        className="mobile-menu-link" 
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
                         <span className="mobile-menu-link-row">
                           <Camera size={20} className="mobile-menu-link-icon" />
                           Xem Kỷ Niệm
                         </span>
                       </a>
-                      <a href="/anniversary-reminders" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
+                      <a 
+                        href="/anniversary-reminders" 
+                        className="mobile-menu-link" 
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
                         <span className="mobile-menu-link-row">
                           <Bell size={20} className="mobile-menu-link-icon" />
                            Sự Kiện Kỷ Niệm
                         </span>
                       </a>
-                      <a href="/setting-page" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
+                      <a 
+                        href="/setting-page" 
+                        className="mobile-menu-link" 
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
                         <span className="mobile-menu-link-row">
                           <Download2 size={20} className="mobile-menu-link-icon" />
                           Cài Đặt
@@ -283,13 +347,13 @@ function App() {
                     </div>
                   </div>
                 </section>
-                <section className="gallery-section">
+                <section className="gallery-section" style={{ background: 'white', color: '#111827' }}>
                   <div className="gallery-container">
                     <div className="gallery-header">
-                      <h2 className="gallery-title">
-                        <span className="gallery-title-highlight">Bộ Sưu Tập Ảnh</span>
+                      <h2 className="gallery-title" style={{ color: '#111827' }}>
+                        <span className="gallery-title-highlight" style={{ color: '#dc2626' }}>Bộ Sưu Tập Ảnh</span>
                       </h2>
-                      <p className="gallery-description">
+                      <p className="gallery-description" style={{ color: '#4b5563' }}>
                         {galleryImages.length > 0 
                           ? `${galleryImages.length} khoảnh khắc đẹp mà bạn có thể lưu giữ.`
                           : 'Những khoảnh khắc đẹp mà bạn có thể lưu giữ.'
