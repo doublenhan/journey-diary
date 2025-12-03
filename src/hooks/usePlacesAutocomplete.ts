@@ -25,7 +25,7 @@ export function usePlacesAutocomplete(inputRef: React.RefObject<HTMLInputElement
   const debounceTimerRef = useRef<NodeJS.Timeout>();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Search Nominatim API
+  // Search Nominatim API via proxy to avoid CORS
   const searchPlaces = async (query: string) => {
     if (query.length < 3) {
       setSuggestions([]);
@@ -35,13 +35,10 @@ export function usePlacesAutocomplete(inputRef: React.RefObject<HTMLInputElement
     setIsLoading(true);
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?` +
-        `format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`,
+        `/api/nominatim/search?q=${encodeURIComponent(query)}`,
         {
           headers: {
-            'Accept': 'application/json',
-            // Required by Nominatim usage policy
-            'User-Agent': 'LoveJournalApp/1.0'
+            'Accept': 'application/json'
           }
         }
       );
