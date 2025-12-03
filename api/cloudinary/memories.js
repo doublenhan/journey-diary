@@ -1,4 +1,19 @@
 import { v2 as cloudinary } from 'cloudinary';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+
+// Initialize Firebase Admin (only once)
+if (getApps().length === 0) {
+  initializeApp({
+    credential: cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    }),
+  });
+}
+
+const db = getFirestore();
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -123,6 +138,38 @@ export default async function handler(req, res) {
       }
       
       const memories = Array.from(memoriesMap.values()).sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      // Fetch metadata from Firestore to get full title, location, text
+      if (userId) {
+        try {
+          const envPrefix = process.env.CLOUDINARY_FOLDER_PREFIX || '';
+          const collectionName = envPrefix ? `${envPrefix}memories` : 'memories';
+          const memoriesSnapshot = await db.collection(collectionName)
+            .where('userId', '==', userId)
+            .get();
+          
+          const firestoreData = new Map();
+          memoriesSnapshot.docs.forEach(doc => {
+            const data = doc.data();
+            firestoreData.set(doc.id, data);
+          });
+          
+          // Merge Firestore data with Cloudinary data
+          memories.forEach(memory => {
+            const fsData = firestoreData.get(memory.id);
+            if (fsData) {
+              memory.title = fsData.title || memory.title;
+              memory.location = fsData.location || memory.location;
+              memory.text = fsData.text || memory.text;
+              memory.date = fsData.date || memory.date;
+            }
+          });
+        } catch (fsError) {
+          console.error('Firestore fetch error:', fsError);
+          // Continue with Cloudinary data only
+        }
+      }
+      
       const totalImages = memories.reduce((sum, m) => sum + m.images.length, 0);
       
       res.status(200).json({ memories, timestamp: new Date().toISOString() });
