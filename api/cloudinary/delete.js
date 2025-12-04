@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   // Set proper content type
   res.setHeader('Content-Type', 'application/json');
   
-  if (req.method === 'DELETE') {
+  if (req.method === 'DELETE' || req.method === 'POST') {
     try {
       // Re-config cloudinary for this request
       const cloud_name = process.env.CLOUDINARY_CLOUD_NAME;
@@ -30,13 +30,51 @@ export default async function handler(req, res) {
         api_secret,
       });
       
-      const { public_id } = req.body;
-      if (!public_id) {
-        res.status(400).json({ error: 'public_id is required' });
-        return;
+      // Support both single public_id and multiple publicIds
+      const { public_id, publicIds } = req.body;
+      const idsToDelete = publicIds || (public_id ? [public_id] : []);
+      
+      if (!idsToDelete || idsToDelete.length === 0) {
+        return res.status(400).json({ error: 'public_id or publicIds array is required' });
       }
-      const result = await cloudinary.uploader.destroy(public_id);
-      res.status(200).json({ result: result.result, timestamp: new Date().toISOString() });
+      
+      console.log(`🗑️ Deleting ${idsToDelete.length} images from Cloudinary`);
+      
+      // Delete images in parallel
+      const deletePromises = idsToDelete.map(id => 
+        cloudinary.uploader.destroy(id, { invalidate: true })
+          .catch(err => {
+            console.error(`Failed to delete ${id}:`, err);
+            return { result: 'error', public_id: id, error: err.message };
+          })
+      );
+      
+      const results = await Promise.all(deletePromises);
+      
+      const successful = results.filter(r => r.result === 'ok').length;
+      const failed = results.filter(r => r.result !== 'ok');
+      
+      console.log(`✅ Deleted ${successful}/${idsToDelete.length} images`);
+      
+      if (failed.length > 0) {
+        console.warn('Failed deletions:', failed);
+      }
+      
+      // Return single result format for backwards compatibility
+      if (public_id && !publicIds) {
+        return res.status(200).json({ 
+          result: results[0].result, 
+          timestamp: new Date().toISOString() 
+        });
+      }
+      
+      return res.status(200).json({
+        success: true,
+        deleted: successful,
+        failed: failed.length,
+        results,
+        timestamp: new Date().toISOString()
+      });
     } catch (error) {
       console.error('Delete error:', error);
       res.status(500).json({ error: 'Failed to delete image', message: error.message });

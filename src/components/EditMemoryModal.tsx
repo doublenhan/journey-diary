@@ -1,0 +1,271 @@
+import { useState, useEffect } from 'react';
+import { X, Save, Trash2, GripVertical } from 'lucide-react';
+import { updateMemory, deleteMemory, reorderMemoryImages } from '../utils/memoryOperations';
+import '../styles/components.css';
+
+interface MemoryImage {
+  public_id: string;
+  secure_url: string;
+  width: number;
+  height: number;
+}
+
+interface Memory {
+  id: string;
+  title: string;
+  date: string;
+  text: string;
+  location?: string | null;
+  images: MemoryImage[];
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
+}
+
+interface EditMemoryModalProps {
+  memory: Memory;
+  userId: string;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemoryModalProps) {
+  const [title, setTitle] = useState(memory.title);
+  const [text, setText] = useState(memory.text);
+  const [location, setLocation] = useState(memory.location || '');
+  const [date, setDate] = useState(memory.date);
+  const [images, setImages] = useState(memory.images);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  const handleSave = async () => {
+    if (!title.trim() || !text.trim()) {
+      setError('Title and text are required');
+      return;
+    }
+
+    setIsSaving(true);
+    setError(null);
+
+    try {
+      await updateMemory({
+        id: memory.id,
+        userId,
+        title: title.trim(),
+        text: text.trim(),
+        location: location.trim() || undefined,
+        date,
+        latitude: memory.coordinates?.latitude,
+        longitude: memory.coordinates?.longitude,
+        cloudinaryPublicIds: images.map(img => img.public_id)
+      });
+
+      onSuccess();
+      onClose();
+    } catch (err) {
+      console.error('Failed to update memory:', err);
+      setError('Failed to update memory. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      const publicIds = memory.images.map(img => img.public_id);
+      await deleteMemory(memory.id, userId, publicIds);
+      
+      onSuccess();
+      onClose();
+    } catch (err) {
+      console.error('Failed to delete memory:', err);
+      setError('Failed to delete memory. Please try again.');
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteImage = async (index: number) => {
+    if (images.length <= 1) {
+      setError('Cannot delete the last image. Delete the entire memory instead.');
+      return;
+    }
+
+    const newImages = images.filter((_, i) => i !== index);
+    setImages(newImages);
+  };
+
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+
+    const newImages = [...images];
+    const draggedImage = newImages[draggedIndex];
+    newImages.splice(draggedIndex, 1);
+    newImages.splice(index, 0, draggedImage);
+
+    setImages(newImages);
+    setDraggedIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content edit-memory-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Edit Memory</h2>
+          <button className="close-button" onClick={onClose}>
+            <X size={24} />
+          </button>
+        </div>
+
+        {error && (
+          <div className="error-message">{error}</div>
+        )}
+
+        <div className="modal-body">
+          <div className="form-group">
+            <label>Title *</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Memory title"
+              maxLength={100}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Date *</label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Location</label>
+            <input
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Where was this?"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Description *</label>
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Tell your story..."
+              rows={6}
+              maxLength={2000}
+            />
+            <span className="char-count">{text.length}/2000</span>
+          </div>
+
+          <div className="form-group">
+            <label>Images (Drag to reorder)</label>
+            <div className="images-grid">
+              {images.map((img, index) => (
+                <div
+                  key={img.public_id}
+                  className={`image-item ${draggedIndex === index ? 'dragging' : ''}`}
+                  draggable
+                  onDragStart={() => handleDragStart(index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragEnd={handleDragEnd}
+                >
+                  <button
+                    className="drag-handle"
+                    title="Drag to reorder"
+                  >
+                    <GripVertical size={20} />
+                  </button>
+                  <img src={img.secure_url} alt={`Image ${index + 1}`} />
+                  <button
+                    className="delete-image-button"
+                    onClick={() => handleDeleteImage(index)}
+                    title="Delete image"
+                  >
+                    <X size={16} />
+                  </button>
+                  <span className="image-order">{index + 1}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="modal-footer">
+          <button
+            className="delete-button"
+            onClick={() => setShowDeleteConfirm(true)}
+            disabled={isSaving || isDeleting}
+          >
+            <Trash2 size={18} />
+            Delete Memory
+          </button>
+          
+          <div className="action-buttons">
+            <button
+              className="cancel-button"
+              onClick={onClose}
+              disabled={isSaving || isDeleting}
+            >
+              Cancel
+            </button>
+            <button
+              className="save-button"
+              onClick={handleSave}
+              disabled={isSaving || isDeleting}
+            >
+              <Save size={18} />
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </div>
+
+        {showDeleteConfirm && (
+          <div className="delete-confirm-overlay">
+            <div className="delete-confirm-box">
+              <h3>Delete Memory?</h3>
+              <p>This will permanently delete "{memory.title}" and all its images. This cannot be undone.</p>
+              <div className="confirm-buttons">
+                <button
+                  className="cancel-button"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="confirm-delete-button"
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? 'Deleting...' : 'Delete Permanently'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
