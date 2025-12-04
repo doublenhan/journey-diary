@@ -45,6 +45,8 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
   const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // Track if there are unsaved changes
   const hasChanges = () => {
@@ -145,6 +147,67 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
     setDraggedIndex(null);
   };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    await uploadImages(Array.from(files));
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+    if (files.length === 0) return;
+    
+    await uploadImages(files);
+  };
+
+  const uploadImages = async (files: File[]) => {
+    setIsUploading(true);
+    setError(null);
+    setUploadProgress(0);
+
+    try {
+      const uploadedImages: MemoryImage[] = [];
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', `dev_memories/${userId}`);
+        formData.append('tags', `memory,${memory.id}`);
+
+        const response = await fetch('/api/cloudinary/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to upload ${file.name}`);
+        }
+
+        const data = await response.json();
+        uploadedImages.push({
+          public_id: data.public_id,
+          secure_url: data.secure_url,
+          width: data.width,
+          height: data.height,
+        });
+
+        setUploadProgress(Math.round(((i + 1) / files.length) * 100));
+      }
+
+      setImages(prev => [...prev, ...uploadedImages]);
+    } catch (err) {
+      console.error('Failed to upload images:', err);
+      setError(err instanceof Error ? err.message : 'Failed to upload images. Please try again.');
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
   return (
     <div className="modal-overlay" onClick={handleClose}>
       <div className="modal-content edit-memory-modal" onClick={(e) => e.stopPropagation()}>
@@ -235,6 +298,37 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
                   <span className="image-order">{index + 1}</span>
                 </div>
               ))}
+
+              {/* Upload Zone */}
+              <div
+                className={`upload-zone ${isUploading ? 'uploading' : ''}`}
+                onDrop={handleDrop}
+                onDragOver={(e) => e.preventDefault()}
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileSelect}
+                  disabled={isUploading}
+                  style={{ display: 'none' }}
+                  id="image-upload-input"
+                />
+                <label htmlFor="image-upload-input" className="upload-label">
+                  {isUploading ? (
+                    <>
+                      <div className="upload-spinner"></div>
+                      <span>Uploading... {uploadProgress}%</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={32} />
+                      <span>Click or drag images here</span>
+                      <span className="upload-hint">Support multiple images</span>
+                    </>
+                  )}
+                </label>
+              </div>
             </div>
           </div>
         </div>
