@@ -81,6 +81,10 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
           // Save to cache
           localStorage.setItem(cacheKey, JSON.stringify({ memories, timestamp: Date.now() }));
           
+          console.log('[DEBUG] Fetched memories:', memories.length);
+          console.log('[DEBUG] Memory IDs:', memories.map(m => m.id));
+          console.log('[DEBUG] Memory dates:', memories.map(m => ({ id: m.id, date: m.date })));
+          
           processMemories(memories, true);
           
           if (memories.length === 0) {
@@ -103,14 +107,20 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
 
   // Process memories and set up pagination
   const processMemories = useCallback((memories: Memory[], initial: boolean) => {
+    console.log('[DEBUG] processMemories called with', memories.length, 'memories');
+    
     const byYear: MemoriesByYear = {};
     memories.forEach((memory: Memory) => {
       const year = new Date(memory.date).getFullYear().toString();
+      console.log('[DEBUG] Processing memory:', memory.id, 'for year:', year);
       if (!byYear[year]) byYear[year] = [];
       byYear[year].push(memory);
     });
     
     const years = Object.keys(byYear).sort((a, b) => Number(b) - Number(a));
+    
+    console.log('[DEBUG] Years found:', years);
+    console.log('[DEBUG] Memories by year:', Object.keys(byYear).map(y => ({ year: y, count: byYear[y].length })));
     
     setMemoriesByYear(byYear);
     setAllYears(years);
@@ -118,6 +128,7 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
     if (initial) {
       // Load first batch
       const firstBatch = years.slice(0, YEARS_PER_PAGE);
+      console.log('[DEBUG] First batch years:', firstBatch);
       setVisibleYears(firstBatch);
       loadedYearsRef.current = firstBatch.length;
       setHasMore(years.length > YEARS_PER_PAGE);
