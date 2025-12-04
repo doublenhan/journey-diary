@@ -82,24 +82,16 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
     setError(null);
 
     try {
-      console.log('=== SAVE DEBUG ===');
-      console.log('Original images:', memory.images.map(i => i.public_id));
-      console.log('Current images:', images.map(i => i.public_id));
-      console.log('Deleted image IDs:', deletedImageIds);
-      
       // Delete removed images from Cloudinary first
       if (deletedImageIds.length > 0) {
-        console.log('Deleting images from Cloudinary:', deletedImageIds);
-        const deleteResponse = await fetch('/api/cloudinary/delete', {
+        await fetch('/api/cloudinary/delete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ publicIds: deletedImageIds }),
         });
-        const deleteResult = await deleteResponse.json();
-        console.log('Delete result:', deleteResult);
       }
 
-      const updateData = {
+      await updateMemory({
         id: memory.id,
         userId,
         title: title.trim(),
@@ -109,11 +101,7 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
         latitude: memory.coordinates?.latitude,
         longitude: memory.coordinates?.longitude,
         cloudinaryPublicIds: images.map(img => img.public_id)
-      };
-      console.log('Updating memory with:', updateData);
-      console.log('cloudinaryPublicIds JSON:', JSON.stringify(updateData.cloudinaryPublicIds, null, 2));
-
-      await updateMemory(updateData);
+      });
 
       onSuccess();
       onClose();
@@ -145,21 +133,10 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
   const handleDeleteImage = async (index: number) => {
     const imageToDelete = images[index];
     const newImages = images.filter((_, i) => i !== index);
-    
-    console.log('=== DELETE IMAGE DEBUG ===');
-    console.log('Deleting image at index:', index);
-    console.log('Image to delete:', imageToDelete.public_id);
-    console.log('Images before delete:', images.map(i => i.public_id));
-    console.log('Images after delete:', newImages.map(i => i.public_id));
-    
     setImages(newImages);
     
     // Track deleted image for cleanup on save
-    setDeletedImageIds(prev => {
-      const newDeleted = [...prev, imageToDelete.public_id];
-      console.log('Deleted IDs list:', newDeleted);
-      return newDeleted;
-    });
+    setDeletedImageIds(prev => [...prev, imageToDelete.public_id]);
     setError(null);
   };
 
@@ -224,6 +201,17 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
         formData.append('file', file);
         formData.append('folder', folder);
         formData.append('tags', `memory,${memory.id}`);
+        
+        // Add context metadata so API can group images properly
+        const context = {
+          memory_id: memory.id,
+          userId: userId,
+          title: title,
+          memory_text: text,
+          memory_date: date,
+          location: location || ''
+        };
+        formData.append('context', JSON.stringify(context));
 
         const response = await fetch('/api/cloudinary/upload', {
           method: 'POST',
@@ -246,15 +234,7 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
         setUploadProgress(Math.round(((i + 1) / files.length) * 100));
       }
 
-      console.log('=== UPLOAD DEBUG ===');
-      console.log('Uploaded images:', uploadedImages.map(i => i.public_id));
-      console.log('Images before adding:', images.map(i => i.public_id));
-      
-      setImages(prev => {
-        const newImages = [...prev, ...uploadedImages];
-        console.log('Images after adding:', newImages.map(i => i.public_id));
-        return newImages;
-      });
+      setImages(prev => [...prev, ...uploadedImages]);
     } catch (err) {
       console.error('Failed to upload images:', err);
       setError(err instanceof Error ? err.message : 'Failed to upload images. Please try again.');
