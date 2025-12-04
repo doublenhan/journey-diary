@@ -445,10 +445,12 @@
 
 /* Remember Me Styles */
 .remember-me-row {
-  display: flex;
+  display: flex !important;
+  flex-direction: row !important;
   align-items: center;
   justify-content: flex-start;
   margin-bottom: 16px;
+  gap: 0 !important;
 }
 
 .remember-me-label {
