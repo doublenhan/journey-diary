@@ -371,6 +371,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
             {/* Remember Me Checkbox */}
             <div className="form-group remember-me-row">
               <label htmlFor="rememberMe" className="remember-me-label">
+                <span className="remember-me-text">Lưu Thông Tin</span>
                 <input
                   type="checkbox"
                   id="rememberMe"
@@ -378,7 +379,6 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                   onChange={e => setRememberMe(e.target.checked)}
                   className="remember-me-checkbox"
                 />
-                <span className="remember-me-text">Lưu Thông Tin</span>
               </label>
             </div>
 
