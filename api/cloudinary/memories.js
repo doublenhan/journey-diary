@@ -1,4 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
+import admin from 'firebase-admin';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -6,85 +7,53 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Fetch memories from Firestore using REST API
-async function getMemoriesFromFirestore(userId) {
-  // On Vercel serverless, use non-VITE_ prefixed variables
-  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
-  const apiKey = process.env.FIREBASE_API_KEY || process.env.VITE_FIREBASE_API_KEY;
-  
-  console.log('🔍 Firebase credentials check:', {
-    hasProjectId: !!projectId,
-    hasApiKey: !!apiKey,
-    projectId: projectId
-  });
-  
-  if (!projectId || !apiKey) {
-    console.warn('⚠️ Firebase credentials not found, skipping Firestore fetch');
-    return [];
+// Initialize Firebase Admin SDK (only once)
+if (!admin.apps.length) {
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      }),
+    });
+    console.log('✅ Firebase Admin initialized');
+  } catch (error) {
+    console.error('❌ Firebase Admin initialization error:', error.message);
   }
-  
+}
+
+// Fetch memories from Firestore using Firebase Admin SDK
+async function getMemoriesFromFirestore(userId) {
   try {
     const envPrefix = process.env.CLOUDINARY_FOLDER_PREFIX || '';
     const collectionName = envPrefix ? `${envPrefix}_memories` : 'memories';
     
     console.log(`📊 Fetching from Firestore collection: ${collectionName} for userId: ${userId}`);
     
-    // Firestore REST API endpoint with API key for authentication
-    const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collectionName}?key=${apiKey}`;
+    // Use Firebase Admin SDK - bypasses Firestore rules
+    const db = admin.firestore();
+    const snapshot = await db.collection(collectionName)
+      .where('userId', '==', userId)
+      .get();
     
-    console.log(`🔗 Firestore URL: ${firestoreUrl.replace(apiKey, 'API_KEY_HIDDEN')}`);
-    
-    // Query for memories with matching userId
-    const response = await fetch(firestoreUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`❌ Firestore API error: ${response.status} ${response.statusText}`);
-      console.error(`❌ Error details: ${errorText}`);
-      return [];
-    }
-    
-    const data = await response.json();
-    
-    if (!data.documents || data.documents.length === 0) {
+    if (snapshot.empty) {
       console.log('📭 No documents found in Firestore');
       return [];
     }
     
-    // Filter by userId and transform Firestore documents to memory objects
-    const memories = data.documents
-      .filter(doc => {
-        const fields = doc.fields;
-        const docUserId = fields?.userId?.stringValue;
-        return docUserId === userId;
-      })
-      .map(doc => {
-        const fields = doc.fields;
-        const memory = {
-          id: fields?.id?.stringValue || doc.name.split('/').pop(),
-          title: fields?.title?.stringValue || 'Untitled Memory',
-          text: fields?.text?.stringValue || '',
-          location: fields?.location?.stringValue || null,
-          date: fields?.date?.stringValue || new Date().toISOString(),
-          userId: fields?.userId?.stringValue,
-        };
-        
-        // Parse coordinates if available
-        if (fields?.coordinates?.mapValue?.fields) {
-          const coordFields = fields.coordinates.mapValue.fields;
-          memory.coordinates = {
-            latitude: coordFields?.latitude?.doubleValue || coordFields?.latitude?.integerValue,
-            longitude: coordFields?.longitude?.doubleValue || coordFields?.longitude?.integerValue,
-          };
-        }
-        
-        return memory;
-      });
+    const memories = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: data.id || doc.id,
+        title: data.title || 'Untitled Memory',
+        text: data.text || '',
+        location: data.location || null,
+        date: data.date || new Date().toISOString(),
+        userId: data.userId,
+        coordinates: data.coordinates || null,
+      };
+    });
     
     console.log(`✅ Found ${memories.length} memories in Firestore for userId: ${userId}`);
     return memories;
