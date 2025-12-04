@@ -445,34 +445,37 @@
 
 /* Remember Me Styles */
 .form-group.remember-me-row {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
   margin-bottom: 16px;
-  gap: 0;
+  gap: 0 !important;
 }
 
 .remember-me-label {
-  display: inline-flex;
-  align-items: center;
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
   cursor: pointer;
   font-size: 1rem;
   color: #831843;
   font-weight: 500;
+  gap: 8px;
 }
 
 .remember-me-checkbox {
-  margin: 0;
-  margin-right: 8px;
+  margin: 0 !important;
   accent-color: #ec4899;
   width: 20px;
   height: 20px;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .remember-me-text {
   user-select: none;
+  white-space: nowrap;
 }
 
 /* Responsive Design */
