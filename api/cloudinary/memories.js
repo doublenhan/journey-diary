@@ -152,19 +152,24 @@ export default async function handler(req, res) {
         const memoryId = contextData.memory_id;
         const userId_context = contextData.userId;
         
+        console.log(`[IMG] Processing: ${resource.public_id.split('/').pop()} - memoryId: ${memoryId}, userId: ${userId_context}`);
+        
         if (!memoryId) {
           imagesWithoutMemoryId++;
+          console.log(`[IMG] ⚠️ Skipping - no memory_id`);
           continue;
         }
         
         if (userId && userId_context !== userId) {
           imagesFiltered++;
+          console.log(`[IMG] ⚠️ Skipping - userId mismatch (expected: ${userId}, got: ${userId_context})`);
           continue;
         }
         
         totalImagesProcessed++;
         
         if (!memoriesMap.has(memoryId)) {
+          console.log(`[MEM] ✨ Creating new memory: ${memoryId}`);
           memoriesMap.set(memoryId, {
             id: memoryId,
             title: contextData.title || 'Untitled Memory',
@@ -192,6 +197,7 @@ export default async function handler(req, res) {
       
       console.log(`📊 Cloudinary stats: ${allImages.length} images, ${totalImagesProcessed} processed, ${imagesWithoutMemoryId} without memory_id, ${imagesFiltered} filtered`);
       console.log(`📊 Created ${memoriesMap.size} memories from Cloudinary`);
+      console.log(`📊 Memory IDs in map:`, Array.from(memoriesMap.keys()));
       
       const memories = Array.from(memoriesMap.values()).sort((a, b) => new Date(b.date) - new Date(a.date));
       
