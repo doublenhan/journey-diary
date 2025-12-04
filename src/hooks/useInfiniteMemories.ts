@@ -22,6 +22,9 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
       
       if (!eventUserId || eventUserId === userId) {
         console.log('[DEBUG] Memory cache invalidated, triggering refresh');
+        // Clear cache to force fresh fetch
+        const cacheKey = `memoriesCache_${userId}`;
+        localStorage.removeItem(cacheKey);
         // Reset pagination
         loadedYearsRef.current = 0;
         setVisibleYears([]);

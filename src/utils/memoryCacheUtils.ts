@@ -129,9 +129,12 @@ export const invalidateCache = (userId: string): void => {
 };
 
 /**
- * Update cache and trigger UI refresh without clearing cache
+ * Update cache and trigger UI refresh by clearing cache to force refetch
  */
 export const updateCacheAndNotify = (userId: string): void => {
+  // Clear cache to force fresh fetch from API
+  clearCache(userId);
+  
   // Dispatch event to notify components to refresh
   window.dispatchEvent(new CustomEvent('memoryCacheInvalidated', { 
     detail: { userId } 
