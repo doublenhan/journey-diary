@@ -174,7 +174,7 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
         const file = files[i];
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('folder', `dev_memories/${userId}`);
+        formData.append('folder', `memories/${userId}`);
         formData.append('tags', `memory,${memory.id}`);
 
         const response = await fetch('/api/cloudinary/upload', {
