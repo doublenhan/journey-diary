@@ -22,13 +22,15 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
     }
     
-    // Dev Memories collection (development environment) - TEMPORARY OPEN FOR DEBUGGING
+    // Dev Memories collection (development environment)
     match /dev_memories/{memoryId} {
+      // Require authentication for all operations
       allow read, write: if isSignedIn();
     }
     
     // Production Memories collection
     match /memories/{memoryId} {
+      // Require authentication for all operations
       allow read, write: if isSignedIn();
     }
     
