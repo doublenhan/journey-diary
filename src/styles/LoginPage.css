@@ -444,15 +444,17 @@
 }
 
 /* Remember Me Styles */
-.remember-me-row {
+.form-group.remember-me-row {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: flex-start;
   margin-bottom: 16px;
+  gap: 0;
 }
 
 .remember-me-label {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   cursor: pointer;
   font-size: 1rem;
@@ -461,6 +463,7 @@
 }
 
 .remember-me-checkbox {
+  margin: 0;
   margin-right: 8px;
   accent-color: #ec4899;
   width: 20px;
