@@ -12,6 +12,7 @@ import { addMemoryToCache, updateCacheAndNotify, removeMemoryFromCache } from '.
 import type { Memory } from './hooks/useMemoriesCache';
 import { usePlacesAutocomplete } from './hooks/usePlacesAutocomplete';
 import { saveMemoryToFirestore } from './utils/memoryFirestore';
+import CustomDatePicker from './components/CustomDatePicker';
 import './styles/CreateMemory.css';
 
 interface CreateMemoryProps {
@@ -707,18 +708,18 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
                   Điều này xảy ra khi nào? <span className="required-field">*</span>
                 </span>
               </label>
-              <input
-                type="date"
-                value={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`}
-                onChange={e => {
-                  const [year, month, day] = e.target.value.split('-').map(Number);
-                  setSelectedYear(year);
-                  setSelectedMonth(month);
-                  setSelectedDay(day);
+              <CustomDatePicker
+                selected={new Date(selectedYear, selectedMonth - 1, selectedDay)}
+                onChange={(date) => {
+                  if (date) {
+                    setSelectedYear(date.getFullYear());
+                    setSelectedMonth(date.getMonth() + 1);
+                    setSelectedDay(date.getDate());
+                  }
                 }}
-                className="form-input date-select"
+                placeholder="Select date"
                 required
-                max={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`}
+                maxDate={new Date()}
               />
             </div>
 

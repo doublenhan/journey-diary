@@ -4,6 +4,7 @@ import { Pencil, User, Mail, Phone, Calendar } from 'lucide-react';
 import { auth, db, getCollectionName } from './firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import CustomDatePicker from './components/CustomDatePicker';
 
 interface ProfileInformationProps {
   theme: any;
@@ -210,20 +211,18 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
             </div>
             <div>
               <label className="block text-sm mb-1" style={{ color: theme.colors.textSecondary }}>Date of Birth</label>
-              <div className="relative flex items-center">
-                <Calendar className="w-4 h-4 absolute left-3 text-gray-400" />
-                <input 
-                  type="date"
-                  name="dob"
-                  value={profile.dob}
-                  onChange={handleChange}
-                  className={`form-input w-full pl-9${!editMode ? ' bg-gray-100 cursor-not-allowed' : ''}`}
-                  style={{ 
-                    borderColor: theme.colors.border,
-                    '--tw-ring-color': theme.colors.primary + '33'
-                  } as React.CSSProperties}
+              <div className={!editMode ? 'opacity-50 pointer-events-none' : ''}>
+                <CustomDatePicker
+                  selected={profile.dob ? new Date(profile.dob) : null}
+                  onChange={(date) => {
+                    if (date) {
+                      const formattedDate = date.toISOString().split('T')[0];
+                      setProfile(prev => ({ ...prev, dob: formattedDate }));
+                    }
+                  }}
+                  placeholder="Select date of birth"
                   required
-                  disabled={!editMode}
+                  maxDate={new Date()}
                 />
               </div>
             </div>

@@ -9,6 +9,7 @@ import { useSyncStatus } from './hooks/useSyncStatus';
 import SyncStatus from './components/SyncStatus';
 import { EmptyState } from './components/EmptyState';
 import { AnniversaryItemSkeleton } from './components/LoadingSkeleton';
+import CustomDatePicker from './components/CustomDatePicker';
 import './styles/AnniversaryReminders.css';
 import anniversaryTimeline from "./data/anniversaryTimeline.json";
 
@@ -936,15 +937,15 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                 <label className="form-label">
                   <Calendar className="w-4 h-4 mr-1 inline text-blue-400" /> Ngày Tháng
                 </label>
-                <div className="input-icon-wrapper">
-                  <input
-                    type="date"
-                    value={newAnniversary.date}
-                    onChange={(e) => setNewAnniversary(prev => ({ ...prev, date: e.target.value }))}
-                    className="form-input"              
-                    style={{ paddingLeft: '10px' }}
-                  />
-                </div>
+                <CustomDatePicker
+                  selected={newAnniversary.date ? new Date(newAnniversary.date) : null}
+                  onChange={(date) => setNewAnniversary(prev => ({ 
+                    ...prev, 
+                    date: date ? date.toISOString().split('T')[0] : '' 
+                  }))}
+                  placeholder="Select anniversary date"
+                  required
+                />
               </div>
 
 
