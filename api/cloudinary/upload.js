@@ -39,7 +39,7 @@ export default async function handler(req, res) {
     const form = formidable({
       multiples: false,
       keepExtensions: true,
-      maxFileSize: 10 * 1024 * 1024, // 10MB
+      maxFileSize: 50 * 1024 * 1024, // 50MB
     });
     
     form.parse(req, async (err, fields, files) => {
@@ -62,6 +62,8 @@ export default async function handler(req, res) {
         const public_id = publicIdValue;
         const transformationValue = Array.isArray(fields.transformation) ? fields.transformation[0] : fields.transformation;
         const transformation = transformationValue;
+        const contextValue = Array.isArray(fields.context) ? fields.context[0] : fields.context;
+        const context = contextValue;
         
         // Add environment prefix to folder
         const envPrefix = process.env.CLOUDINARY_FOLDER_PREFIX || '';
@@ -108,6 +110,17 @@ export default async function handler(req, res) {
             if (transformObj.quality) uploadOptions.quality = transformObj.quality;
           } catch (e) {
             console.debug('Transform parse error:', e);
+          }
+        }
+        
+        // Add context metadata for grouping
+        if (context) {
+          try {
+            const contextObj = JSON.parse(context);
+            uploadOptions.context = contextObj;
+            console.log('Adding context:', contextObj);
+          } catch (e) {
+            console.debug('Context parse error:', e);
           }
         }
         
