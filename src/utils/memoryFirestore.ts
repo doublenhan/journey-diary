@@ -6,6 +6,7 @@ import {
   setDoc, 
   getDoc, 
   getDocs, 
+  deleteDoc,
   query, 
   where, 
   orderBy,
@@ -119,4 +120,69 @@ export async function getMemoriesWithCoordinates(userId: string): Promise<Memory
     .map(doc => doc.data() as MemoryFirestore)
     .filter(memory => memory.coordinates != null)
     .sort((a, b) => b.date.localeCompare(a.date));
+}
+
+// Delete memory from Firestore
+export async function deleteFromFirestore(memoryId: string, userId: string): Promise<void> {
+  const collectionName = getCollectionName(COLLECTION_NAME);
+  const memoryRef = doc(db, collectionName, memoryId);
+  
+  // Verify ownership before deleting
+  const docSnap = await getDoc(memoryRef);
+  if (!docSnap.exists()) {
+    throw new Error('Memory not found');
+  }
+  
+  const data = docSnap.data() as MemoryFirestore;
+  if (data.userId !== userId) {
+    throw new Error('Unauthorized: Cannot delete another user\'s memory');
+  }
+  
+  await deleteDoc(memoryRef);
+}
+
+// Update memory in Firestore
+export async function updateMemoryInFirestore(updates: {
+  id: string;
+  userId: string;
+  title?: string;
+  text?: string;
+  location?: string;
+  date?: string;
+  latitude?: number;
+  longitude?: number;
+  cloudinaryPublicIds?: string[];
+  tags?: string[];
+}): Promise<void> {
+  const collectionName = getCollectionName(COLLECTION_NAME);
+  const memoryRef = doc(db, collectionName, updates.id);
+  
+  // Verify ownership before updating
+  const docSnap = await getDoc(memoryRef);
+  if (!docSnap.exists()) {
+    throw new Error('Memory not found');
+  }
+  
+  const data = docSnap.data() as MemoryFirestore;
+  if (data.userId !== updates.userId) {
+    throw new Error('Unauthorized: Cannot update another user\'s memory');
+  }
+  
+  const updateData: Partial<MemoryFirestore> = {
+    updatedAt: Timestamp.now(),
+  };
+  
+  if (updates.title !== undefined) updateData.title = updates.title;
+  if (updates.text !== undefined) updateData.text = updates.text;
+  if (updates.location !== undefined) updateData.location = updates.location;
+  if (updates.date !== undefined) updateData.date = updates.date;
+  if (updates.cloudinaryPublicIds !== undefined) updateData.cloudinaryPublicIds = updates.cloudinaryPublicIds;
+  if (updates.tags !== undefined) updateData.tags = updates.tags;
+  
+  // Update coordinates if provided
+  if (updates.latitude !== undefined && updates.longitude !== undefined) {
+    updateData.coordinates = new GeoPoint(updates.latitude, updates.longitude);
+  }
+  
+  await setDoc(memoryRef, updateData, { merge: true });
 }

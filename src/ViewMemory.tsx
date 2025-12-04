@@ -15,6 +15,7 @@ import { InfiniteScrollTrigger } from './components/InfiniteScrollTrigger';
 import { SearchFilterBar } from './components/SearchFilterBar';
 import { ResponsiveGallery } from './components/ResponsiveGallery';
 import { MapView } from './components/MapView';
+import { EditMemoryModal } from './components/EditMemoryModal';
 import './styles/ViewMemory.css';
 import './styles/MemoryCardHover.css';
 
@@ -62,6 +63,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedYear, setSelectedYear] = useState('ALL');
   const [showMapView, setShowMapView] = useState(false);
+  const [editingMemory, setEditingMemory] = useState<Memory | null>(null);
   const theme = themes[currentTheme];
 
   // Show sync status when loading memories
@@ -398,6 +400,15 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                             <Calendar className="w-5 h-5" />
                             <span className="date-text">{formatDate(memory.date)}</span>
                           </div>
+                          
+                          {/* Edit button */}
+                          <button
+                            onClick={() => setEditingMemory(memory)}
+                            className="absolute top-4 right-4 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg transition-all duration-200 hover:scale-110 z-10"
+                            title="Edit memory"
+                          >
+                            <Edit size={18} className="text-pink-600" />
+                          </button>
                         </div>
 
                         {/* Content */}
@@ -540,6 +551,19 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
           <MapView
             userId={userId}
             onClose={() => setShowMapView(false)}
+          />
+        )}
+
+        {/* Edit Memory Modal */}
+        {editingMemory && userId && (
+          <EditMemoryModal
+            memory={editingMemory}
+            userId={userId}
+            onClose={() => setEditingMemory(null)}
+            onSuccess={() => {
+              setEditingMemory(null);
+              // Cache will be invalidated by the modal, triggering refresh
+            }}
           />
         )}
       </main>
