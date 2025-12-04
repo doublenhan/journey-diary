@@ -29,8 +29,10 @@ async function getMemoriesFromFirestore(userId) {
     
     console.log(`📊 Fetching from Firestore collection: ${collectionName} for userId: ${userId}`);
     
-    // Firestore REST API endpoint
-    const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collectionName}`;
+    // Firestore REST API endpoint with API key for authentication
+    const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collectionName}?key=${apiKey}`;
+    
+    console.log(`🔗 Firestore URL: ${firestoreUrl.replace(apiKey, 'API_KEY_HIDDEN')}`);
     
     // Query for memories with matching userId
     const response = await fetch(firestoreUrl, {
@@ -41,7 +43,9 @@ async function getMemoriesFromFirestore(userId) {
     });
     
     if (!response.ok) {
+      const errorText = await response.text();
       console.error(`❌ Firestore API error: ${response.status} ${response.statusText}`);
+      console.error(`❌ Error details: ${errorText}`);
       return [];
     }
     
