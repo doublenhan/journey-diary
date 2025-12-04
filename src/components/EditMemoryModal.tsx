@@ -39,6 +39,7 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
   const [location, setLocation] = useState(memory.location || '');
   const [date, setDate] = useState(memory.date);
   const [images, setImages] = useState(memory.images);
+  const [deletedImageIds, setDeletedImageIds] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -81,6 +82,16 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
     setError(null);
 
     try {
+      // Delete removed images from Cloudinary first
+      if (deletedImageIds.length > 0) {
+        console.log('Deleting images from Cloudinary:', deletedImageIds);
+        await fetch('/api/cloudinary/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ publicIds: deletedImageIds }),
+        });
+      }
+
       await updateMemory({
         id: memory.id,
         userId,
@@ -121,8 +132,12 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
   };
 
   const handleDeleteImage = async (index: number) => {
+    const imageToDelete = images[index];
     const newImages = images.filter((_, i) => i !== index);
     setImages(newImages);
+    
+    // Track deleted image for cleanup on save
+    setDeletedImageIds(prev => [...prev, imageToDelete.public_id]);
     setError(null);
   };
 
