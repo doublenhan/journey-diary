@@ -26,10 +26,8 @@ export default async function handler(req, res) {
       // If userId provided, search in users/{userId}/** structure
       let finalFolder = folder;
       if (userId && !folder) {
-        // Search in both old and new folder structures
-        // Old: love-journal/users/{userId}
-        // New: memories/{userId}
-        finalFolder = `memories/${userId}`;
+        // Search all folders under this user
+        finalFolder = `love-journal/users/${userId}`;
       } else if (folder) {
         // Use provided folder
         finalFolder = folder;
