@@ -207,11 +207,22 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
     try {
       const uploadedImages: MemoryImage[] = [];
       
+      // Generate folder path matching CreateMemory logic
+      // Structure: love-journal/users/{userId}/{year}/{month}/memories
+      const memoryDate = new Date(date);
+      const year = memoryDate.getFullYear();
+      const monthNames = [
+        'january', 'february', 'march', 'april', 'may', 'june',
+        'july', 'august', 'september', 'october', 'november', 'december'
+      ];
+      const month = monthNames[memoryDate.getMonth()];
+      const folder = `love-journal/users/${userId}/${year}/${month}/memories`;
+      
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('folder', `memories/${userId}`);
+        formData.append('folder', folder);
         formData.append('tags', `memory,${memory.id}`);
 
         const response = await fetch('/api/cloudinary/upload', {
