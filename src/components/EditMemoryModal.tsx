@@ -49,6 +49,11 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  // Debug date mismatch
+  console.log('[EditMemory] Memory date:', memory.date);
+  console.log('[EditMemory] Date state:', date);
+  console.log('[EditMemory] Date parsed:', date ? new Date(date) : null);
+
   // Track if there are unsaved changes
   const hasChanges = () => {
     return title !== memory.title ||
