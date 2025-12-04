@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { X, Save, Trash2, GripVertical, Upload, Check } from 'lucide-react';
+import { X, Save, Trash2, GripVertical, Upload, Check, Type, MapPin } from 'lucide-react';
 import { updateMemory, deleteMemory } from '../utils/memoryOperations';
 import CustomDatePicker from './CustomDatePicker';
+import TextInput from './TextInput';
+import TextArea from './TextArea';
 import '../styles/components.css';
 
 interface MemoryImage {
@@ -160,12 +162,13 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
         <div className="modal-body">
           <div className="form-group">
             <label>Title *</label>
-            <input
-              type="text"
+            <TextInput
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={setTitle}
               placeholder="Memory title"
               maxLength={100}
+              icon={Type}
+              required
             />
           </div>
 
@@ -182,24 +185,25 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
 
           <div className="form-group">
             <label>Location</label>
-            <input
-              type="text"
+            <TextInput
               value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              onChange={setLocation}
               placeholder="Where was this?"
+              icon={MapPin}
             />
           </div>
 
           <div className="form-group">
             <label>Description *</label>
-            <textarea
+            <TextArea
               value={text}
-              onChange={(e) => setText(e.target.value)}
+              onChange={setText}
               placeholder="Tell your story..."
               rows={6}
               maxLength={2000}
+              showCounter
+              required
             />
-            <span className="char-count">{text.length}/2000</span>
           </div>
 
           <div className="form-group">
