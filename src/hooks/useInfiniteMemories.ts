@@ -46,8 +46,8 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
     const cache = localStorage.getItem(cacheKey);
     let cacheValid = false;
 
-    // Try to load from cache first
-    if (cache) {
+    // Try to load from cache first (only if not triggered by refresh)
+    if (cache && refreshTrigger === 0) {
       try {
         const { memories, timestamp } = JSON.parse(cache);
         if (memories && Array.isArray(memories) && timestamp && Date.now() - timestamp < 5 * 60 * 1000) {
@@ -59,7 +59,7 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
       }
     }
 
-    // If no valid cache, fetch from API
+    // If no valid cache or forced refresh, fetch from API
     if (!cacheValid) {
       (async () => {
         try {
