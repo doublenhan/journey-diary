@@ -53,6 +53,16 @@ export default async function handler(req, res) {
           res.status(400).json({ error: 'No file provided' });
           return;
         }
+        
+        // Handle formidable v3 - files.file is an array
+        const fileToUpload = Array.isArray(files.file) ? files.file[0] : files.file;
+        const filePath = fileToUpload.filepath || fileToUpload.path;
+        
+        if (!filePath) {
+          res.status(400).json({ error: 'Invalid file path' });
+          return;
+        }
+        
         const uploadOptions = {
           resource_type: 'auto',
           quality: 'auto',
@@ -73,7 +83,7 @@ export default async function handler(req, res) {
             console.debug('Transform parse error:', e);
           }
         }
-        const result = await cloudinary.uploader.upload(files.file.filepath, uploadOptions);
+        const result = await cloudinary.uploader.upload(filePath, uploadOptions);
         res.status(200).json({
           public_id: result.public_id,
           secure_url: result.secure_url,
