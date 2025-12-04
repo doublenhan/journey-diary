@@ -446,8 +446,8 @@
 /* Remember Me Styles */
 .remember-me-row {
   display: flex;
-  align-items: left;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: flex-start;
   margin-bottom: 16px;
 }
 
@@ -463,8 +463,9 @@
 .remember-me-checkbox {
   margin-right: 8px;
   accent-color: #ec4899;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
 }
 
 .remember-me-text {
