@@ -370,6 +370,67 @@
   cursor: not-allowed;
 }
 
+/* Icon-only buttons */
+.cancel-icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  background: white;
+  color: #6b7280;
+  border: 2px solid #d1d5db;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-icon-button:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+  transform: scale(1.05);
+}
+
+.cancel-icon-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.save-icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  background: linear-gradient(135deg, #ec4899, #db2777);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.save-icon-button:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+}
+
+.save-icon-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .delete-confirm-overlay {
   position: fixed;
   inset: 0;

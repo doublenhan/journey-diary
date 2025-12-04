@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { X, Save, Trash2, GripVertical, Upload } from 'lucide-react';
+import { X, Save, Trash2, GripVertical, Upload, Check } from 'lucide-react';
 import { updateMemory, deleteMemory } from '../utils/memoryOperations';
+import CustomDatePicker from './CustomDatePicker';
 import '../styles/components.css';
 
 interface MemoryImage {
@@ -170,10 +171,12 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
 
           <div className="form-group">
             <label>Date *</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
+            <CustomDatePicker
+              selected={date ? new Date(date) : null}
+              onChange={(newDate) => setDate(newDate ? newDate.toISOString().split('T')[0] : '')}
+              placeholder="Select date"
+              required
+              maxDate={new Date()}
             />
           </div>
 
@@ -244,19 +247,20 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
           
           <div className="action-buttons">
             <button
-              className="cancel-button"
+              className="cancel-icon-button"
               onClick={handleClose}
               disabled={isSaving || isDeleting}
+              title="Cancel"
             >
-              Cancel
+              <X size={20} />
             </button>
             <button
-              className="save-button"
+              className="save-icon-button"
               onClick={handleSave}
               disabled={isSaving || isDeleting || images.length === 0}
+              title={isSaving ? 'Saving...' : 'Save Changes'}
             >
-              <Save size={18} />
-              {isSaving ? 'Saving...' : 'Save Changes'}
+              {isSaving ? <Save size={20} className="animate-spin" /> : <Check size={20} />}
             </button>
           </div>
         </div>
