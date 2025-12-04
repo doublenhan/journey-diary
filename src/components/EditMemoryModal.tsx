@@ -6,6 +6,12 @@ import TextInput from './TextInput';
 import TextArea from './TextArea';
 import '../styles/components.css';
 
+// Parse date string (YYYY-MM-DD) as local date to avoid timezone offset
+function parseLocalDate(dateString: string): Date {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
 interface MemoryImage {
   public_id: string;
   secure_url: string;
@@ -48,11 +54,6 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-
-  // Debug date mismatch
-  console.log('[EditMemory] Memory date:', memory.date);
-  console.log('[EditMemory] Date state:', date);
-  console.log('[EditMemory] Date parsed:', date ? new Date(date) : null);
 
   // Track if there are unsaved changes
   const hasChanges = () => {
@@ -191,7 +192,7 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
       
       // Generate folder path matching CreateMemory logic
       // Structure: love-journal/users/{userId}/{year}/{month}/memories
-      const memoryDate = new Date(date);
+      const memoryDate = parseLocalDate(date);
       const year = memoryDate.getFullYear();
       const monthNames = [
         'january', 'february', 'march', 'april', 'may', 'june',
@@ -279,7 +280,7 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
           <div className="form-group">
             <label>Date *</label>
             <CustomDatePicker
-              selected={date ? new Date(date) : null}
+              selected={date ? parseLocalDate(date) : null}
               onChange={(newDate) => setDate(newDate ? newDate.toISOString().split('T')[0] : '')}
               placeholder="Select date"
               required
