@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { X, Save, Trash2, GripVertical } from 'lucide-react';
-import { updateMemory, deleteMemory, reorderMemoryImages } from '../utils/memoryOperations';
+import { X, Save, Trash2, GripVertical, Upload } from 'lucide-react';
+import { updateMemory, deleteMemory } from '../utils/memoryOperations';
 import '../styles/components.css';
 
 interface MemoryImage {
@@ -39,12 +39,36 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  // Track if there are unsaved changes
+  const hasChanges = () => {
+    return title !== memory.title ||
+           text !== memory.text ||
+           location !== (memory.location || '') ||
+           date !== memory.date ||
+           images.length !== memory.images.length ||
+           images.some((img, i) => img.public_id !== memory.images[i]?.public_id);
+  };
+
+  const handleClose = () => {
+    if (hasChanges()) {
+      setShowUnsavedConfirm(true);
+    } else {
+      onClose();
+    }
+  };
 
   const handleSave = async () => {
     if (!title.trim() || !text.trim()) {
       setError('Title and text are required');
+      return;
+    }
+
+    if (images.length === 0) {
+      setError('At least one image is required');
       return;
     }
 
@@ -92,13 +116,9 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
   };
 
   const handleDeleteImage = async (index: number) => {
-    if (images.length <= 1) {
-      setError('Cannot delete the last image. Delete the entire memory instead.');
-      return;
-    }
-
     const newImages = images.filter((_, i) => i !== index);
     setImages(newImages);
+    setError(null);
   };
 
   const handleDragStart = (index: number) => {
@@ -123,11 +143,11 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={handleClose}>
       <div className="modal-content edit-memory-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Edit Memory</h2>
-          <button className="close-button" onClick={onClose}>
+          <button className="close-button" onClick={handleClose}>
             <X size={24} />
           </button>
         </div>
@@ -214,18 +234,18 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
 
         <div className="modal-footer">
           <button
-            className="delete-button"
+            className="delete-button-icon"
             onClick={() => setShowDeleteConfirm(true)}
             disabled={isSaving || isDeleting}
+            title="Delete Memory"
           >
-            <Trash2 size={18} />
-            Delete Memory
+            <Trash2 size={20} />
           </button>
           
           <div className="action-buttons">
             <button
               className="cancel-button"
-              onClick={onClose}
+              onClick={handleClose}
               disabled={isSaving || isDeleting}
             >
               Cancel
@@ -233,7 +253,7 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
             <button
               className="save-button"
               onClick={handleSave}
-              disabled={isSaving || isDeleting}
+              disabled={isSaving || isDeleting || images.length === 0}
             >
               <Save size={18} />
               {isSaving ? 'Saving...' : 'Save Changes'}
@@ -260,6 +280,32 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
                   disabled={isDeleting}
                 >
                   {isDeleting ? 'Deleting...' : 'Delete Permanently'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showUnsavedConfirm && (
+          <div className="delete-confirm-overlay">
+            <div className="delete-confirm-box">
+              <h3>Unsaved Changes</h3>
+              <p>You have unsaved changes. Are you sure you want to close without saving?</p>
+              <div className="confirm-buttons">
+                <button
+                  className="cancel-button"
+                  onClick={() => setShowUnsavedConfirm(false)}
+                >
+                  Continue Editing
+                </button>
+                <button
+                  className="confirm-delete-button"
+                  onClick={() => {
+                    setShowUnsavedConfirm(false);
+                    onClose();
+                  }}
+                >
+                  Discard Changes
                 </button>
               </div>
             </div>
