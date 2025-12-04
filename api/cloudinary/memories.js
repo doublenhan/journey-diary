@@ -8,8 +8,15 @@ cloudinary.config({
 
 // Fetch memories from Firestore using REST API
 async function getMemoriesFromFirestore(userId) {
-  const projectId = process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID;
-  const apiKey = process.env.VITE_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY;
+  // On Vercel serverless, use non-VITE_ prefixed variables
+  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
+  const apiKey = process.env.FIREBASE_API_KEY || process.env.VITE_FIREBASE_API_KEY;
+  
+  console.log('🔍 Firebase credentials check:', {
+    hasProjectId: !!projectId,
+    hasApiKey: !!apiKey,
+    projectId: projectId
+  });
   
   if (!projectId || !apiKey) {
     console.warn('⚠️ Firebase credentials not found, skipping Firestore fetch');
