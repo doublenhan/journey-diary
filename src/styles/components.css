@@ -342,7 +342,7 @@
   gap: 12px;
 }
 
-.delete-button {
+.delete-button-text {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -356,12 +356,12 @@
   transition: all 0.2s;
 }
 
-.delete-button:hover:not(:disabled) {
+.delete-button-text:hover:not(:disabled) {
   background: #dc2626;
   color: white;
 }
 
-.delete-button:disabled {
+.delete-button-text:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
