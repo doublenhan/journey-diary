@@ -111,6 +111,7 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
         cloudinaryPublicIds: images.map(img => img.public_id)
       };
       console.log('Updating memory with:', updateData);
+      console.log('cloudinaryPublicIds JSON:', JSON.stringify(updateData.cloudinaryPublicIds, null, 2));
 
       await updateMemory(updateData);
 
