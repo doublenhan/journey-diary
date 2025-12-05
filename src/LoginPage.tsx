@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import app from './firebase/firebaseConfig';
-import { Heart, Mail, Lock, Eye, EyeOff, BookHeart, Calendar, Phone } from 'lucide-react';
+import { Heart, Mail, Lock, Eye, EyeOff, BookHeart, Calendar, Phone, X } from 'lucide-react';
 import { MoodTheme, themes } from './config/themes';
 import VisualEffects from './components/VisualEffects';
 import './styles/LoginPage.css';
@@ -57,6 +57,14 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
   const [successMsg, setSuccessMsg] = useState('');
   // Registration method: 'email' or 'phone', default to 'email'
   const [registerMethod, setRegisterMethod] = useState<'email' | 'phone'>('email');
+  // OTP Modal state
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpCode, setOtpCode] = useState(['', '', '', '', '', '']);
+  const [otpError, setOtpError] = useState('');
+  const [resendCountdown, setResendCountdown] = useState(60);
+  const [canResend, setCanResend] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState<any>(null);
+  const otpInputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -65,6 +73,18 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Countdown timer for OTP resend
+  useEffect(() => {
+    if (showOtpModal && resendCountdown > 0) {
+      const timer = setTimeout(() => {
+        setResendCountdown(resendCountdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (resendCountdown === 0) {
+      setCanResend(true);
+    }
+  }, [showOtpModal, resendCountdown]);
 
 
   // Firebase Auth login function
@@ -168,10 +188,15 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
         );
       }
       const appVerifier = window.recaptchaVerifier;
-      const confirmationResult = await signInWithPhoneNumber(auth, phone, appVerifier);
-      const code = window.prompt('Enter the verification code sent to your phone:');
-      if (!code) return { success: false, message: 'Verification code is required.' };
-      await confirmationResult.confirm(code);
+      const result = await signInWithPhoneNumber(auth, phone, appVerifier);
+      setConfirmationResult(result);
+      setShowOtpModal(true);
+      setResendCountdown(60);
+      setCanResend(false);
+      setOtpCode(['', '', '', '', '', '']);
+      setOtpError('');
+      // Auto-focus first input
+      setTimeout(() => otpInputRefs[0].current?.focus(), 100);
       return { success: true };
     } catch (err: any) {
       return { success: false, message: err.message };
@@ -187,6 +212,93 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
       return { success: true };
     } catch (err: any) {
       return { success: false, message: err.message };
+    }
+  };
+
+  // Handle OTP input change
+  const handleOtpChange = (index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return; // Only allow digits
+    
+    const newOtp = [...otpCode];
+    newOtp[index] = value.slice(-1); // Only take last character
+    setOtpCode(newOtp);
+    setOtpError('');
+
+    // Auto-focus next input
+    if (value && index < 5) {
+      otpInputRefs[index + 1].current?.focus();
+    }
+
+    // Auto-submit when all 6 digits entered
+    if (index === 5 && value && newOtp.every(digit => digit !== '')) {
+      handleOtpSubmit(newOtp.join(''));
+    }
+  };
+
+  // Handle OTP input keydown (backspace, paste)
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !otpCode[index] && index > 0) {
+      otpInputRefs[index - 1].current?.focus();
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      otpInputRefs[index - 1].current?.focus();
+    } else if (e.key === 'ArrowRight' && index < 5) {
+      otpInputRefs[index + 1].current?.focus();
+    }
+  };
+
+  // Handle OTP paste
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    const newOtp = pastedData.split('').concat(Array(6).fill('')).slice(0, 6);
+    setOtpCode(newOtp);
+    setOtpError('');
+    
+    // Focus last filled input or submit if complete
+    const lastFilledIndex = pastedData.length - 1;
+    if (lastFilledIndex >= 0 && lastFilledIndex < 5) {
+      otpInputRefs[lastFilledIndex + 1].current?.focus();
+    } else if (pastedData.length === 6) {
+      handleOtpSubmit(pastedData);
+    }
+  };
+
+  // Submit OTP verification
+  const handleOtpSubmit = async (code: string) => {
+    if (!confirmationResult) {
+      setOtpError('Có lỗi xảy ra. Vui lòng thử lại.');
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      await confirmationResult.confirm(code);
+      setShowOtpModal(false);
+      setSuccessMsg('Xác thực thành công! Tài khoản đã được tạo.');
+      setIsRegister(false);
+      setPhone('');
+      setOtpCode(['', '', '', '', '', '']);
+    } catch (err: any) {
+      setOtpError('Mã xác thực không đúng. Vui lòng thử lại.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Resend OTP
+  const handleResendOtp = async () => {
+    if (!canResend) return;
+    
+    setIsLoading(true);
+    const result = await registerWithPhoneFirebase(phone);
+    setIsLoading(false);
+    
+    if (result.success) {
+      setResendCountdown(60);
+      setCanResend(false);
+      setOtpError('');
+    } else {
+      setOtpError(result.message || 'Không thể gửi lại mã. Vui lòng thử lại.');
     }
   };
 
@@ -476,6 +588,83 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
             </button>
           </div>
         </div>
+
+        {/* OTP Verification Modal */}
+        {showOtpModal && (
+          <div className="otp-modal-overlay" onClick={() => setShowOtpModal(false)}>
+            <div className="otp-modal" onClick={(e) => e.stopPropagation()}>
+              <button 
+                className="otp-modal-close"
+                onClick={() => setShowOtpModal(false)}
+                aria-label="Đóng"
+              >
+                <X />
+              </button>
+              
+              <div className="otp-modal-header">
+                <Phone className="otp-modal-icon" />
+                <h2 className="otp-modal-title">Xác Thực OTP</h2>
+                <p className="otp-modal-subtitle">
+                  Nhập mã 6 chữ số đã được gửi đến<br />
+                  <strong>{phone}</strong>
+                </p>
+              </div>
+
+              <div className="otp-inputs-container" onPaste={handleOtpPaste}>
+                {otpCode.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={otpInputRefs[index]}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    className="otp-input"
+                    aria-label={`OTP digit ${index + 1}`}
+                  />
+                ))}</div>
+
+              {otpError && (
+                <div className="otp-error-message">
+                  {otpError}
+                </div>
+              )}
+
+              <button
+                onClick={() => handleOtpSubmit(otpCode.join(''))}
+                disabled={isLoading || otpCode.some(d => !d)}
+                className="otp-submit-button"
+              >
+                {isLoading ? (
+                  <>
+                    <Heart className="animate-pulse" />
+                    <span>Đang xác thực...</span>
+                  </>
+                ) : (
+                  'Xác Nhận'
+                )}
+              </button>
+
+              <div className="otp-resend-container">
+                {canResend ? (
+                  <button
+                    onClick={handleResendOtp}
+                    disabled={isLoading}
+                    className="otp-resend-button"
+                  >
+                    Gửi lại mã OTP
+                  </button>
+                ) : (
+                  <p className="otp-countdown">
+                    Gửi lại mã sau <strong>{resendCountdown}s</strong>
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Love Quote */}
         <div className="love-quote-container">
