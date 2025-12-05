@@ -4,6 +4,7 @@ import { updateMemory, deleteMemory } from '../utils/memoryOperations';
 import CustomDatePicker from './CustomDatePicker';
 import TextInput from './TextInput';
 import TextArea from './TextArea';
+import { validateImageFiles, IMAGE_VALIDATION } from '../utils/imageValidation';
 import '../styles/components.css';
 
 // Parse date string (YYYY-MM-DD) as local date to avoid timezone offset
@@ -54,6 +55,7 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   // Track if there are unsaved changes
   const hasChanges = () => {
@@ -185,7 +187,22 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
   const uploadImages = async (files: File[]) => {
     setIsUploading(true);
     setError(null);
+    setValidationErrors([]);
     setUploadProgress(0);
+
+    // Validate files before upload
+    const { validFiles, errors } = validateImageFiles(files, images.length);
+    
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      setIsUploading(false);
+      return;
+    }
+
+    if (validFiles.length === 0) {
+      setIsUploading(false);
+      return;
+    }
 
     try {
       const uploadedImages: MemoryImage[] = [];
@@ -201,8 +218,8 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
       const month = monthNames[memoryDate.getMonth()];
       const folder = `love-journal/users/${userId}/${year}/${month}/memories`;
       
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+      for (let i = 0; i < validFiles.length; i++) {
+        const file = validFiles[i];
         const formData = new FormData();
         formData.append('file', file);
         formData.append('folder', folder);
@@ -237,7 +254,7 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
           height: data.height,
         });
 
-        setUploadProgress(Math.round(((i + 1) / files.length) * 100));
+        setUploadProgress(Math.round(((i + 1) / validFiles.length) * 100));
       }
 
       setImages(prev => [...prev, ...uploadedImages]);
@@ -262,6 +279,15 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
 
         {error && (
           <div className="error-message">{error}</div>
+        )}
+
+        {validationErrors.length > 0 && (
+          <div className="error-message">
+            <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>Lỗi validation ảnh:</div>
+            {validationErrors.map((err, idx) => (
+              <div key={idx} style={{ marginBottom: '4px' }}>• {err}</div>
+            ))}
+          </div>
         )}
 
         <div className="modal-body">
@@ -312,7 +338,7 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
           </div>
 
           <div className="form-group">
-            <label>Images (Drag to reorder)</label>
+            <label>Images (Drag to reorder) - Tối đa {IMAGE_VALIDATION.MAX_IMAGES} ảnh, mỗi ảnh ≤ 20MB</label>
             <div className="images-grid">
               {images.map((img, index) => (
                 <div
@@ -346,13 +372,14 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
                 className={`upload-zone ${isUploading ? 'uploading' : ''}`}
                 onDrop={handleDrop}
                 onDragOver={(e) => e.preventDefault()}
+                style={{ display: images.length >= IMAGE_VALIDATION.MAX_IMAGES ? 'none' : 'flex' }}
               >
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif"
                   multiple
                   onChange={handleFileSelect}
-                  disabled={isUploading}
+                  disabled={isUploading || images.length >= IMAGE_VALIDATION.MAX_IMAGES}
                   style={{ display: 'none' }}
                   id="image-upload-input"
                 />

@@ -13,6 +13,7 @@ import type { Memory } from './hooks/useMemoriesCache';
 import { usePlacesAutocomplete } from './hooks/usePlacesAutocomplete';
 import { saveMemoryToFirestore } from './utils/memoryFirestore';
 import CustomDatePicker from './components/CustomDatePicker';
+import { validateImageFiles, IMAGE_VALIDATION } from './utils/imageValidation';
 import './styles/CreateMemory.css';
 
 interface CreateMemoryProps {
@@ -38,6 +39,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [validationAttempted, setValidationAttempted] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgressItem[]>([]);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
   
   // OpenStreetMap Nominatim Autocomplete (FREE!)
   const locationInputRef = useRef<HTMLInputElement>(null);
@@ -217,43 +219,37 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
+    setValidationErrors([]);
     
-    // Limit to 10 images total
-    const remainingSlots = 10 - uploadedImages.length;
-    if (remainingSlots <= 0) {
-      setSaveMessage({
-        type: 'error',
-        text: 'Tối đa 10 ảnh. Vui lòng xóa ảnh cũ trước khi thêm ảnh mới.'
-      });
-      setTimeout(() => setSaveMessage(null), 3000);
+    // Validate files before processing
+    const { validFiles, errors } = validateImageFiles(files, uploadedImages.length);
+    
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      // Clear the input so the same file can be selected again
+      event.target.value = '';
       return;
     }
     
-    const filesToProcess = files.slice(0, remainingSlots);
-    
-    for (const file of filesToProcess) {
-      if (file.type.startsWith('image/')) {
-        // Check file size (max 20MB before compression)
-        if (file.size > 20 * 1024 * 1024) {
-          setSaveMessage({
-            type: 'error',
-            text: `File ${file.name} quá lớn (>20MB). Vui lòng chọn ảnh nhỏ hơn.`
-          });
-          setTimeout(() => setSaveMessage(null), 3000);
-          continue;
-        }
-        
-        // Compress image first
-        const compressedFile = await compressImage(file);
-        
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setImagePreviews(prev => [...prev, e.target?.result as string]);
-        };
-        reader.readAsDataURL(compressedFile);
-        setUploadedImages(prev => [...prev, compressedFile]);
-      }
+    if (validFiles.length === 0) {
+      event.target.value = '';
+      return;
     }
+    
+    for (const file of validFiles) {
+      // Compress image first
+      const compressedFile = await compressImage(file);
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreviews(prev => [...prev, e.target?.result as string]);
+      };
+      reader.readAsDataURL(compressedFile);
+      setUploadedImages(prev => [...prev, compressedFile]);
+    }
+    
+    // Clear the input so the same file can be selected again
+    event.target.value = '';
   };
 
   const removeImage = (index: number) => {
@@ -758,10 +754,11 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
                 <input
                   type="file"
                   multiple
-                  accept="image/*"
+                  accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif"
                   onChange={handleImageUpload}
                   className="upload-input"
                   required
+                  disabled={uploadedImages.length >= IMAGE_VALIDATION.MAX_IMAGES}
                 />
                 <div className="upload-dropzone">
                   <Upload className="upload-icon" />
@@ -769,7 +766,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
                     Nhấp để tải lên ảnh hoặc kéo và thả <span className="required-field">(bắt buộc)</span>
                   </p>
                   <p className="upload-subtext">
-                    PNG, JPG, GIF tối đa 10MB mỗi cái
+                    JPG, PNG, WebP, HEIC - Tối đa {IMAGE_VALIDATION.MAX_IMAGES} ảnh, mỗi ảnh ≤ 20MB
                   </p>
                 </div>
               </div>
@@ -834,7 +831,19 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
                 </div>
               )}
               
-              {validationAttempted && !isFormValid && !saveMessage && (
+              {validationErrors.length > 0 && (
+                <div className="save-message save-message-error">
+                  <AlertCircle className="w-5 h-5" />
+                  <div>
+                    <div style={{ fontWeight: 'bold' }}>Lỗi validation ảnh:</div>
+                    {validationErrors.map((err, idx) => (
+                      <div key={idx} style={{ fontSize: '0.9em', marginTop: '4px' }}>• {err}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {validationAttempted && !isFormValid && !saveMessage && !validationErrors.length && (
                 <div className="save-validation-message">
                   <span className="validation-heading">Vui lòng hoàn thành tất cả các trường bắt buộc:</span>
                   <ul className="validation-list">
