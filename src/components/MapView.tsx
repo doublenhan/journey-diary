@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import { MapPin, Calendar, X, Loader } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
+import { MapPin, Calendar, X, Loader, Flame, Route } from 'lucide-react';
 import { getMemoriesWithCoordinates, MemoryFirestore } from '../utils/memoryFirestore';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.heat';
 import '../styles/MapView.css';
 
 // Fix Leaflet default marker icon issue with Vite
@@ -24,6 +25,42 @@ interface MapViewProps {
   onClose: () => void;
 }
 
+type ViewMode = 'markers' | 'heatmap' | 'route';
+
+// Component to add heat map layer
+function HeatMapLayer({ memories }: { memories: MemoryFirestore[] }) {
+  const map = useMap();
+  
+  useEffect(() => {
+    const heatData = memories
+      .filter(m => m.coordinates)
+      .map(m => [m.coordinates!.latitude, m.coordinates!.longitude, 0.8] as [number, number, number]);
+    
+    if (heatData.length > 0 && (L as any).heatLayer) {
+      const heatLayer = (L as any).heatLayer(heatData, {
+        radius: 25,
+        blur: 15,
+        maxZoom: 17,
+        gradient: {
+          0.0: '#3b82f6',
+          0.3: '#8b5cf6',
+          0.5: '#ec4899',
+          0.7: '#f43f5e',
+          1.0: '#ef4444'
+        }
+      });
+      
+      heatLayer.addTo(map);
+      
+      return () => {
+        map.removeLayer(heatLayer);
+      };
+    }
+  }, [memories, map]);
+  
+  return null;
+}
+
 // Component to fit map bounds to markers
 function FitBounds({ coordinates }: { coordinates: Array<{ lat: number; lng: number }> }) {
   const map = useMap();
@@ -43,6 +80,7 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
   const [selectedMemory, setSelectedMemory] = useState<MemoryFirestore | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('markers');
 
   useEffect(() => {
     const fetchMemories = async () => {
@@ -53,9 +91,11 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
       
       try {
         const data = await getMemoriesWithCoordinates(userId);
-        setMemories(data);
+        // Sort by date for route visualization
+        const sortedData = data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        setMemories(sortedData);
         
-        if (data.length === 0) {
+        if (sortedData.length === 0) {
           setError('Chưa có kỷ niệm nào với tọa độ. Hãy tạo memory mới với GPS!');
         }
       } catch (err) {
@@ -85,6 +125,11 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
     .filter(m => m.coordinates)
     .map(m => ({ lat: m.coordinates!.latitude, lng: m.coordinates!.longitude }));
 
+  // Route line coordinates (chronological order)
+  const routeCoordinates: [number, number][] = memories
+    .filter(m => m.coordinates)
+    .map(m => [m.coordinates!.latitude, m.coordinates!.longitude]);
+
   const defaultCenter: [number, number] = coordinates.length > 0
     ? [coordinates[0].lat, coordinates[0].lng]
     : [21.0285, 105.8542]; // Hanoi default
@@ -102,9 +147,40 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
               {isLoading ? 'Đang tải...' : `${memories.length} memories trên bản đồ`}
             </p>
           </div>
-          <button className="map-view-close" onClick={onClose}>
-            <X className="w-6 h-6" />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            {/* View Mode Toggle */}
+            {!isLoading && !error && (
+              <div className="view-mode-toggle" style={{ display: 'flex', gap: '0.5rem', background: 'white', padding: '0.25rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                <button
+                  onClick={() => setViewMode('markers')}
+                  className={viewMode === 'markers' ? 'active' : ''}
+                  style={{ padding: '0.5rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', background: viewMode === 'markers' ? '#ec4899' : 'transparent', color: viewMode === 'markers' ? 'white' : '#6b7280', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.875rem', fontWeight: '500', transition: 'all 0.2s' }}
+                  title="Markers"
+                >
+                  <MapPin className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('heatmap')}
+                  className={viewMode === 'heatmap' ? 'active' : ''}
+                  style={{ padding: '0.5rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', background: viewMode === 'heatmap' ? '#ec4899' : 'transparent', color: viewMode === 'heatmap' ? 'white' : '#6b7280', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.875rem', fontWeight: '500', transition: 'all 0.2s' }}
+                  title="Heat Map"
+                >
+                  <Flame className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('route')}
+                  className={viewMode === 'route' ? 'active' : ''}
+                  style={{ padding: '0.5rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', background: viewMode === 'route' ? '#ec4899' : 'transparent', color: viewMode === 'route' ? 'white' : '#6b7280', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.875rem', fontWeight: '500', transition: 'all 0.2s' }}
+                  title="Route"
+                >
+                  <Route className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            <button className="map-view-close" onClick={onClose}>
+              <X className="w-6 h-6" />
+            </button>
+          </div>
         </div>
 
         <div className="map-view-content" style={{ position: 'relative' }}>
@@ -134,8 +210,26 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
                 
                 <FitBounds coordinates={coordinates} />
                 
+                {/* Heat Map Layer */}
+                {viewMode === 'heatmap' && <HeatMapLayer memories={memories} />}
+                
+                {/* Route Polyline */}
+                {viewMode === 'route' && routeCoordinates.length > 1 && (
+                  <Polyline
+                    positions={routeCoordinates}
+                    pathOptions={{
+                      color: '#ec4899',
+                      weight: 3,
+                      opacity: 0.7,
+                      dashArray: '10, 10',
+                      lineCap: 'round',
+                      lineJoin: 'round'
+                    }}
+                  />
+                )}
+                
                 {/* Markers */}
-                {Object.entries(groupedByLocation).map(([key, mems]) => {
+                {(viewMode === 'markers' || viewMode === 'route') && Object.entries(groupedByLocation).map(([key, mems]) => {
                   const memory = mems[0];
                   if (!memory.coordinates) return null;
                   
