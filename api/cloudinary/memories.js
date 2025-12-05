@@ -26,10 +26,16 @@ if (!admin.apps.length) {
 // Fetch memories from Firestore using Firebase Admin SDK
 async function getMemoriesFromFirestore(userId) {
   try {
+    // DEV uses "dev_memories", PRODUCTION uses "memories" (no prefix)
     const envPrefix = process.env.CLOUDINARY_FOLDER_PREFIX || '';
-    const collectionName = envPrefix ? `${envPrefix}_memories` : 'memories';
+    let collectionName = 'memories'; // Default for production
+    
+    if (envPrefix === 'dev') {
+      collectionName = 'dev_memories';
+    }
     
     console.log(`📊 Fetching from Firestore collection: ${collectionName} for userId: ${userId}`);
+    console.log(`📊 Environment prefix: ${envPrefix || 'PRODUCTION (no prefix)'}`);
     
     // Use Firebase Admin SDK - bypasses Firestore rules
     const db = admin.firestore();
@@ -38,28 +44,36 @@ async function getMemoriesFromFirestore(userId) {
       .get();
     
     if (snapshot.empty) {
-      console.log('📭 No documents found in Firestore');
+      console.log(`📭 No documents found in Firestore collection: ${collectionName}`);
       return [];
     }
     
     const memories = snapshot.docs.map(doc => {
       const data = doc.data();
+      console.log(`📄 Firestore doc data:`, {
+        id: doc.id,
+        title: data.title,
+        date: data.date,
+        hasText: !!data.text,
+        hasLocation: !!data.location
+      });
       return {
         id: data.id || doc.id,
         title: data.title || 'Untitled Memory',
         text: data.text || '',
         location: data.location || null,
-        date: data.date || new Date().toISOString(),
+        date: data.date || new Date().toISOString().split('T')[0],
         userId: data.userId,
         coordinates: data.coordinates || null,
       };
     });
     
-    console.log(`✅ Found ${memories.length} memories in Firestore for userId: ${userId}`);
+    console.log(`✅ Found ${memories.length} memories in Firestore collection: ${collectionName}`);
     return memories;
     
   } catch (error) {
     console.error('❌ Error fetching from Firestore:', error.message);
+    console.error('❌ Full error:', error);
     return [];
   }
 }
@@ -165,12 +179,20 @@ export default async function handler(req, res) {
         totalImagesProcessed++;
         
         if (!memoriesMap.has(memoryId)) {
+          // Parse date properly - handle both ISO strings and YYYY-MM-DD format
+          let memoryDate = contextData.memory_date || resource.created_at;
+          // If date is in YYYY-MM-DD format, keep it as-is
+          // If it's ISO timestamp, convert to YYYY-MM-DD
+          if (memoryDate && memoryDate.includes('T')) {
+            memoryDate = memoryDate.split('T')[0];
+          }
+          
           memoriesMap.set(memoryId, {
             id: memoryId,
             title: contextData.title || 'Untitled Memory',
             location: contextData.location || null,
             text: contextData.memory_text || '',
-            date: contextData.memory_date || resource.created_at,
+            date: memoryDate,
             images: [],
             created_at: resource.created_at,
             tags: resource.tags || [],
