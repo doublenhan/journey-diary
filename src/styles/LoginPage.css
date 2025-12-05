@@ -529,3 +529,241 @@
   outline: 2px solid #db2777;
   outline-offset: 2px;
 }
+
+/* OTP Modal Styles */
+.otp-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fade-in 0.3s ease-out;
+}
+
+.otp-modal {
+  background: white;
+  border-radius: 24px;
+  padding: 2.5rem;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  position: relative;
+  animation: slide-up 0.4s ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.otp-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: #9ca3af;
+  transition: all 0.2s;
+  border-radius: 8px;
+}
+
+.otp-modal-close:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.otp-modal-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.otp-modal-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1rem;
+  color: #ec4899;
+  background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+  padding: 1rem;
+  border-radius: 50%;
+}
+
+.otp-modal-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.otp-modal-subtitle {
+  font-size: 0.95rem;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.otp-modal-subtitle strong {
+  color: #ec4899;
+  font-weight: 600;
+}
+
+.otp-inputs-container {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.otp-input {
+  width: 56px;
+  height: 64px;
+  text-align: center;
+  font-size: 1.75rem;
+  font-weight: 700;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f9fafb;
+  transition: all 0.2s;
+  color: #1f2937;
+}
+
+.otp-input:focus {
+  outline: none;
+  border-color: #ec4899;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.1);
+  transform: scale(1.05);
+}
+
+.otp-input:not(:placeholder-shown) {
+  border-color: #ec4899;
+  background: #fce7f3;
+}
+
+.otp-error-message {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  color: #dc2626;
+  padding: 0.875rem 1.25rem;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 0.95rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid #fecaca;
+  font-weight: 500;
+}
+
+.otp-submit-button {
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+}
+
+.otp-submit-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(236, 72, 153, 0.4);
+}
+
+.otp-submit-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.otp-resend-container {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.otp-resend-button {
+  background: transparent;
+  border: none;
+  color: #ec4899;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.otp-resend-button:hover:not(:disabled) {
+  background: #fce7f3;
+  transform: translateY(-1px);
+}
+
+.otp-resend-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.otp-countdown {
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.otp-countdown strong {
+  color: #ec4899;
+  font-weight: 600;
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+  .otp-modal {
+    padding: 2rem 1.5rem;
+    width: 95%;
+  }
+
+  .otp-inputs-container {
+    gap: 0.5rem;
+  }
+
+  .otp-input {
+    width: 48px;
+    height: 56px;
+    font-size: 1.5rem;
+  }
+
+  .otp-modal-title {
+    font-size: 1.5rem;
+  }
+
+  .otp-modal-icon {
+    width: 56px;
+    height: 56px;
+  }
+}
