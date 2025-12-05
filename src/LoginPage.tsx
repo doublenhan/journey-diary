@@ -25,6 +25,24 @@ const loveQuotes = [
   "Love is friendship that has caught fire."
 ];
 
+const popularCountries = [
+  { code: '+84', flag: '🇻🇳', name: 'Vietnam' },
+  { code: '+1', flag: '🇺🇸', name: 'United States' },
+  { code: '+44', flag: '🇬🇧', name: 'United Kingdom' },
+  { code: '+86', flag: '🇨🇳', name: 'China' },
+  { code: '+81', flag: '🇯🇵', name: 'Japan' },
+  { code: '+82', flag: '🇰🇷', name: 'South Korea' },
+  { code: '+65', flag: '🇸🇬', name: 'Singapore' },
+  { code: '+66', flag: '🇹🇭', name: 'Thailand' },
+  { code: '+60', flag: '🇲🇾', name: 'Malaysia' },
+  { code: '+63', flag: '🇵🇭', name: 'Philippines' },
+  { code: '+62', flag: '🇮🇩', name: 'Indonesia' },
+  { code: '+91', flag: '🇮🇳', name: 'India' },
+  { code: '+61', flag: '🇦🇺', name: 'Australia' },
+  { code: '+33', flag: '🇫🇷', name: 'France' },
+  { code: '+49', flag: '🇩🇪', name: 'Germany' },
+];
+
 const FloatingHeart = ({ delay = 0, size = 'small' }) => (
   <div 
     className={`floating-heart ${size}`}
@@ -65,6 +83,10 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
   const [canResend, setCanResend] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState<any>(null);
   const otpInputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
+  // Country code dropdown
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState({ code: '+84', flag: '🇻🇳', name: 'Vietnam' });
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -85,6 +107,17 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
       setCanResend(true);
     }
   }, [showOtpModal, resendCountdown]);
+
+  // Close country dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowCountryDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
 
   // Firebase Auth login function
@@ -140,7 +173,8 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
       // Sign Up
       let result;
       if (registerMethod === 'phone') {
-        result = await registerWithPhoneFirebase(phone);
+        const fullPhone = `${selectedCountry.code}${phone}`;
+        result = await registerWithPhoneFirebase(fullPhone);
       } else {
         result = await registerWithEmailFirebase(email, password);
       }
@@ -290,7 +324,8 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
     if (!canResend) return;
     
     setIsLoading(true);
-    const result = await registerWithPhoneFirebase(phone);
+    const fullPhone = `${selectedCountry.code}${phone}`;
+    const result = await registerWithPhoneFirebase(fullPhone);
     setIsLoading(false);
     
     if (result.success) {
@@ -395,17 +430,54 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                   <label htmlFor="phone" className="form-label">
                     Số Điện Thoại
                   </label>
-                  <div className="input-container">
-                    <Phone className="input-icon" />
-                    <input
-                      id="phone"
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="form-input"
-                      placeholder="+84xxxxxxxxx"
-                      required
-                    />
+                  <div className="phone-input-container" ref={dropdownRef}>
+                    {/* Country Code Dropdown Button */}
+                    <button
+                      type="button"
+                      onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                      className="country-dropdown-button"
+                    >
+                      <span className="country-flag">{selectedCountry.flag}</span>
+                      <span className="country-code">{selectedCountry.code}</span>
+                      <svg className="dropdown-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {/* Country Dropdown Menu */}
+                    {showCountryDropdown && (
+                      <div className="country-dropdown-menu">
+                        {popularCountries.map((country) => (
+                          <button
+                            key={country.code}
+                            type="button"
+                            onClick={() => {
+                              setSelectedCountry(country);
+                              setShowCountryDropdown(false);
+                            }}
+                            className="country-dropdown-item"
+                          >
+                            <span className="country-flag">{country.flag}</span>
+                            <span className="country-name">{country.name}</span>
+                            <span className="country-code-text">{country.code}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Phone Input */}
+                    <div className="phone-input-wrapper">
+                      <Phone className="input-icon" />
+                      <input
+                        id="phone"
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="form-input phone-input"
+                        placeholder="123 456 7890"
+                        required
+                      />
+                    </div>
                   </div>
                   {/* Recaptcha container for phone auth */}
                   <div id="recaptcha-container" />
@@ -606,7 +678,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                 <h2 className="otp-modal-title">Xác Thực OTP</h2>
                 <p className="otp-modal-subtitle">
                   Nhập mã 6 chữ số đã được gửi đến<br />
-                  <strong>{phone}</strong>
+                  <strong>{selectedCountry.flag} {selectedCountry.code} {phone}</strong>
                 </p>
               </div>
 
