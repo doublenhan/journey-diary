@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useInfiniteMemories } from './hooks/useInfiniteMemories';
 import { useDebouncedValue } from './hooks/useDebouncedValue';
-import { Heart, Calendar, ArrowLeft, ChevronLeft, ChevronRight, Loader, Map, Share2, Edit, Trash2 } from 'lucide-react';
+import { Heart, Calendar, ArrowLeft, ChevronLeft, ChevronRight, Loader, Map, Share2, Edit, Trash2, Image, Clock } from 'lucide-react';
 // import { cloudinaryApi, type SavedMemory } from './apis/cloudinaryGalleryApi';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { MoodTheme, themes } from './config/themes';
@@ -285,18 +285,14 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
               <div className="dashboard-label text-sm text-gray-500">Năm</div>
             </div>
             <div className="dashboard-card bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
-              <span className="inline-block bg-pink-100 rounded-full p-2 mb-2">
-                📷
-              </span>
+              <Image className="w-8 h-8 text-purple-500 mb-2" />
               <div className="dashboard-number text-2xl font-bold">{
                 (Object.values(memoriesByYear) as any[][]).reduce((total, arr) => total + (Array.isArray(arr) ? arr.reduce((p, m) => p + (Array.isArray(m.images) ? m.images.length : 0), 0) : 0), 0)
               }</div>
               <div className="dashboard-label text-sm text-gray-500">Ảnh</div>
             </div>
             <div className="dashboard-card bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
-              <span className="inline-block bg-pink-100 rounded-full p-2 mb-2">
-                🕰️
-              </span>
+              <Clock className="w-8 h-8 text-amber-500 mb-2" />
               <div className="dashboard-number text-base font-bold">{
                 (() => {
                   const allMemories = years.flatMap((y: string) => memoriesByYear[y] || []);
