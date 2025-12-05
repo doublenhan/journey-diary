@@ -87,6 +87,9 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState({ code: '+84', flag: '🇻🇳', name: 'Vietnam' });
   const dropdownRef = useRef<HTMLDivElement>(null);
+  // Forgot password modal
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -334,6 +337,32 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
       setOtpError('');
     } else {
       setOtpError(result.message || 'Không thể gửi lại mã. Vui lòng thử lại.');
+    }
+  };
+
+  // Handle forgot password
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotPasswordEmail) {
+      setError('Vui lòng nhập email của bạn.');
+      return;
+    }
+    
+    setIsLoading(true);
+    setError('');
+    setSuccessMsg('');
+    
+    try {
+      const { getAuth, sendPasswordResetEmail } = await import('firebase/auth');
+      const auth = getAuth(app);
+      await sendPasswordResetEmail(auth, forgotPasswordEmail);
+      setSuccessMsg('Email khôi phục mật khẩu đã được gửi! Vui lòng kiểm tra hộp thư.');
+      setShowForgotPasswordModal(false);
+      setForgotPasswordEmail('');
+    } catch (err: any) {
+      setError(err.message || 'Không thể gửi email. Vui lòng thử lại.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -655,11 +684,97 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                 </>
               )}
             </p>
-            <button className="footer-link">
+            <button 
+              type="button"
+              className="footer-link"
+              onClick={() => {
+                setShowForgotPasswordModal(true);
+                setError('');
+                setSuccessMsg('');
+                setForgotPasswordEmail(email);
+              }}
+            >
               Quên Mật Khẩu?
             </button>
           </div>
         </div>
+
+        {/* Forgot Password Modal */}
+        {showForgotPasswordModal && (
+          <div className="otp-modal-overlay" onClick={() => setShowForgotPasswordModal(false)}>
+            <div className="otp-modal" onClick={(e) => e.stopPropagation()}>
+              <button 
+                className="otp-modal-close"
+                onClick={() => setShowForgotPasswordModal(false)}
+                aria-label="Đóng"
+              >
+                <X />
+              </button>
+              
+              <div className="otp-modal-header">
+                <Mail className="otp-modal-icon" />
+                <h2 className="otp-modal-title">Quên Mật Khẩu?</h2>
+                <p className="otp-modal-subtitle">
+                  Nhập email của bạn để nhận link khôi phục mật khẩu
+                </p>
+              </div>
+
+              <form onSubmit={handleForgotPassword}>
+                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                  <div className="input-container">
+                    <Mail className="input-icon" />
+                    <input
+                      type="email"
+                      value={forgotPasswordEmail}
+                      onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                      className="form-input"
+                      placeholder="Nhập email của bạn"
+                      required
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="otp-error-message" style={{ marginBottom: '1rem' }}>
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isLoading || !forgotPasswordEmail}
+                  className="otp-submit-button"
+                >
+                  {isLoading ? (
+                    <>
+                      <Heart className="animate-pulse" />
+                      <span>Đang gửi...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Mail style={{ width: '20px', height: '20px' }} />
+                      <span>Gửi Email Khôi Phục</span>
+                    </>
+                  )}
+                </button>
+
+                <div className="otp-resend-container">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowForgotPasswordModal(false);
+                      setError('');
+                    }}
+                    className="otp-resend-button"
+                  >
+                    Quay lại đăng nhập
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* OTP Verification Modal */}
         {showOtpModal && (
