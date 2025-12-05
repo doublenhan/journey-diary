@@ -129,8 +129,8 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
       const prevIndex = (selectedPhotoIndex - 1 + allPhotos.length) % allPhotos.length;
       
       // Preload next and previous images
-      const nextImg = new Image();
-      const prevImg = new Image();
+      const nextImg = new window.Image();
+      const prevImg = new window.Image();
       nextImg.src = allPhotos[nextIndex];
       prevImg.src = allPhotos[prevIndex];
     };
