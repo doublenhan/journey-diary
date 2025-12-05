@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import {
   Heart, BookOpen, Camera, Bell, Download as Download2,
   Menu, X, Instagram, Twitter, Facebook,
@@ -7,13 +7,25 @@ import {
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { MoodTheme, themes, isValidTheme } from './config/themes';
-import CreateMemory from './CreateMemory';
-import ViewMemory from './ViewMemory';
-import AnniversaryReminders from './AnniversaryReminders';
-import SettingPage from './SettingPage';
-import LoginPage from './LoginPage';
 import './styles/App.css';
 import { Routes, Route, useNavigate } from 'react-router-dom';
+
+// Lazy load heavy components
+const CreateMemory = lazy(() => import('./CreateMemory'));
+const ViewMemory = lazy(() => import('./ViewMemory'));
+const AnniversaryReminders = lazy(() => import('./AnniversaryReminders'));
+const SettingPage = lazy(() => import('./SettingPage'));
+const LoginPage = lazy(() => import('./LoginPage'));
+
+// Loading component
+const PageLoader = () => (
+  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'linear-gradient(135deg, #fdf2f8 0%, #ffffff 50%, #fef7ed 100%)' }}>
+    <div style={{ textAlign: 'center' }}>
+      <Heart className="w-12 h-12 text-pink-500 animate-pulse" style={{ margin: '0 auto 1rem' }} />
+      <p style={{ color: '#ec4899', fontSize: '1.125rem', fontWeight: '500' }}>Đang tải...</p>
+    </div>
+  </div>
+);
 
 type FetchCloudinaryOptions = {
   folder?: string;
@@ -221,6 +233,7 @@ function App() {
 
   return (
     <>
+    <Suspense fallback={<PageLoader />}>
     <Routes>
       <Route path="/" element={<LoginPage currentTheme={currentTheme} />} />
       <Route path="/landing" element={
@@ -453,6 +466,7 @@ function App() {
       <Route path="/anniversary-reminders" element={<AnniversaryReminders onBack={() => window.history.back()} currentTheme={currentTheme} />} />
       <Route path="/setting-page" element={<SettingPage onBack={() => window.history.back()} currentTheme={currentTheme} setCurrentTheme={setCurrentTheme} />} />
     </Routes>
+    </Suspense>
     </>
   );
 }
