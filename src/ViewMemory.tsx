@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useInfiniteMemories } from './hooks/useInfiniteMemories';
 import { useDebouncedValue } from './hooks/useDebouncedValue';
-import { Heart, Calendar, ArrowLeft, ChevronLeft, ChevronRight, Loader, Map, Share2, Edit, Trash2, Image, Clock } from 'lucide-react';
+import { Heart, Calendar, ArrowLeft, ChevronLeft, ChevronRight, Loader, Map, Share2, Edit, Trash2, Image, Clock, BarChart3, X } from 'lucide-react';
 // import { cloudinaryApi, type SavedMemory } from './apis/cloudinaryGalleryApi';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { MoodTheme, themes } from './config/themes';
@@ -12,10 +12,12 @@ import { EmptyState } from './components/EmptyState';
 import { YearSectionSkeleton, DashboardSkeleton } from './components/LoadingSkeleton';
 import { LazyImage } from './components/LazyImage';
 import { InfiniteScrollTrigger } from './components/InfiniteScrollTrigger';
-import { SearchFilterBar } from './components/SearchFilterBar';
+import { EnhancedSearchFilter } from './components/EnhancedSearchFilter';
 import { ResponsiveGallery } from './components/ResponsiveGallery';
 import { MapView } from './components/MapView';
 import { EditMemoryModal } from './components/EditMemoryModal';
+import { ShareMemory } from './components/ShareMemory';
+import { MemoryStatistics } from './components/MemoryStatistics';
 import { sanitizePlainText, sanitizeRichText } from './utils/sanitize';
 import './styles/ViewMemory.css';
 import './styles/MemoryCardHover.css';
@@ -65,6 +67,8 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
   const [selectedYear, setSelectedYear] = useState('ALL');
   const [showMapView, setShowMapView] = useState(false);
   const [editingMemory, setEditingMemory] = useState<Memory | null>(null);
+  const [shareModalMemory, setShareModalMemory] = useState<Memory | null>(null);
+  const [showStatistics, setShowStatistics] = useState(false);
   const theme = themes[currentTheme];
 
   // Show sync status when loading memories
@@ -239,6 +243,16 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
             </div>
             
             <div className="flex items-center space-x-3">
+              {/* Statistics Button */}
+              <button
+                onClick={() => setShowStatistics(true)}
+                className="flex items-center space-x-2 px-3 py-2 bg-white border border-pink-200 rounded-lg hover:bg-pink-50 transition-colors"
+                title="View Statistics"
+              >
+                <BarChart3 className="w-4 h-4 text-pink-600" />
+                <span className="text-sm font-medium text-gray-700">Stats</span>
+              </button>
+
               {/* Map View Button */}
               <button
                 onClick={() => setShowMapView(true)}
@@ -346,7 +360,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
         {/* Search and Filter Bar - Show when we have data (even if filtered results = 0) */}
         {!isLoading && !error && years.length > 0 && (
           <>
-            <SearchFilterBar
+            <EnhancedSearchFilter
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               selectedYear={selectedYear}
@@ -398,14 +412,23 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                             <span className="date-text">{formatDate(memory.date)}</span>
                           </div>
                           
-                          {/* Edit button */}
-                          <button
-                            onClick={() => setEditingMemory(memory)}
-                            className="absolute top-4 right-4 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg transition-all duration-200 hover:scale-110 z-10"
-                            title="Edit memory"
-                          >
-                            <Edit size={18} className="text-pink-600" />
-                          </button>
+                          {/* Action buttons */}
+                          <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+                            <button
+                              onClick={() => setShareModalMemory(memory)}
+                              className="p-2 bg-white/90 hover:bg-white rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                              title="Share memory"
+                            >
+                              <Share2 size={18} className="text-pink-600" />
+                            </button>
+                            <button
+                              onClick={() => setEditingMemory(memory)}
+                              className="p-2 bg-white/90 hover:bg-white rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                              title="Edit memory"
+                            >
+                              <Edit size={18} className="text-pink-600" />
+                            </button>
+                          </div>
                         </div>
 
                         {/* Content */}
@@ -563,6 +586,45 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
               // Cache will be invalidated by the modal, triggering refresh
             }}
           />
+        )}
+
+        {/* Share Memory Modal */}
+        {shareModalMemory && (
+          <ShareMemory
+            memory={shareModalMemory}
+            onClose={() => setShareModalMemory(null)}
+            theme={{
+              colors: {
+                primary: theme.textPrimary,
+                secondary: theme.textSecondary,
+                background: theme.background
+              }
+            }}
+          />
+        )}
+
+        {/* Memory Statistics Modal */}
+        {showStatistics && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowStatistics(false)}>
+            <div className="relative max-w-6xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              <button
+                onClick={() => setShowStatistics(false)}
+                className="absolute top-4 right-4 z-10 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+                title="Close"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+              <MemoryStatistics
+                memories={Object.values(memoriesByYear).flat()}
+                theme={{
+                  colors: {
+                    primary: theme.textPrimary,
+                    secondary: theme.textSecondary
+                  }
+                }}
+              />
+            </div>
+          </div>
         )}
       </main>
     </div>

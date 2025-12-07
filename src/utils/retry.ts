@@ -1,6 +1,7 @@
 /**
  * Retry utility for failed API calls with exponential backoff
  */
+import React from 'react';
 
 export interface RetryOptions {
   maxRetries?: number;
@@ -127,9 +128,6 @@ export function useRetryableRequest<T>(
     retry: execute
   };
 }
-
-// Import React for the hook
-import React from 'react';
 
 /**
  * Example usage:
