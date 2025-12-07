@@ -7,6 +7,7 @@ import {
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { MoodTheme, themes, isValidTheme } from './config/themes';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import './styles/App.css';
 import './styles/PageLoader.css';
 import { Routes, Route, useNavigate } from 'react-router-dom';
@@ -324,6 +325,7 @@ function App() {
 
   return (
     <>
+    <ErrorBoundary>
     <Suspense fallback={<PageLoader />}>
     <Routes>
       <Route path="/" element={<LoginPage currentTheme={currentTheme} />} />
@@ -558,6 +560,7 @@ function App() {
       <Route path="/setting-page" element={<SettingPage onBack={() => window.history.back()} currentTheme={currentTheme} setCurrentTheme={setCurrentTheme} />} />
     </Routes>
     </Suspense>
+    </ErrorBoundary>
     </>
   );
 }
