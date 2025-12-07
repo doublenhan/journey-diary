@@ -17,16 +17,10 @@ export function setSessionCookie(res, userId, expiresIn = SESSION_EXPIRY) {
     expiresAt: expires.getTime()
   })).toString('base64');
 
-  // Set httpOnly cookie
-  res.setHeader('Set-Cookie', [
-    `${SESSION_COOKIE_NAME}=${sessionToken}`,
-    `HttpOnly`,
-    `Secure`, // HTTPS only
-    `SameSite=Strict`, // CSRF protection
-    `Path=/`,
-    `Max-Age=${expiresIn / 1000}`,
-    `Expires=${expires.toUTCString()}`
-  ].join('; '));
+  // Set httpOnly cookie - correct format for Vercel
+  const cookieValue = `${SESSION_COOKIE_NAME}=${sessionToken}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${Math.floor(expiresIn / 1000)}; Expires=${expires.toUTCString()}`;
+  
+  res.setHeader('Set-Cookie', cookieValue);
 
   return sessionToken;
 }
@@ -68,15 +62,8 @@ export function getSessionFromCookie(req) {
  * Clear session cookie (logout)
  */
 export function clearSessionCookie(res) {
-  res.setHeader('Set-Cookie', [
-    `${SESSION_COOKIE_NAME}=`,
-    `HttpOnly`,
-    `Secure`,
-    `SameSite=Strict`,
-    `Path=/`,
-    `Max-Age=0`,
-    `Expires=Thu, 01 Jan 1970 00:00:00 GMT`
-  ].join('; '));
+  const cookieValue = `${SESSION_COOKIE_NAME}=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+  res.setHeader('Set-Cookie', cookieValue);
 }
 
 /**
