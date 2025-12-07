@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { IncomingForm } from 'formidable';
+import { withRateLimit } from '../middleware/rateLimiter.js';
 
 export const config = {
   api: {
@@ -203,3 +204,6 @@ export default async function handler(req, res) {
     });
   }
 }
+
+// Export with rate limiting (50 requests/minute - stricter for POST)
+export default withRateLimit(handler, 50);

@@ -16,6 +16,7 @@ import { SearchFilterBar } from './components/SearchFilterBar';
 import { ResponsiveGallery } from './components/ResponsiveGallery';
 import { MapView } from './components/MapView';
 import { EditMemoryModal } from './components/EditMemoryModal';
+import { sanitizePlainText, sanitizeRichText } from './utils/sanitize';
 import './styles/ViewMemory.css';
 import './styles/MemoryCardHover.css';
 
@@ -411,7 +412,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                         <div className="p-8">
                           {/* Title if available */}
                           {memory.title && (
-                            <h3 className="memory-title">{memory.title}</h3>
+                            <h3 className="memory-title">{sanitizePlainText(memory.title)}</h3>
                           )}
 
                           {/* Date below title */}
@@ -423,13 +424,14 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                           {/* Location if available */}
                           {memory.location && (
                             <div className="memory-location">
-                              <span>{memory.location}</span>
+                              <span>{sanitizePlainText(memory.location)}</span>
                             </div>
                           )}
 
-                          <p className="memory-content">
-                            {memory.text}
-                          </p>
+                          <p 
+                            className="memory-content"
+                            dangerouslySetInnerHTML={{ __html: sanitizeRichText(memory.text) }}
+                          />
 
                           {/* Images Grid */}
                           {Array.isArray(memory.images) && memory.images.length > 0 ? (

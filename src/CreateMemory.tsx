@@ -14,6 +14,7 @@ import { usePlacesAutocomplete } from './hooks/usePlacesAutocomplete';
 import { saveMemoryToFirestore } from './utils/memoryFirestore';
 import CustomDatePicker from './components/CustomDatePicker';
 import { validateImageFiles, IMAGE_VALIDATION } from './utils/imageValidation';
+import { sanitizePlainText, sanitizeRichText } from './utils/sanitize';
 import './styles/CreateMemory.css';
 
 interface CreateMemoryProps {
@@ -322,10 +323,15 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
     syncSuccess(); // Show sync success animation
     
     try {
+      // Sanitize user inputs before sending to API
+      const sanitizedTitle = sanitizePlainText(title.trim());
+      const sanitizedLocation = sanitizePlainText(location.trim());
+      const sanitizedText = sanitizeRichText(memoryText.trim());
+      
       const memoryData: MemoryData & { userId?: string } = {
-        title: title.trim(),
-        location: location.trim() || undefined,
-        text: memoryText.trim(),
+        title: sanitizedTitle,
+        location: sanitizedLocation || undefined,
+        text: sanitizedText,
         date: `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`,
         tags: ['memory', 'love-journal'],
         userId: userId || undefined
