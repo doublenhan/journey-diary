@@ -8,17 +8,20 @@ import '../styles/MapView.css';
 
 // Fix Leaflet default marker icon issue with Vite
 import L from 'leaflet';
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
-let DefaultIcon = L.icon({
-  iconUrl: icon,
-  shadowUrl: iconShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
+// Use CDN URLs instead of importing images to avoid Vite/TypeScript issues
+const markerIcon2x = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png';
+const markerIcon = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png';
+const markerShadow = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png';
+
+// @ts-ignore - Leaflet icon path fix
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
 });
-
-L.Marker.prototype.options.icon = DefaultIcon;
 
 interface MapViewProps {
   userId: string;
