@@ -123,13 +123,9 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
           maxDate={maxDate}
           renderCustomHeader={renderCustomHeader}
           showPopperArrow={false}
-          className="w-full pl-11 pr-4 py-3 rounded-xl border-2 bg-white text-gray-900 focus:outline-none focus:ring-4 transition-all"
+          className="custom-datepicker-input w-full pl-11 pr-4 py-3 rounded-xl border-2 bg-white text-gray-900 focus:outline-none focus:ring-4 transition-all"
           calendarClassName="custom-calendar shadow-2xl border-2 rounded-xl"
           wrapperClassName="w-full"
-          style={{
-            borderColor: borderColor,
-            '--tw-ring-color': `${primaryColor}20`
-          } as React.CSSProperties}
         />
       </div>
     </div>
