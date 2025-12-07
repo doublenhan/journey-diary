@@ -17,7 +17,7 @@
 
                 <!-- Left Security Panel -->
                 <mxCell id="security-panel" value="🔐 AUTHENTICATION &amp; AUTHORIZATION" style="swimlane;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#dc2626;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#991b1b;" vertex="1" parent="1">
-                    <mxGeometry x="40" y="140" width="240" height="560" as="geometry" />
+                    <mxGeometry x="40" y="140" width="240" height="680" as="geometry" />
                 </mxCell>
 
                 <mxCell id="sec-auth" value="Firebase Auth&lt;br&gt;• Email/Password&lt;br&gt;• Phone + OTP&lt;br&gt;• reCAPTCHA" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dc2626;strokeColor=#991b1b;fontColor=#ffffff;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="security-panel">
@@ -40,8 +40,16 @@
                     <mxGeometry x="15" y="360" width="210" height="70" as="geometry" />
                 </mxCell>
 
-                <mxCell id="sec-validation" value="Input Validation&lt;br&gt;• DOMPurify (XSS)&lt;br&gt;• File size/type&lt;br&gt;• Sanitization" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ef4444;strokeColor=#991b1b;fontColor=#ffffff;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="security-panel">
+                <mxCell id="sec-validation" value="Input Validation&lt;br&gt;• sanitize.ts (XSS)&lt;br&gt;• File size/type&lt;br&gt;• DOMPurify" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ef4444;strokeColor=#991b1b;fontColor=#ffffff;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="security-panel">
+                    <mxGeometry x="15" y="360" width="210" height="70" as="geometry" />
+                </mxCell>
+
+                <mxCell id="sec-middleware" value="Middleware&lt;br&gt;• rateLimiter.js&lt;br&gt;• sessionAuth.js&lt;br&gt;• CORS config" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ef4444;strokeColor=#991b1b;fontColor=#ffffff;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="security-panel">
                     <mxGeometry x="15" y="440" width="210" height="70" as="geometry" />
+                </mxCell>
+
+                <mxCell id="sec-retry" value="Retry Logic&lt;br&gt;• retry.ts utility&lt;br&gt;• Exponential backoff&lt;br&gt;• 3 retries max" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ef4444;strokeColor=#991b1b;fontColor=#ffffff;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="security-panel">
+                    <mxGeometry x="15" y="520" width="210" height="70" as="geometry" />
                 </mxCell>
 
                 <!-- FRONTEND LAYER -->
@@ -54,7 +62,7 @@
                 </mxCell>
 
                 <!-- Pages Group -->
-                <mxCell id="pages-group" value="Main Pages (10)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FCE7F3;strokeColor=#ec4899;fontSize=12;fontStyle=1;fontColor=#831843;" vertex="1" parent="frontend-container">
+                <mxCell id="pages-group" value="Main Pages (6)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FCE7F3;strokeColor=#ec4899;fontSize=12;fontStyle=1;fontColor=#831843;" vertex="1" parent="frontend-container">
                     <mxGeometry x="30" y="75" width="460" height="185" as="geometry" />
                 </mxCell>
 
@@ -83,7 +91,7 @@
                 </mxCell>
 
                 <!-- Components Group -->
-                <mxCell id="components-group" value="Components (15+)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FCE7F3;strokeColor=#ec4899;fontSize=12;fontStyle=1;fontColor=#831843;" vertex="1" parent="frontend-container">
+                <mxCell id="components-group" value="Components (20+)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FCE7F3;strokeColor=#ec4899;fontSize=12;fontStyle=1;fontColor=#831843;" vertex="1" parent="frontend-container">
                     <mxGeometry x="520" y="75" width="360" height="185" as="geometry" />
                 </mxCell>
 
@@ -107,12 +115,24 @@
                     <mxGeometry x="130" y="95" width="100" height="50" as="geometry" />
                 </mxCell>
 
-                <mxCell id="comp-search" value="SearchFilter&lt;br&gt;🔍 Search" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="components-group">
+                <mxCell id="comp-search" value="EnhancedSearch&lt;br&gt;🔍 Filter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="components-group">
                     <mxGeometry x="245" y="95" width="100" height="50" as="geometry" />
                 </mxCell>
 
+                <mxCell id="comp-share" value="ShareMemory&lt;br&gt;📤 Export" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8b5cf6;fontSize=10;" vertex="1" parent="components-group">
+                    <mxGeometry x="15" y="155" width="100" height="50" as="geometry" />
+                </mxCell>
+
+                <mxCell id="comp-stats" value="Statistics&lt;br&gt;📊 Dashboard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8b5cf6;fontSize=10;" vertex="1" parent="components-group">
+                    <mxGeometry x="130" y="155" width="100" height="50" as="geometry" />
+                </mxCell>
+
+                <mxCell id="comp-error" value="ErrorBoundary&lt;br&gt;⚠️ Catch" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#dc2626;fontSize=10;" vertex="1" parent="components-group">
+                    <mxGeometry x="245" y="155" width="100" height="50" as="geometry" />
+                </mxCell>
+
                 <!-- Hooks Group -->
-                <mxCell id="hooks-group" value="Custom Hooks (10+)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FCE7F3;strokeColor=#ec4899;fontSize=12;fontStyle=1;fontColor=#831843;" vertex="1" parent="frontend-container">
+                <mxCell id="hooks-group" value="Custom Hooks (8)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FCE7F3;strokeColor=#ec4899;fontSize=12;fontStyle=1;fontColor=#831843;" vertex="1" parent="frontend-container">
                     <mxGeometry x="910" y="75" width="500" height="185" as="geometry" />
                 </mxCell>
 
@@ -144,20 +164,12 @@
                     <mxGeometry x="255" y="80" width="110" height="35" as="geometry" />
                 </mxCell>
 
-                <mxCell id="hook-theme" value="useTheme" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbbf24;strokeColor=#78350f;fontSize=9;fontColor=#78350f;" vertex="1" parent="hooks-group">
+                <mxCell id="hook-sync" value="useSyncStatus" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbbf24;strokeColor=#78350f;fontSize=9;fontColor=#78350f;" vertex="1" parent="hooks-group">
                     <mxGeometry x="375" y="80" width="110" height="35" as="geometry" />
                 </mxCell>
 
-                <mxCell id="hook-effects" value="useUserEffects" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbbf24;strokeColor=#78350f;fontSize=9;fontColor=#78350f;" vertex="1" parent="hooks-group">
-                    <mxGeometry x="75" y="125" width="110" height="35" as="geometry" />
-                </mxCell>
-
-                <mxCell id="hook-scroll" value="useInfiniteScroll" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbbf24;strokeColor=#78350f;fontSize=9;fontColor=#78350f;" vertex="1" parent="hooks-group">
-                    <mxGeometry x="195" y="125" width="110" height="35" as="geometry" />
-                </mxCell>
-
-                <mxCell id="hook-upload" value="useImageUpload" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbbf24;strokeColor=#78350f;fontSize=9;fontColor=#78350f;" vertex="1" parent="hooks-group">
-                    <mxGeometry x="315" y="125" width="110" height="35" as="geometry" />
+                <mxCell id="hook-image-opt-2" value="Note: 8 hooks total&lt;br&gt;All verified ✅" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#78350f;fontSize=8;fontColor=#78350f;align=center;" vertex="1" parent="hooks-group">
+                    <mxGeometry x="75" y="125" width="350" height="35" as="geometry" />
                 </mxCell>
 
                 <!-- SERVERLESS API LAYER -->
@@ -325,7 +337,7 @@
                     <mxGeometry x="15" y="155" width="210" height="25" as="geometry" />
                 </mxCell>
 
-                <mxCell id="legend-stats" value="📊 Statistics:&lt;br&gt;• 10 Pages&lt;br&gt;• 15+ Components&lt;br&gt;• 11+ Hooks&lt;br&gt;• 9 Cloudinary APIs&lt;br&gt;• 4 Nominatim APIs&lt;br&gt;• 13 Security Features ✅" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#78350f;fontSize=9;align=left;verticalAlign=top;fontColor=#78350f;fontStyle=1;" vertex="1" parent="legend-container">
+                <mxCell id="legend-stats" value="📊 Statistics:&lt;br&gt;• 6 Main Pages&lt;br&gt;• 20+ Components&lt;br&gt;• 8 Custom Hooks&lt;br&gt;• 7 Cloudinary APIs&lt;br&gt;• 4 Nominatim APIs&lt;br&gt;• 16 Security Features ✅" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#78350f;fontSize=9;align=left;verticalAlign=top;fontColor=#78350f;fontStyle=1;" vertex="1" parent="legend-container">
                     <mxGeometry x="15" y="190" width="210" height="95" as="geometry" />
                 </mxCell>
 
@@ -334,8 +346,8 @@
                     <mxGeometry x="320" y="1060" width="1440" height="160" as="geometry" />
                 </mxCell>
 
-                <mxCell id="feat-implemented" value="✅ IMPLEMENTED (13 Features)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#065f46;" vertex="1" parent="security-summary">
-                    <mxGeometry x="30" y="35" width="680" height="20" as="geometry" />
+                <mxCell id="feat-implemented" value="✅ IMPLEMENTED (16 Features)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="30" y="35" width="850" height="20" as="geometry" />
                 </mxCell>
 
                 <mxCell id="feat1" value="✅ Firebase Auth (Email + Phone OTP)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
@@ -387,7 +399,19 @@
                 </mxCell>
 
                 <mxCell id="feat13" value="✅ CORS Config" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
-                    <mxGeometry x="690" y="130" width="155" height="25" as="geometry" />
+                    <mxGeometry x="690" y="60" width="155" height="25" as="geometry" />
+                </mxCell>
+
+                <mxCell id="feat14" value="✅ Sanitize Utils (XSS)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="690" y="90" width="155" height="25" as="geometry" />
+                </mxCell>
+
+                <mxCell id="feat15" value="✅ Retry Logic" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="690" y="120" width="155" height="25" as="geometry" />
+                </mxCell>
+
+                <mxCell id="feat16" value="✅ Middleware Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="855" y="60" width="155" height="25" as="geometry" />
                 </mxCell>
 
                 <mxCell id="feat-todo" value="⚠️ RECOMMENDED (1 Deferred)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#78350f;" vertex="1" parent="security-summary">
@@ -398,12 +422,12 @@
                     <mxGeometry x="900" y="60" width="510" height="65" as="geometry" />
                 </mxCell>
 
-                <mxCell id="score" value="🏆 Security Score: 13/14 Features = 93%" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dcfce7;strokeColor=#065f46;fontSize=12;fontColor=#065f46;fontStyle=1;" vertex="1" parent="security-summary">
-                    <mxGeometry x="900" y="130" width="510" height="25" as="geometry" />
+                <mxCell id="score" value="🏆 Security Score: 16/17 Features = 94%" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dcfce7;strokeColor=#065f46;fontSize=12;fontColor=#065f46;fontStyle=1;" vertex="1" parent="security-summary">
+                    <mxGeometry x="1020" y="60" width="390" height="90" as="geometry" />
                 </mxCell>
 
                 <!-- Tech Stack -->
-                <mxCell id="tech-labels" value="📦 Technology Stack:&lt;br&gt;React 18 • TypeScript • Vite • React Router • Leaflet • Lucide Icons • DOMPurify&lt;br&gt;Firebase SDK • Cloudinary SDK • React DatePicker • HTML2Canvas • jsPDF&lt;br&gt;Version 2.1 | Updated: December 6, 2025 | Security Score: 93% (13/14)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e5e7eb;strokeColor=#6b7280;fontSize=10;align=center;fontColor=#1f2937;" vertex="1" parent="1">
+                <mxCell id="tech-labels" value="📦 Technology Stack:&lt;br&gt;React 18 • TypeScript • Vite • React Router • Leaflet • Lucide Icons • DOMPurify&lt;br&gt;Firebase SDK • Cloudinary SDK • React DatePicker • HTML2Canvas • jsPDF&lt;br&gt;Version 2.2 | Updated: December 7, 2025 | Security Score: 94% (16/17) | 5 New Components Integrated ✅" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e5e7eb;strokeColor=#6b7280;fontSize=10;align=center;fontColor=#1f2937;" vertex="1" parent="1">
                     <mxGeometry x="320" y="1240" width="1440" height="80" as="geometry" />
                 </mxCell>
 
