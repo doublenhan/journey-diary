@@ -102,6 +102,16 @@
     margin-top: 0.25rem;
 }
 
+/* View Mode Toggle */
+.view-mode-toggle {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.view-mode-label {
+    display: inline;
+}
+
 .map-view-close {
     width: 40px;
     height: 40px;
@@ -364,6 +374,11 @@
         gap: 0.75rem;
     }
 
+    /* Hide text labels on mobile, show only icons */
+    .view-mode-label {
+        display: none;
+    }
+
     .map-view-title {
         font-size: 1.25rem;
     }
@@ -379,14 +394,11 @@
     }
 
     .view-mode-toggle {
-        order: 3;
         width: 100%;
-        justify-content: center;
     }
 
     .view-mode-toggle button {
         flex: 1;
-        justify-content: center;
     }
 
     .map-locations-list {
