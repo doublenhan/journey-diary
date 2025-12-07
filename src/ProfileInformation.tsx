@@ -223,6 +223,7 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
                   placeholder="Select date of birth"
                   required
                   maxDate={new Date()}
+                  theme={theme}
                 />
               </div>
             </div>
