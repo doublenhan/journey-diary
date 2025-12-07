@@ -155,7 +155,7 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
 
           {/* View Mode Toggle - Separate row */}
           {!isLoading && !error && (
-            <div className="view-mode-toggle" style={{ display: 'flex', gap: '0.5rem', background: '#f9fafb', padding: '0.25rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <div className="view-mode-toggle" style={{ display: 'inline-flex', gap: '0.5rem', background: '#f9fafb', padding: '0.25rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
               <button
                 onClick={() => setViewMode('markers')}
                 className={viewMode === 'markers' ? 'active' : ''}
