@@ -24,7 +24,7 @@
                     <mxGeometry x="15" y="40" width="210" height="70" as="geometry" />
                 </mxCell>
 
-                <mxCell id="sec-session" value="Session Mgmt&lt;br&gt;• 24h expiry&lt;br&gt;• localStorage&lt;br&gt;• Auto cleanup" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ef4444;strokeColor=#991b1b;fontColor=#ffffff;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="security-panel">
+                <mxCell id="sec-session" value="Session Mgmt&lt;br&gt;• httpOnly Cookies&lt;br&gt;• 24h expiry&lt;br&gt;• CSRF protection" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ef4444;strokeColor=#991b1b;fontColor=#ffffff;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="security-panel">
                     <mxGeometry x="15" y="120" width="210" height="70" as="geometry" />
                 </mxCell>
 
@@ -40,7 +40,7 @@
                     <mxGeometry x="15" y="360" width="210" height="70" as="geometry" />
                 </mxCell>
 
-                <mxCell id="sec-validation" value="Input Validation&lt;br&gt;• File size/type&lt;br&gt;• Required fields&lt;br&gt;• Sanitization" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ef4444;strokeColor=#991b1b;fontColor=#ffffff;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="security-panel">
+                <mxCell id="sec-validation" value="Input Validation&lt;br&gt;• DOMPurify (XSS)&lt;br&gt;• File size/type&lt;br&gt;• Sanitization" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ef4444;strokeColor=#991b1b;fontColor=#ffffff;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="security-panel">
                     <mxGeometry x="15" y="440" width="210" height="70" as="geometry" />
                 </mxCell>
 
@@ -325,7 +325,7 @@
                     <mxGeometry x="15" y="155" width="210" height="25" as="geometry" />
                 </mxCell>
 
-                <mxCell id="legend-stats" value="📊 Statistics:&lt;br&gt;• 10 Pages&lt;br&gt;• 15+ Components&lt;br&gt;• 11+ Hooks&lt;br&gt;• 9 Cloudinary APIs&lt;br&gt;• 4 Nominatim APIs&lt;br&gt;• 6 Security Features" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#78350f;fontSize=9;align=left;verticalAlign=top;fontColor=#78350f;" vertex="1" parent="legend-container">
+                <mxCell id="legend-stats" value="📊 Statistics:&lt;br&gt;• 10 Pages&lt;br&gt;• 15+ Components&lt;br&gt;• 11+ Hooks&lt;br&gt;• 9 Cloudinary APIs&lt;br&gt;• 4 Nominatim APIs&lt;br&gt;• 13 Security Features ✅" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#78350f;fontSize=9;align=left;verticalAlign=top;fontColor=#78350f;fontStyle=1;" vertex="1" parent="legend-container">
                     <mxGeometry x="15" y="190" width="210" height="95" as="geometry" />
                 </mxCell>
 
@@ -334,72 +334,76 @@
                     <mxGeometry x="320" y="1060" width="1440" height="160" as="geometry" />
                 </mxCell>
 
-                <mxCell id="feat-implemented" value="✅ IMPLEMENTED" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#065f46;" vertex="1" parent="security-summary">
+                <mxCell id="feat-implemented" value="✅ IMPLEMENTED (13 Features)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#065f46;" vertex="1" parent="security-summary">
                     <mxGeometry x="30" y="35" width="680" height="20" as="geometry" />
                 </mxCell>
 
-                <mxCell id="feat1" value="Firebase Auth (Email/Password + Phone OTP)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
-                    <mxGeometry x="30" y="60" width="210" height="30" as="geometry" />
+                <mxCell id="feat1" value="✅ Firebase Auth (Email + Phone OTP)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="30" y="60" width="155" height="30" as="geometry" />
                 </mxCell>
 
-                <mxCell id="feat2" value="Session Management (24h expiry)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
-                    <mxGeometry x="250" y="60" width="210" height="30" as="geometry" />
+                <mxCell id="feat2" value="✅ httpOnly Cookies (24h)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="195" y="60" width="155" height="30" as="geometry" />
                 </mxCell>
 
-                <mxCell id="feat3" value="Protected Routes (useCurrentUserId)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
-                    <mxGeometry x="470" y="60" width="210" height="30" as="geometry" />
+                <mxCell id="feat3" value="✅ Protected Routes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="360" y="60" width="155" height="30" as="geometry" />
                 </mxCell>
 
-                <mxCell id="feat4" value="Firestore Security Rules" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
-                    <mxGeometry x="30" y="95" width="210" height="30" as="geometry" />
+                <mxCell id="feat4" value="✅ Firestore Rules" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="525" y="60" width="155" height="30" as="geometry" />
                 </mxCell>
 
-                <mxCell id="feat5" value="API Secret Protection (Server-side)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
-                    <mxGeometry x="250" y="95" width="210" height="30" as="geometry" />
+                <mxCell id="feat5" value="✅ API Secret Protection" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="30" y="95" width="155" height="30" as="geometry" />
                 </mxCell>
 
-                <mxCell id="feat6" value="Input Validation (File size/type)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
-                    <mxGeometry x="470" y="95" width="210" height="30" as="geometry" />
+                <mxCell id="feat6" value="✅ XSS Prevention (DOMPurify)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="195" y="95" width="155" height="30" as="geometry" />
                 </mxCell>
 
-                <mxCell id="feat-todo" value="⚠️ TODO / RECOMMENDED" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#78350f;" vertex="1" parent="security-summary">
-                    <mxGeometry x="730" y="35" width="680" height="20" as="geometry" />
+                <mxCell id="feat7" value="✅ Rate Limiting (100/min)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="360" y="95" width="155" height="30" as="geometry" />
                 </mxCell>
 
-                <mxCell id="gap1" value="Rate Limiting" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#f59e0b;fontSize=9;fontColor=#78350f;" vertex="1" parent="security-summary">
-                    <mxGeometry x="730" y="60" width="140" height="30" as="geometry" />
+                <mxCell id="feat8" value="✅ CSP Headers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="525" y="95" width="155" height="30" as="geometry" />
                 </mxCell>
 
-                <mxCell id="gap2" value="CSP Headers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#f59e0b;fontSize=9;fontColor=#78350f;" vertex="1" parent="security-summary">
-                    <mxGeometry x="880" y="60" width="140" height="30" as="geometry" />
+                <mxCell id="feat9" value="✅ HTTPS Enforcement (HSTS)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="30" y="130" width="155" height="25" as="geometry" />
                 </mxCell>
 
-                <mxCell id="gap3" value="XSS Prevention (DOMPurify)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#f59e0b;fontSize=9;fontColor=#78350f;" vertex="1" parent="security-summary">
-                    <mxGeometry x="1030" y="60" width="140" height="30" as="geometry" />
+                <mxCell id="feat10" value="✅ Password Reset" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="195" y="130" width="155" height="25" as="geometry" />
                 </mxCell>
 
-                <mxCell id="gap4" value="httpOnly Cookies" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#f59e0b;fontSize=9;fontColor=#78350f;" vertex="1" parent="security-summary">
-                    <mxGeometry x="1180" y="60" width="140" height="30" as="geometry" />
+                <mxCell id="feat11" value="✅ Security Monitoring" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="360" y="130" width="155" height="25" as="geometry" />
                 </mxCell>
 
-                <mxCell id="gap5" value="Password Reset" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#f59e0b;fontSize=9;fontColor=#78350f;" vertex="1" parent="security-summary">
-                    <mxGeometry x="730" y="95" width="140" height="30" as="geometry" />
+                <mxCell id="feat12" value="✅ Input Validation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="525" y="130" width="155" height="25" as="geometry" />
                 </mxCell>
 
-                <mxCell id="gap6" value="2FA/MFA" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#f59e0b;fontSize=9;fontColor=#78350f;" vertex="1" parent="security-summary">
-                    <mxGeometry x="880" y="95" width="140" height="30" as="geometry" />
+                <mxCell id="feat13" value="✅ CORS Config" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="690" y="130" width="155" height="25" as="geometry" />
                 </mxCell>
 
-                <mxCell id="gap7" value="HTTPS Enforcement" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#f59e0b;fontSize=9;fontColor=#78350f;" vertex="1" parent="security-summary">
-                    <mxGeometry x="1030" y="95" width="140" height="30" as="geometry" />
+                <mxCell id="feat-todo" value="⚠️ RECOMMENDED (1 Deferred)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#78350f;" vertex="1" parent="security-summary">
+                    <mxGeometry x="900" y="35" width="510" height="20" as="geometry" />
                 </mxCell>
 
-                <mxCell id="gap8" value="Security Monitoring" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#f59e0b;fontSize=9;fontColor=#78350f;" vertex="1" parent="security-summary">
-                    <mxGeometry x="1180" y="95" width="140" height="30" as="geometry" />
+                <mxCell id="gap6" value="⏸️ 2FA/MFA (Deferred)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#f59e0b;fontSize=10;fontColor=#78350f;fontStyle=1;" vertex="1" parent="security-summary">
+                    <mxGeometry x="900" y="60" width="510" height="65" as="geometry" />
+                </mxCell>
+
+                <mxCell id="score" value="🏆 Security Score: 13/14 Features = 93%" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dcfce7;strokeColor=#065f46;fontSize=12;fontColor=#065f46;fontStyle=1;" vertex="1" parent="security-summary">
+                    <mxGeometry x="900" y="130" width="510" height="25" as="geometry" />
                 </mxCell>
 
                 <!-- Tech Stack -->
-                <mxCell id="tech-labels" value="📦 Technology Stack:&lt;br&gt;React 18 • TypeScript • Vite • React Router • Leaflet • Lucide Icons&lt;br&gt;Firebase SDK • Cloudinary SDK • React DatePicker • HTML2Canvas • jsPDF&lt;br&gt;Version 2.0 | Updated: January 2025" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e5e7eb;strokeColor=#6b7280;fontSize=10;align=center;fontColor=#1f2937;" vertex="1" parent="1">
+                <mxCell id="tech-labels" value="📦 Technology Stack:&lt;br&gt;React 18 • TypeScript • Vite • React Router • Leaflet • Lucide Icons • DOMPurify&lt;br&gt;Firebase SDK • Cloudinary SDK • React DatePicker • HTML2Canvas • jsPDF&lt;br&gt;Version 2.1 | Updated: December 6, 2025 | Security Score: 93% (13/14)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e5e7eb;strokeColor=#6b7280;fontSize=10;align=center;fontColor=#1f2937;" vertex="1" parent="1">
                     <mxGeometry x="320" y="1240" width="1440" height="80" as="geometry" />
                 </mxCell>
 
