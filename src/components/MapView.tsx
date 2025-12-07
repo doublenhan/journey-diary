@@ -200,13 +200,14 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
             </div>
           ) : (
             <>
-              {/* Leaflet Map */}
-              <MapContainer
-                center={defaultCenter}
-                zoom={13}
-                style={{ height: '100%', width: '100%', borderRadius: '12px' }}
-                scrollWheelZoom={true}
-              >
+              {/* Map Container */}
+              <div className="map-container">
+                <MapContainer
+                  center={defaultCenter}
+                  zoom={13}
+                  style={{ height: '100%', width: '100%', borderRadius: '12px', minHeight: '500px' }}
+                  scrollWheelZoom={true}
+                >
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -269,6 +270,7 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
                   );
                 })}
               </MapContainer>
+              </div>
 
               {/* Location List */}
               <div className="map-locations-list">
