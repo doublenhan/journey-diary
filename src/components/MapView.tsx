@@ -148,39 +148,43 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
             </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            {/* View Mode Toggle */}
-            {!isLoading && !error && (
-              <div className="view-mode-toggle" style={{ display: 'flex', gap: '0.5rem', background: 'white', padding: '0.25rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                <button
-                  onClick={() => setViewMode('markers')}
-                  className={viewMode === 'markers' ? 'active' : ''}
-                  style={{ padding: '0.5rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', background: viewMode === 'markers' ? '#ec4899' : 'transparent', color: viewMode === 'markers' ? 'white' : '#6b7280', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.875rem', fontWeight: '500', transition: 'all 0.2s' }}
-                  title="Markers"
-                >
-                  <MapPin className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setViewMode('heatmap')}
-                  className={viewMode === 'heatmap' ? 'active' : ''}
-                  style={{ padding: '0.5rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', background: viewMode === 'heatmap' ? '#ec4899' : 'transparent', color: viewMode === 'heatmap' ? 'white' : '#6b7280', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.875rem', fontWeight: '500', transition: 'all 0.2s' }}
-                  title="Heat Map"
-                >
-                  <Flame className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setViewMode('route')}
-                  className={viewMode === 'route' ? 'active' : ''}
-                  style={{ padding: '0.5rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', background: viewMode === 'route' ? '#ec4899' : 'transparent', color: viewMode === 'route' ? 'white' : '#6b7280', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.875rem', fontWeight: '500', transition: 'all 0.2s' }}
-                  title="Route"
-                >
-                  <Route className="w-4 h-4" />
-                </button>
-              </div>
-            )}
             <button className="map-view-close" onClick={onClose}>
               <X className="w-6 h-6" />
             </button>
           </div>
+
+          {/* View Mode Toggle - Moved below for mobile */}
+          {!isLoading && !error && (
+            <div className="view-mode-toggle" style={{ display: 'flex', gap: '0.5rem', background: '#f9fafb', padding: '0.25rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', width: '100%' }}>
+              <button
+                onClick={() => setViewMode('markers')}
+                className={viewMode === 'markers' ? 'active' : ''}
+                style={{ padding: '0.5rem 1rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', background: viewMode === 'markers' ? '#ec4899' : 'transparent', color: viewMode === 'markers' ? 'white' : '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: '500', transition: 'all 0.2s', flex: '1' }}
+                title="Markers"
+              >
+                <MapPin className="w-4 h-4" />
+                <span style={{ display: 'none' }} className="sm:inline">Markers</span>
+              </button>
+              <button
+                onClick={() => setViewMode('heatmap')}
+                className={viewMode === 'heatmap' ? 'active' : ''}
+                style={{ padding: '0.5rem 1rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', background: viewMode === 'heatmap' ? '#ec4899' : 'transparent', color: viewMode === 'heatmap' ? 'white' : '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: '500', transition: 'all 0.2s', flex: '1' }}
+                title="Heat Map"
+              >
+                <Flame className="w-4 h-4" />
+                <span style={{ display: 'none' }} className="sm:inline">Heat</span>
+              </button>
+              <button
+                onClick={() => setViewMode('route')}
+                className={viewMode === 'route' ? 'active' : ''}
+                style={{ padding: '0.5rem 1rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', background: viewMode === 'route' ? '#ec4899' : 'transparent', color: viewMode === 'route' ? 'white' : '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: '500', transition: 'all 0.2s', flex: '1' }}
+                title="Route"
+              >
+                <Route className="w-4 h-4" />
+                <span style={{ display: 'none' }} className="sm:inline">Route</span>
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="map-view-content" style={{ position: 'relative' }}>
