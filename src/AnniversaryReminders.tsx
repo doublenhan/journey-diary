@@ -918,16 +918,16 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
 
               <div className="form-group">
                 <label className="form-label">
-                  <Heart className="w-4 h-4 mr-1 inline text-pink-400" /> Tên Kỷ Niệm
+                  Tên Kỷ Niệm
                 </label>
-                <div className="input-icon-wrapper">
+                <div className="relative">
+                  <Heart className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-pink-500 pointer-events-none z-10" />
                   <input
                     type="text"
                     value={newAnniversary.title}
                     onChange={(e) => setNewAnniversary(prev => ({ ...prev, title: e.target.value }))}
                     placeholder="ví dụ: Kỷ Niệm Ngày Đầu Tiên"
-                    className="form-input"
-                    style={{ paddingLeft: '10px' }}
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border-2 border-pink-200 bg-white text-gray-900 focus:outline-none focus:border-pink-400 focus:ring-4 focus:ring-pink-100 transition-all"
                   />
                 </div>
               </div>
@@ -935,7 +935,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
 
               <div className="form-group">
                 <label className="form-label">
-                  <Calendar className="w-4 h-4 mr-1 inline text-blue-400" /> Ngày Tháng
+                  Ngày Tháng
                 </label>
                 <CustomDatePicker
                   selected={newAnniversary.date ? new Date(newAnniversary.date) : null}
@@ -951,13 +951,14 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
 
               <div className="form-group">
                 <label className="form-label">
-                  <Gift className="w-4 h-4 mr-1 inline text-yellow-500" /> Loại Kỷ Niệm
+                  Loại Kỷ Niệm
                 </label>
-                <div className="input-icon-wrapper">
+                <div className="relative">
+                  <Gift className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-yellow-500 pointer-events-none z-10" />
                   <select
                     value={newAnniversary.type}
                     onChange={(e) => setNewAnniversary(prev => ({ ...prev, type: e.target.value as AnniversaryType }))}
-                    className="form-select"
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border-2 border-pink-200 bg-white text-gray-900 focus:outline-none focus:border-pink-400 focus:ring-4 focus:ring-pink-100 transition-all appearance-none"
                   >
                     <option value="custom">Tùy Chỉnh</option>
                     <option value="first_date">Hẹn Hò Lần Đầu</option>
@@ -975,13 +976,14 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
 
               <div className="form-group">
                 <label className="form-label">
-                  <Bell className="w-4 h-4 mr-1 inline text-purple-500" /> Nhắc Nhở Tôi
+                  Nhắc Nhở Tôi
                 </label>
-                <div className="input-icon-wrapper">
+                <div className="relative">
+                  <Bell className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-purple-500 pointer-events-none z-10" />
                   <select
                     value={newAnniversary.reminderDays}
                     onChange={(e) => setNewAnniversary(prev => ({ ...prev, reminderDays: parseInt(e.target.value) }))}
-                    className="form-select"
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border-2 border-pink-200 bg-white text-gray-900 focus:outline-none focus:border-pink-400 focus:ring-4 focus:ring-pink-100 transition-all appearance-none"
                   >
                     <option value={1}>1 ngày trước</option>
                     <option value={3}>3 ngày trước</option>

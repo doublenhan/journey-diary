@@ -7,48 +7,56 @@
   margin-bottom: 8px;
 }
 
-.anniversary-fields-even > * {
+.anniversary-fields-even>* {
   flex: 1 1 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
 /* Custom Delete Confirmation Modal Styles */
 .delete-confirm-modal {
-  max-width: 360px;
+  max-width: 420px;
 }
+
 .delete-confirm-text {
-  color: #3730a3;
+  color: #374151;
   margin-bottom: 24px;
+  font-size: 15px;
+  line-height: 1.6;
 }
+
 .delete-confirm-actions {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  gap: 1rem;
 }
+
 .delete-confirm-button {
-  width: 100%;
+  flex: 1;
   background: #ef4444;
   color: #fff;
   border: none;
-  border-radius: 24px;
-  padding: 12px 0;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.5rem;
   font-weight: 600;
-  font-size: 16px;
+  font-size: 15px;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(239,68,68,0.08);
-  transition: background 0.2s;
+  transition: all 0.2s ease;
 }
+
 .delete-confirm-button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
-.delete-confirm-button:hover:not(:disabled),
-.delete-confirm-button:focus-visible:not(:disabled) {
+
+.delete-confirm-button:hover:not(:disabled) {
   background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
+
 .delete-confirm-actions .cancel-button {
-  margin-bottom: 8px;
+  flex: 1;
 }
 
 
@@ -58,6 +66,7 @@
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -65,18 +74,24 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(236, 72, 153, 0.3);
   }
+
   50% {
     box-shadow: 0 0 30px rgba(236, 72, 153, 0.6);
   }
 }
 
 @keyframes heartbeat {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.1);
   }
@@ -87,6 +102,7 @@
     opacity: 1;
     transform: translateY(0) scale(1) rotate(0deg);
   }
+
   100% {
     opacity: 0;
     transform: translateY(-100px) scale(1.5) rotate(360deg);
@@ -97,6 +113,7 @@
   0% {
     background-position: -200% 0;
   }
+
   100% {
     background-position: 200% 0;
   }
@@ -107,13 +124,16 @@
     opacity: 0;
     transform: scale(0.3);
   }
+
   50% {
     opacity: 1;
     transform: scale(1.05);
   }
+
   70% {
     transform: scale(0.9);
   }
+
   100% {
     opacity: 1;
     transform: scale(1);
@@ -125,6 +145,7 @@
     opacity: 0;
     transform: scale(0.9) translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
@@ -807,26 +828,26 @@
   .anniversary-card {
     padding: 1.5rem;
   }
-  
+
   .card-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
-  
+
   .card-actions {
     align-self: flex-end;
   }
-  
+
   .anniversary-details {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .modal-content {
     padding: 1.5rem;
   }
-  
+
   .modal-actions {
     flex-direction: column;
     padding: 0 1.5rem 1.5rem;
@@ -838,25 +859,25 @@
   .anniversary-reminders-page {
     background: linear-gradient(135deg, #1f2937 0%, #111827 50%, #1f2937 100%);
   }
-  
+
   .anniversary-card {
     background: #374151;
     border-color: #4b5563;
     color: #f9fafb;
   }
-  
+
   .anniversary-title {
     color: #f9fafb;
   }
-  
+
   .modal-container {
     background: #374151;
   }
-  
+
   .modal-title {
     color: #f9fafb;
   }
-  
+
   .form-input,
   .form-select {
     background: #4b5563;
@@ -867,12 +888,13 @@
 
 /* Print styles */
 @media print {
+
   .anniversary-header,
   .floating-heart,
   .card-actions {
     display: none;
   }
-  
+
   .anniversary-card {
     break-inside: avoid;
     box-shadow: none;

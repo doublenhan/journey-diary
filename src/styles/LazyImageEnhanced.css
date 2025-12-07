@@ -1,0 +1,91 @@
+/* Enhanced LazyImage styles with progressive loading */
+
+/* Error state styles */
+.lazy-image-wrapper.error {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    animation: none;
+}
+
+.lazy-image-error {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 20px;
+}
+
+.error-icon {
+    color: #ef4444;
+    opacity: 0.5;
+}
+
+.error-text {
+    color: #991b1b;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    margin: 0;
+}
+
+/* Enhanced blur effect with progressive reveal */
+.lazy-image-blur {
+    animation: blurFadeIn 0.3s ease-in-out;
+}
+
+@keyframes blurFadeIn {
+    from {
+        opacity: 0;
+        filter: blur(30px);
+    }
+
+    to {
+        opacity: 1;
+        filter: blur(20px);
+    }
+}
+
+/* Smooth transition when main image loads */
+.lazy-image-wrapper.loaded .lazy-image {
+    animation: imageReveal 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes imageReveal {
+    from {
+        opacity: 0;
+        transform: scale(1.05);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Responsive error state */
+@media (max-width: 768px) {
+    .error-icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .error-text {
+        font-size: 12px;
+    }
+}
+
+/* Support for prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+
+    .lazy-image,
+    .lazy-image-blur,
+    .lazy-image-wrapper {
+        animation: none !important;
+        transition: opacity 0.2s ease-in-out !important;
+    }
+}

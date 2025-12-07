@@ -1,0 +1,158 @@
+/* Page Loader Styles */
+
+.page-loader-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.page-loader-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(252, 231, 243, 0.7) 0%, rgba(251, 207, 232, 0.6) 50%, rgba(255, 228, 230, 0.7) 100%);
+  backdrop-filter: blur(2px);
+  z-index: 1;
+}
+
+.page-loader-sparkle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(236, 72, 153, 0.4);
+  animation: float-sparkle ease-in-out infinite;
+  z-index: 2;
+}
+
+.page-loader-main {
+  text-align: center;
+  position: relative;
+  width: 300px;
+  height: 450px;
+  z-index: 10;
+}
+
+.page-loader-balloon {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: balloon-float 3s ease-in-out infinite;
+}
+
+.page-loader-balloon-heart {
+  filter: drop-shadow(0 4px 12px rgba(236, 72, 153, 0.6));
+}
+
+.page-loader-string {
+  position: absolute;
+  top: 64px;
+  left: 50%;
+  width: 2px;
+  height: 180px;
+  background: linear-gradient(180deg, #ec4899 0%, rgba(236, 72, 153, 0.3) 100%);
+  transform-origin: top center;
+  animation: string-wave 3s ease-in-out infinite;
+  z-index: -1;
+}
+
+.page-loader-person {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: person-pull 3s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.page-loader-text-container {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+}
+
+.page-loader-text {
+  color: #ec4899;
+  font-size: 1.125rem;
+  font-weight: 600;
+  animation: fade-in-out 2s ease-in-out infinite;
+  margin: 0;
+  text-shadow: 0 2px 8px rgba(255, 255, 255, 0.9), 0 0 20px rgba(236, 72, 153, 0.3);
+}
+
+/* Animations */
+@keyframes balloon-float {
+
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0px);
+  }
+
+  50% {
+    transform: translateX(-50%) translateY(-30px);
+  }
+}
+
+@keyframes string-wave {
+
+  0%,
+  100% {
+    transform: translateX(-1px) rotate(0deg);
+  }
+
+  25% {
+    transform: translateX(-1px) rotate(-8deg);
+  }
+
+  75% {
+    transform: translateX(-1px) rotate(8deg);
+  }
+}
+
+@keyframes person-pull {
+
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0px) scale(1);
+  }
+
+  50% {
+    transform: translateX(-50%) translateY(-10px) scale(1.05);
+  }
+}
+
+@keyframes float-sparkle {
+
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.3;
+  }
+
+  50% {
+    transform: translateY(-20px) scale(1.5);
+    opacity: 0.8;
+  }
+}
+
+@keyframes fade-in-out {
+
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}

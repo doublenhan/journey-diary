@@ -8,24 +8,115 @@ import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { MoodTheme, themes, isValidTheme } from './config/themes';
 import './styles/App.css';
+import './styles/PageLoader.css';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 
-// Lazy load heavy components
-const CreateMemory = lazy(() => import('./CreateMemory'));
-const ViewMemory = lazy(() => import('./ViewMemory'));
-const AnniversaryReminders = lazy(() => import('./AnniversaryReminders'));
-const SettingPage = lazy(() => import('./SettingPage'));
-const LoginPage = lazy(() => import('./LoginPage'));
+// Lazy load heavy components with prefetch hints
+const CreateMemory = lazy(() => import(
+  /* webpackChunkName: "create-memory" */
+  /* webpackPrefetch: true */
+  './CreateMemory'
+));
 
-// Loading component
-const PageLoader = () => (
-  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'linear-gradient(135deg, #fdf2f8 0%, #ffffff 50%, #fef7ed 100%)' }}>
-    <div style={{ textAlign: 'center' }}>
-      <Heart className="w-12 h-12 text-pink-500 animate-pulse" style={{ margin: '0 auto 1rem' }} />
-      <p style={{ color: '#ec4899', fontSize: '1.125rem', fontWeight: '500' }}>Đang tải...</p>
+const ViewMemory = lazy(() => import(
+  /* webpackChunkName: "view-memory" */
+  /* webpackPrefetch: true */
+  './ViewMemory'
+));
+
+const AnniversaryReminders = lazy(() => import(
+  /* webpackChunkName: "anniversary" */
+  './AnniversaryReminders'
+));
+
+const SettingPage = lazy(() => import(
+  /* webpackChunkName: "settings" */
+  './SettingPage'
+));
+
+const LoginPage = lazy(() => import(
+  /* webpackChunkName: "login" */
+  './LoginPage'
+));
+
+// Loading component with heart balloon and person
+const PageLoader = () => {
+  return (
+    <div className="page-loader-container">
+      {/* Overlay for better contrast */}
+      <div className="page-loader-overlay" />
+
+      {/* Floating particles/sparkles */}
+      {[...Array(20)].map((_, i) => (
+        <div 
+          key={i} 
+          className="page-loader-sparkle"
+          style={{
+            width: `${Math.random() * 8 + 4}px`,
+            height: `${Math.random() * 8 + 4}px`,
+            top: `${Math.random() * 100}%`,
+            left: `${Math.random() * 100}%`,
+            animationDuration: `${Math.random() * 3 + 2}s`,
+            animationDelay: `${Math.random() * 2}s`,
+          }} 
+        />
+      ))}
+
+      {/* Main animation container */}
+      <div className="page-loader-main">
+        {/* Heart balloon floating up */}
+        <div className="page-loader-balloon">
+          <Heart 
+            className="w-16 h-16 page-loader-balloon-heart" 
+            fill="#ec4899"
+            style={{ color: '#ec4899' }} 
+          />
+        </div>
+
+        {/* Balloon string */}
+        <div className="page-loader-string" />
+
+        {/* Complete person illustration */}
+        <div className="page-loader-person">
+          {/* Person SVG illustration */}
+          <svg width="80" height="120" viewBox="0 0 80 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Head */}
+            <circle cx="40" cy="20" r="15" fill="#fcd6e8" stroke="#ec4899" strokeWidth="2"/>
+            {/* Eyes */}
+            <circle cx="35" cy="18" r="2" fill="#ec4899"/>
+            <circle cx="45" cy="18" r="2" fill="#ec4899"/>
+            {/* Smile */}
+            <path d="M 32 24 Q 40 28 48 24" stroke="#ec4899" strokeWidth="2" fill="none" strokeLinecap="round"/>
+            
+            {/* Body */}
+            <rect x="30" y="35" width="20" height="35" rx="10" fill="#fbcfe8" stroke="#ec4899" strokeWidth="2"/>
+            
+            {/* Arm holding balloon (right) */}
+            <path d="M 50 45 Q 55 35 50 25" stroke="#ec4899" strokeWidth="3" fill="none" strokeLinecap="round"/>
+            <circle cx="50" cy="25" r="4" fill="#fcd6e8" stroke="#ec4899" strokeWidth="2"/>
+            
+            {/* Other arm (left) */}
+            <path d="M 30 45 Q 20 50 22 60" stroke="#ec4899" strokeWidth="3" fill="none" strokeLinecap="round"/>
+            <circle cx="22" cy="60" r="4" fill="#fcd6e8" stroke="#ec4899" strokeWidth="2"/>
+            
+            {/* Legs */}
+            <path d="M 35 70 L 32 95 L 28 110" stroke="#ec4899" strokeWidth="3" fill="none" strokeLinecap="round"/>
+            <path d="M 45 70 L 48 95 L 52 110" stroke="#ec4899" strokeWidth="3" fill="none" strokeLinecap="round"/>
+            
+            {/* Feet */}
+            <ellipse cx="28" cy="112" rx="6" ry="4" fill="#fcd6e8" stroke="#ec4899" strokeWidth="2"/>
+            <ellipse cx="52" cy="112" rx="6" ry="4" fill="#fcd6e8" stroke="#ec4899" strokeWidth="2"/>
+          </svg>
+        </div>
+
+        {/* Loading text */}
+        <div className="page-loader-text-container">
+          <p className="page-loader-text">Đang tải...</p>
+        </div>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 type FetchCloudinaryOptions = {
   folder?: string;
