@@ -1,0 +1,426 @@
+<mxfile host="app.diagrams.net" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" version="22.0.0" type="device">
+    <diagram name="Love Journey Diary - Complete Architecture" id="complete-arch">
+        <mxGraphModel dx="1680" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1400" math="0" shadow="0">
+            <root>
+                <mxCell id="0" />
+                <mxCell id="1" parent="0" />
+
+                <!-- Title -->
+                <mxCell id="title" value="Love Journey Diary - Complete System Architecture" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=26;fontStyle=1;fontColor=#ec4899;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="10" width="1000" height="50" as="geometry" />
+                </mxCell>
+
+                <!-- Security Layer Badge (Top) -->
+                <mxCell id="security-badge" value="🔒 SECURITY LAYER" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dc2626;strokeColor=#991b1b;fontColor=#ffffff;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="800" y="70" width="200" height="40" as="geometry" />
+                </mxCell>
+
+                <!-- Left Security Panel -->
+                <mxCell id="security-panel" value="🔐 AUTHENTICATION &amp; AUTHORIZATION" style="swimlane;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#dc2626;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#991b1b;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="140" width="240" height="560" as="geometry" />
+                </mxCell>
+
+                <mxCell id="sec-auth" value="Firebase Auth&lt;br&gt;• Email/Password&lt;br&gt;• Phone + OTP&lt;br&gt;• reCAPTCHA" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dc2626;strokeColor=#991b1b;fontColor=#ffffff;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="security-panel">
+                    <mxGeometry x="15" y="40" width="210" height="70" as="geometry" />
+                </mxCell>
+
+                <mxCell id="sec-session" value="Session Mgmt&lt;br&gt;• 24h expiry&lt;br&gt;• localStorage&lt;br&gt;• Auto cleanup" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ef4444;strokeColor=#991b1b;fontColor=#ffffff;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="security-panel">
+                    <mxGeometry x="15" y="120" width="210" height="70" as="geometry" />
+                </mxCell>
+
+                <mxCell id="sec-protected" value="Protected Routes&lt;br&gt;• useCurrentUserId&lt;br&gt;• Auth listener&lt;br&gt;• Redirect" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ef4444;strokeColor=#991b1b;fontColor=#ffffff;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="security-panel">
+                    <mxGeometry x="15" y="200" width="210" height="70" as="geometry" />
+                </mxCell>
+
+                <mxCell id="sec-rules" value="Firestore Rules&lt;br&gt;• Owner check&lt;br&gt;• User-specific&lt;br&gt;• Read/Write" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ef4444;strokeColor=#991b1b;fontColor=#ffffff;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="security-panel">
+                    <mxGeometry x="15" y="280" width="210" height="70" as="geometry" />
+                </mxCell>
+
+                <mxCell id="sec-api" value="API Security&lt;br&gt;• API_SECRET&lt;br&gt;• Server-side only&lt;br&gt;• CORS config" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ef4444;strokeColor=#991b1b;fontColor=#ffffff;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="security-panel">
+                    <mxGeometry x="15" y="360" width="210" height="70" as="geometry" />
+                </mxCell>
+
+                <mxCell id="sec-validation" value="Input Validation&lt;br&gt;• File size/type&lt;br&gt;• Required fields&lt;br&gt;• Sanitization" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ef4444;strokeColor=#991b1b;fontColor=#ffffff;fontSize=10;align=left;verticalAlign=top;" vertex="1" parent="security-panel">
+                    <mxGeometry x="15" y="440" width="210" height="70" as="geometry" />
+                </mxCell>
+
+                <!-- FRONTEND LAYER -->
+                <mxCell id="frontend-container" value="FRONTEND LAYER" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FDF2F8;strokeColor=#ec4899;strokeWidth=3;fontSize=16;fontStyle=1;fontColor=#831843;" vertex="1" parent="1">
+                    <mxGeometry x="320" y="140" width="1440" height="280" as="geometry" />
+                </mxCell>
+
+                <mxCell id="tech-stack" value="React 18 + TypeScript + Vite" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ec4899;strokeColor=#831843;fontColor=#ffffff;fontSize=13;fontStyle=1;" vertex="1" parent="frontend-container">
+                    <mxGeometry x="580" y="30" width="280" height="35" as="geometry" />
+                </mxCell>
+
+                <!-- Pages Group -->
+                <mxCell id="pages-group" value="Main Pages (10)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FCE7F3;strokeColor=#ec4899;fontSize=12;fontStyle=1;fontColor=#831843;" vertex="1" parent="frontend-container">
+                    <mxGeometry x="30" y="75" width="460" height="185" as="geometry" />
+                </mxCell>
+
+                <mxCell id="page-login" value="LoginPage&lt;br&gt;🔐 Auth" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#ec4899;fontSize=10;" vertex="1" parent="pages-group">
+                    <mxGeometry x="15" y="35" width="130" height="50" as="geometry" />
+                </mxCell>
+
+                <mxCell id="page-app" value="App.tsx&lt;br&gt;🏠 Dashboard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#ec4899;fontSize=10;" vertex="1" parent="pages-group">
+                    <mxGeometry x="160" y="35" width="130" height="50" as="geometry" />
+                </mxCell>
+
+                <mxCell id="page-create" value="CreateMemory&lt;br&gt;✍️ Create" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#ec4899;fontSize=10;" vertex="1" parent="pages-group">
+                    <mxGeometry x="305" y="35" width="130" height="50" as="geometry" />
+                </mxCell>
+
+                <mxCell id="page-view" value="ViewMemory&lt;br&gt;📸 Gallery" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#ec4899;fontSize=10;" vertex="1" parent="pages-group">
+                    <mxGeometry x="15" y="95" width="130" height="50" as="geometry" />
+                </mxCell>
+
+                <mxCell id="page-anniversary" value="Anniversary&lt;br&gt;📅 Reminders" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#ec4899;fontSize=10;" vertex="1" parent="pages-group">
+                    <mxGeometry x="160" y="95" width="130" height="50" as="geometry" />
+                </mxCell>
+
+                <mxCell id="page-mood" value="MoodTracking&lt;br&gt;😊 Mood" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#ec4899;fontSize=10;" vertex="1" parent="pages-group">
+                    <mxGeometry x="305" y="95" width="130" height="50" as="geometry" />
+                </mxCell>
+
+                <!-- Components Group -->
+                <mxCell id="components-group" value="Components (15+)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FCE7F3;strokeColor=#ec4899;fontSize=12;fontStyle=1;fontColor=#831843;" vertex="1" parent="frontend-container">
+                    <mxGeometry x="520" y="75" width="360" height="185" as="geometry" />
+                </mxCell>
+
+                <mxCell id="comp-map" value="MapView&lt;br&gt;🗺️ Map" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#059669;fontSize=10;" vertex="1" parent="components-group">
+                    <mxGeometry x="15" y="35" width="100" height="50" as="geometry" />
+                </mxCell>
+
+                <mxCell id="comp-image" value="ImageUpload&lt;br&gt;📤 Upload" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="components-group">
+                    <mxGeometry x="130" y="35" width="100" height="50" as="geometry" />
+                </mxCell>
+
+                <mxCell id="comp-lazy" value="LazyImage&lt;br&gt;🖼️ Optimized" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="components-group">
+                    <mxGeometry x="245" y="35" width="100" height="50" as="geometry" />
+                </mxCell>
+
+                <mxCell id="comp-theme" value="ThemeSelector&lt;br&gt;🎨 Theme" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#ec4899;fontSize=10;" vertex="1" parent="components-group">
+                    <mxGeometry x="15" y="95" width="100" height="50" as="geometry" />
+                </mxCell>
+
+                <mxCell id="comp-events" value="EventsPage&lt;br&gt;📆 Events" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#ec4899;fontSize=10;" vertex="1" parent="components-group">
+                    <mxGeometry x="130" y="95" width="100" height="50" as="geometry" />
+                </mxCell>
+
+                <mxCell id="comp-search" value="SearchFilter&lt;br&gt;🔍 Search" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="components-group">
+                    <mxGeometry x="245" y="95" width="100" height="50" as="geometry" />
+                </mxCell>
+
+                <!-- Hooks Group -->
+                <mxCell id="hooks-group" value="Custom Hooks (10+)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FCE7F3;strokeColor=#ec4899;fontSize=12;fontStyle=1;fontColor=#831843;" vertex="1" parent="frontend-container">
+                    <mxGeometry x="910" y="75" width="500" height="185" as="geometry" />
+                </mxCell>
+
+                <mxCell id="hook-user" value="useCurrentUserId" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbbf24;strokeColor=#78350f;fontSize=9;fontColor=#78350f;" vertex="1" parent="hooks-group">
+                    <mxGeometry x="15" y="35" width="110" height="35" as="geometry" />
+                </mxCell>
+
+                <mxCell id="hook-memory" value="useInfiniteMemories" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbbf24;strokeColor=#78350f;fontSize=9;fontColor=#78350f;" vertex="1" parent="hooks-group">
+                    <mxGeometry x="135" y="35" width="110" height="35" as="geometry" />
+                </mxCell>
+
+                <mxCell id="hook-cloudinary" value="useCloudinary" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbbf24;strokeColor=#78350f;fontSize=9;fontColor=#78350f;" vertex="1" parent="hooks-group">
+                    <mxGeometry x="255" y="35" width="110" height="35" as="geometry" />
+                </mxCell>
+
+                <mxCell id="hook-image-opt" value="useImageOptimization" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbbf24;strokeColor=#78350f;fontSize=9;fontColor=#78350f;" vertex="1" parent="hooks-group">
+                    <mxGeometry x="375" y="35" width="110" height="35" as="geometry" />
+                </mxCell>
+
+                <mxCell id="hook-cache" value="useMemoriesCache" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbbf24;strokeColor=#78350f;fontSize=9;fontColor=#78350f;" vertex="1" parent="hooks-group">
+                    <mxGeometry x="15" y="80" width="110" height="35" as="geometry" />
+                </mxCell>
+
+                <mxCell id="hook-places" value="usePlacesAutocomplete" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbbf24;strokeColor=#78350f;fontSize=9;fontColor=#78350f;" vertex="1" parent="hooks-group">
+                    <mxGeometry x="135" y="80" width="110" height="35" as="geometry" />
+                </mxCell>
+
+                <mxCell id="hook-debounce" value="useDebouncedValue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbbf24;strokeColor=#78350f;fontSize=9;fontColor=#78350f;" vertex="1" parent="hooks-group">
+                    <mxGeometry x="255" y="80" width="110" height="35" as="geometry" />
+                </mxCell>
+
+                <mxCell id="hook-theme" value="useTheme" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbbf24;strokeColor=#78350f;fontSize=9;fontColor=#78350f;" vertex="1" parent="hooks-group">
+                    <mxGeometry x="375" y="80" width="110" height="35" as="geometry" />
+                </mxCell>
+
+                <mxCell id="hook-effects" value="useUserEffects" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbbf24;strokeColor=#78350f;fontSize=9;fontColor=#78350f;" vertex="1" parent="hooks-group">
+                    <mxGeometry x="75" y="125" width="110" height="35" as="geometry" />
+                </mxCell>
+
+                <mxCell id="hook-scroll" value="useInfiniteScroll" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbbf24;strokeColor=#78350f;fontSize=9;fontColor=#78350f;" vertex="1" parent="hooks-group">
+                    <mxGeometry x="195" y="125" width="110" height="35" as="geometry" />
+                </mxCell>
+
+                <mxCell id="hook-upload" value="useImageUpload" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbbf24;strokeColor=#78350f;fontSize=9;fontColor=#78350f;" vertex="1" parent="hooks-group">
+                    <mxGeometry x="315" y="125" width="110" height="35" as="geometry" />
+                </mxCell>
+
+                <!-- SERVERLESS API LAYER -->
+                <mxCell id="api-container" value="SERVERLESS API LAYER (Vercel)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#E0E7FF;strokeColor=#3730a3;strokeWidth=3;fontSize=16;fontStyle=1;fontColor=#3730a3;" vertex="1" parent="1">
+                    <mxGeometry x="320" y="460" width="1440" height="240" as="geometry" />
+                </mxCell>
+
+                <!-- Cloudinary APIs -->
+                <mxCell id="api-cloudinary-group" value="Cloudinary API Endpoints" style="swimlane;whiteSpace=wrap;html=1;fillColor=#C7D2FE;strokeColor=#3730a3;fontSize=12;fontStyle=1;fontColor=#3730a3;" vertex="1" parent="api-container">
+                    <mxGeometry x="30" y="35" width="840" height="185" as="geometry" />
+                </mxCell>
+
+                <mxCell id="api-upload" value="POST /upload&lt;br&gt;📤 Image" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3b82f6;strokeColor=#1e40af;fontColor=#ffffff;fontSize=10;" vertex="1" parent="api-cloudinary-group">
+                    <mxGeometry x="15" y="35" width="120" height="50" as="geometry" />
+                </mxCell>
+
+                <mxCell id="api-images" value="GET /images&lt;br&gt;🖼️ Fetch" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3b82f6;strokeColor=#1e40af;fontColor=#ffffff;fontSize=10;" vertex="1" parent="api-cloudinary-group">
+                    <mxGeometry x="145" y="35" width="120" height="50" as="geometry" />
+                </mxCell>
+
+                <mxCell id="api-memory" value="POST /memory&lt;br&gt;💾 Save" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3b82f6;strokeColor=#1e40af;fontColor=#ffffff;fontSize=10;" vertex="1" parent="api-cloudinary-group">
+                    <mxGeometry x="275" y="35" width="120" height="50" as="geometry" />
+                </mxCell>
+
+                <mxCell id="api-memories" value="GET /memories&lt;br&gt;📚 List" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3b82f6;strokeColor=#1e40af;fontColor=#ffffff;fontSize=10;" vertex="1" parent="api-cloudinary-group">
+                    <mxGeometry x="405" y="35" width="120" height="50" as="geometry" />
+                </mxCell>
+
+                <mxCell id="api-delete" value="DELETE /delete&lt;br&gt;🗑️ Remove" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ef4444;strokeColor=#991b1b;fontColor=#ffffff;fontSize=10;" vertex="1" parent="api-cloudinary-group">
+                    <mxGeometry x="535" y="35" width="120" height="50" as="geometry" />
+                </mxCell>
+
+                <mxCell id="api-config" value="GET /config&lt;br&gt;⚙️ Config" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#10b981;strokeColor=#065f46;fontColor=#ffffff;fontSize=10;" vertex="1" parent="api-cloudinary-group">
+                    <mxGeometry x="665" y="35" width="120" height="50" as="geometry" />
+                </mxCell>
+
+                <mxCell id="api-health" value="GET /health&lt;br&gt;❤️ Health" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#10b981;strokeColor=#065f46;fontColor=#ffffff;fontSize=10;" vertex="1" parent="api-cloudinary-group">
+                    <mxGeometry x="145" y="95" width="120" height="50" as="geometry" />
+                </mxCell>
+
+                <mxCell id="api-single" value="GET /memory&lt;br&gt;📄 Single" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3b82f6;strokeColor=#1e40af;fontColor=#ffffff;fontSize=10;" vertex="1" parent="api-cloudinary-group">
+                    <mxGeometry x="275" y="95" width="120" height="50" as="geometry" />
+                </mxCell>
+
+                <mxCell id="api-gallery" value="GET /gallery&lt;br&gt;🖼️ Gallery" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3b82f6;strokeColor=#1e40af;fontColor=#ffffff;fontSize=10;" vertex="1" parent="api-cloudinary-group">
+                    <mxGeometry x="405" y="95" width="120" height="50" as="geometry" />
+                </mxCell>
+
+                <!-- Nominatim APIs -->
+                <mxCell id="api-nominatim-group" value="Nominatim API (OpenStreetMap)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#C7D2FE;strokeColor=#3730a3;fontSize=12;fontStyle=1;fontColor=#3730a3;" vertex="1" parent="api-container">
+                    <mxGeometry x="900" y="35" width="510" height="185" as="geometry" />
+                </mxCell>
+
+                <mxCell id="api-nominatim-search" value="GET /nominatim/search&lt;br&gt;🔍 Places&lt;br&gt;(Autocomplete)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#059669;strokeColor=#065f46;fontColor=#ffffff;fontSize=10;" vertex="1" parent="api-nominatim-group">
+                    <mxGeometry x="15" y="35" width="150" height="60" as="geometry" />
+                </mxCell>
+
+                <mxCell id="api-nominatim-reverse" value="GET /nominatim/reverse&lt;br&gt;📍 Geocoding&lt;br&gt;(GPS → Address)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#059669;strokeColor=#065f46;fontColor=#ffffff;fontSize=10;" vertex="1" parent="api-nominatim-group">
+                    <mxGeometry x="180" y="35" width="150" height="60" as="geometry" />
+                </mxCell>
+
+                <mxCell id="api-nominatim-free" value="✅ 100% FREE&lt;br&gt;No API Key&lt;br&gt;Unlimited" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontColor=#065f46;fontSize=10;fontStyle=1;" vertex="1" parent="api-nominatim-group">
+                    <mxGeometry x="345" y="35" width="150" height="60" as="geometry" />
+                </mxCell>
+
+                <mxCell id="api-nominatim-tiles" value="Map Tiles&lt;br&gt;🗺️ OpenStreetMap&lt;br&gt;Leaflet.js" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#059669;strokeColor=#065f46;fontColor=#ffffff;fontSize=10;" vertex="1" parent="api-nominatim-group">
+                    <mxGeometry x="97" y="105" width="150" height="60" as="geometry" />
+                </mxCell>
+
+                <mxCell id="api-nominatim-heatmap" value="Heatmap&lt;br&gt;🌡️ Density&lt;br&gt;Visualization" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#059669;strokeColor=#065f46;fontColor=#ffffff;fontSize=10;" vertex="1" parent="api-nominatim-group">
+                    <mxGeometry x="262" y="105" width="150" height="60" as="geometry" />
+                </mxCell>
+
+                <!-- BACKEND SERVICES LAYER -->
+                <mxCell id="services-container" value="BACKEND SERVICES LAYER" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FFFDE4;strokeColor=#78350f;strokeWidth=3;fontSize=16;fontStyle=1;fontColor=#78350f;" vertex="1" parent="1">
+                    <mxGeometry x="320" y="740" width="1440" height="280" as="geometry" />
+                </mxCell>
+
+                <!-- Firebase -->
+                <mxCell id="firebase-group" value="Firebase Services (Google)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FEF08A;strokeColor=#78350f;fontSize=12;fontStyle=1;fontColor=#78350f;" vertex="1" parent="services-container">
+                    <mxGeometry x="30" y="35" width="440" height="225" as="geometry" />
+                </mxCell>
+
+                <mxCell id="firebase-auth" value="Firebase Auth&lt;br&gt;🔐 Email/Password&lt;br&gt;Session Mgmt" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f59e0b;strokeColor=#78350f;fontColor=#ffffff;fontSize=10;" vertex="1" parent="firebase-group">
+                    <mxGeometry x="15" y="35" width="180" height="70" as="geometry" />
+                </mxCell>
+
+                <mxCell id="firebase-firestore" value="Cloud Firestore&lt;br&gt;📊 NoSQL DB&lt;br&gt;Real-time Sync" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f59e0b;strokeColor=#78350f;fontColor=#ffffff;fontSize=10;" vertex="1" parent="firebase-group">
+                    <mxGeometry x="215" y="35" width="180" height="70" as="geometry" />
+                </mxCell>
+
+                <mxCell id="firebase-storage" value="Firebase Storage&lt;br&gt;💾 File Storage&lt;br&gt;(User Profiles)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f59e0b;strokeColor=#78350f;fontColor=#ffffff;fontSize=10;" vertex="1" parent="firebase-group">
+                    <mxGeometry x="15" y="115" width="180" height="70" as="geometry" />
+                </mxCell>
+
+                <mxCell id="firebase-data" value="Firestore Collections:&lt;br&gt;• AnniversaryEvent&lt;br&gt;• users (profile, theme)&lt;br&gt;• memoryMetadata" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fde047;strokeColor=#78350f;fontColor=#78350f;fontSize=9;align=left;verticalAlign=top;" vertex="1" parent="firebase-group">
+                    <mxGeometry x="215" y="115" width="180" height="70" as="geometry" />
+                </mxCell>
+
+                <!-- Cloudinary -->
+                <mxCell id="cloudinary-group" value="Cloudinary (Image CDN)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FEF08A;strokeColor=#78350f;fontSize=12;fontStyle=1;fontColor=#78350f;" vertex="1" parent="services-container">
+                    <mxGeometry x="500" y="35" width="440" height="225" as="geometry" />
+                </mxCell>
+
+                <mxCell id="cloudinary-storage" value="Image Storage&lt;br&gt;☁️ Cloud&lt;br&gt;Global CDN" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#06b6d4;strokeColor=#155e75;fontColor=#ffffff;fontSize=10;" vertex="1" parent="cloudinary-group">
+                    <mxGeometry x="15" y="35" width="180" height="70" as="geometry" />
+                </mxCell>
+
+                <mxCell id="cloudinary-transform" value="Transform&lt;br&gt;🎨 WebP/JPEG&lt;br&gt;Resize, Crop" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#06b6d4;strokeColor=#155e75;fontColor=#ffffff;fontSize=10;" vertex="1" parent="cloudinary-group">
+                    <mxGeometry x="215" y="35" width="180" height="70" as="geometry" />
+                </mxCell>
+
+                <mxCell id="cloudinary-search" value="Search API&lt;br&gt;🔍 Tags&lt;br&gt;Metadata" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#06b6d4;strokeColor=#155e75;fontColor=#ffffff;fontSize=10;" vertex="1" parent="cloudinary-group">
+                    <mxGeometry x="15" y="115" width="180" height="70" as="geometry" />
+                </mxCell>
+
+                <mxCell id="cloudinary-features" value="Features:&lt;br&gt;• Progressive loading (LQIP)&lt;br&gt;• Responsive srcset&lt;br&gt;• Auto format/quality&lt;br&gt;• Folder: love-journal/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cffafe;strokeColor=#155e75;fontColor=#155e75;fontSize=9;align=left;verticalAlign=top;" vertex="1" parent="cloudinary-group">
+                    <mxGeometry x="215" y="115" width="180" height="70" as="geometry" />
+                </mxCell>
+
+                <!-- OpenStreetMap -->
+                <mxCell id="osm-group" value="OpenStreetMap (FREE)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FEF08A;strokeColor=#78350f;fontSize=12;fontStyle=1;fontColor=#78350f;" vertex="1" parent="services-container">
+                    <mxGeometry x="970" y="35" width="440" height="225" as="geometry" />
+                </mxCell>
+
+                <mxCell id="osm-nominatim" value="Nominatim API&lt;br&gt;🗺️ Geocoding&lt;br&gt;Search &amp; Reverse" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#059669;strokeColor=#065f46;fontColor=#ffffff;fontSize=10;" vertex="1" parent="osm-group">
+                    <mxGeometry x="15" y="35" width="180" height="70" as="geometry" />
+                </mxCell>
+
+                <mxCell id="osm-tiles" value="Map Tiles&lt;br&gt;🗺️ Interactive&lt;br&gt;Leaflet + React" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#059669;strokeColor=#065f46;fontColor=#ffffff;fontSize=10;" vertex="1" parent="osm-group">
+                    <mxGeometry x="215" y="35" width="180" height="70" as="geometry" />
+                </mxCell>
+
+                <mxCell id="osm-features" value="Features:&lt;br&gt;• Place autocomplete&lt;br&gt;• GPS → Address&lt;br&gt;• Interactive markers&lt;br&gt;• Heatmap viz&lt;br&gt;• Memory tracking" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontColor=#065f46;fontSize=9;align=left;verticalAlign=top;" vertex="1" parent="osm-group">
+                    <mxGeometry x="15" y="115" width="380" height="70" as="geometry" />
+                </mxCell>
+
+                <!-- Local Storage -->
+                <mxCell id="local-storage" value="Browser Local Storage&lt;br&gt;💾 Cache &amp; Session&lt;br&gt;• User session (24h)&lt;br&gt;• Memories cache (10min)&lt;br&gt;• Theme preference&lt;br&gt;• Offline support" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ddd6fe;strokeColor=#5b21b6;fontColor=#2e1065;fontSize=10;fontStyle=1;align=left;verticalAlign=top;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="740" width="240" height="140" as="geometry" />
+                </mxCell>
+
+                <!-- Legend -->
+                <mxCell id="legend-container" value="LEGEND" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f3f4f6;strokeColor=#6b7280;fontSize=13;fontStyle=1;fontColor=#1f2937;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="920" width="240" height="300" as="geometry" />
+                </mxCell>
+
+                <mxCell id="legend-security" value="Security Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#dc2626;fontSize=10;" vertex="1" parent="legend-container">
+                    <mxGeometry x="15" y="35" width="210" height="25" as="geometry" />
+                </mxCell>
+
+                <mxCell id="legend-frontend" value="Frontend Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FDF2F8;strokeColor=#ec4899;fontSize=10;" vertex="1" parent="legend-container">
+                    <mxGeometry x="15" y="65" width="210" height="25" as="geometry" />
+                </mxCell>
+
+                <mxCell id="legend-api" value="API Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0E7FF;strokeColor=#3730a3;fontSize=10;" vertex="1" parent="legend-container">
+                    <mxGeometry x="15" y="95" width="210" height="25" as="geometry" />
+                </mxCell>
+
+                <mxCell id="legend-services" value="Services Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFDE4;strokeColor=#78350f;fontSize=10;" vertex="1" parent="legend-container">
+                    <mxGeometry x="15" y="125" width="210" height="25" as="geometry" />
+                </mxCell>
+
+                <mxCell id="legend-cache" value="Cache/Session" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ddd6fe;strokeColor=#5b21b6;fontSize=10;" vertex="1" parent="legend-container">
+                    <mxGeometry x="15" y="155" width="210" height="25" as="geometry" />
+                </mxCell>
+
+                <mxCell id="legend-stats" value="📊 Statistics:&lt;br&gt;• 10 Pages&lt;br&gt;• 15+ Components&lt;br&gt;• 11+ Hooks&lt;br&gt;• 9 Cloudinary APIs&lt;br&gt;• 4 Nominatim APIs&lt;br&gt;• 6 Security Features" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#78350f;fontSize=9;align=left;verticalAlign=top;fontColor=#78350f;" vertex="1" parent="legend-container">
+                    <mxGeometry x="15" y="190" width="210" height="95" as="geometry" />
+                </mxCell>
+
+                <!-- Security Features Summary -->
+                <mxCell id="security-summary" value="🔐 SECURITY FEATURES SUMMARY" style="swimlane;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#dc2626;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#991b1b;" vertex="1" parent="1">
+                    <mxGeometry x="320" y="1060" width="1440" height="160" as="geometry" />
+                </mxCell>
+
+                <mxCell id="feat-implemented" value="✅ IMPLEMENTED" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="30" y="35" width="680" height="20" as="geometry" />
+                </mxCell>
+
+                <mxCell id="feat1" value="Firebase Auth (Email/Password + Phone OTP)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="30" y="60" width="210" height="30" as="geometry" />
+                </mxCell>
+
+                <mxCell id="feat2" value="Session Management (24h expiry)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="250" y="60" width="210" height="30" as="geometry" />
+                </mxCell>
+
+                <mxCell id="feat3" value="Protected Routes (useCurrentUserId)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="470" y="60" width="210" height="30" as="geometry" />
+                </mxCell>
+
+                <mxCell id="feat4" value="Firestore Security Rules" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="30" y="95" width="210" height="30" as="geometry" />
+                </mxCell>
+
+                <mxCell id="feat5" value="API Secret Protection (Server-side)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="250" y="95" width="210" height="30" as="geometry" />
+                </mxCell>
+
+                <mxCell id="feat6" value="Input Validation (File size/type)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#065f46;fontSize=9;fontColor=#065f46;" vertex="1" parent="security-summary">
+                    <mxGeometry x="470" y="95" width="210" height="30" as="geometry" />
+                </mxCell>
+
+                <mxCell id="feat-todo" value="⚠️ TODO / RECOMMENDED" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#78350f;" vertex="1" parent="security-summary">
+                    <mxGeometry x="730" y="35" width="680" height="20" as="geometry" />
+                </mxCell>
+
+                <mxCell id="gap1" value="Rate Limiting" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#f59e0b;fontSize=9;fontColor=#78350f;" vertex="1" parent="security-summary">
+                    <mxGeometry x="730" y="60" width="140" height="30" as="geometry" />
+                </mxCell>
+
+                <mxCell id="gap2" value="CSP Headers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#f59e0b;fontSize=9;fontColor=#78350f;" vertex="1" parent="security-summary">
+                    <mxGeometry x="880" y="60" width="140" height="30" as="geometry" />
+                </mxCell>
+
+                <mxCell id="gap3" value="XSS Prevention (DOMPurify)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#f59e0b;fontSize=9;fontColor=#78350f;" vertex="1" parent="security-summary">
+                    <mxGeometry x="1030" y="60" width="140" height="30" as="geometry" />
+                </mxCell>
+
+                <mxCell id="gap4" value="httpOnly Cookies" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#f59e0b;fontSize=9;fontColor=#78350f;" vertex="1" parent="security-summary">
+                    <mxGeometry x="1180" y="60" width="140" height="30" as="geometry" />
+                </mxCell>
+
+                <mxCell id="gap5" value="Password Reset" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#f59e0b;fontSize=9;fontColor=#78350f;" vertex="1" parent="security-summary">
+                    <mxGeometry x="730" y="95" width="140" height="30" as="geometry" />
+                </mxCell>
+
+                <mxCell id="gap6" value="2FA/MFA" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#f59e0b;fontSize=9;fontColor=#78350f;" vertex="1" parent="security-summary">
+                    <mxGeometry x="880" y="95" width="140" height="30" as="geometry" />
+                </mxCell>
+
+                <mxCell id="gap7" value="HTTPS Enforcement" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#f59e0b;fontSize=9;fontColor=#78350f;" vertex="1" parent="security-summary">
+                    <mxGeometry x="1030" y="95" width="140" height="30" as="geometry" />
+                </mxCell>
+
+                <mxCell id="gap8" value="Security Monitoring" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#f59e0b;fontSize=9;fontColor=#78350f;" vertex="1" parent="security-summary">
+                    <mxGeometry x="1180" y="95" width="140" height="30" as="geometry" />
+                </mxCell>
+
+                <!-- Tech Stack -->
+                <mxCell id="tech-labels" value="📦 Technology Stack:&lt;br&gt;React 18 • TypeScript • Vite • React Router • Leaflet • Lucide Icons&lt;br&gt;Firebase SDK • Cloudinary SDK • React DatePicker • HTML2Canvas • jsPDF&lt;br&gt;Version 2.0 | Updated: January 2025" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e5e7eb;strokeColor=#6b7280;fontSize=10;align=center;fontColor=#1f2937;" vertex="1" parent="1">
+                    <mxGeometry x="320" y="1240" width="1440" height="80" as="geometry" />
+                </mxCell>
+
+                <!-- Data Flow Arrows -->
+                <mxCell id="arrow-sec-frontend" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#dc2626;endArrow=block;endFill=1;dashed=1;" edge="1" parent="1" source="security-panel" target="frontend-container">
+                    <mxGeometry relative="1" as="geometry" />
+                </mxCell>
+
+                <mxCell id="arrow-frontend-api" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#3730a3;endArrow=block;endFill=1;startArrow=block;startFill=1;" edge="1" parent="1" source="frontend-container" target="api-container">
+                    <mxGeometry relative="1" as="geometry" />
+                </mxCell>
+
+                <mxCell id="arrow-api-services" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#78350f;endArrow=block;endFill=1;startArrow=block;startFill=1;" edge="1" parent="1" source="api-container" target="services-container">
+                    <mxGeometry relative="1" as="geometry" />
+                </mxCell>
+
+                <mxCell id="arrow-frontend-local" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#5b21b6;endArrow=block;endFill=1;startArrow=block;startFill=1;dashed=1;" edge="1" parent="1" source="local-storage" target="frontend-container">
+                    <mxGeometry relative="1" as="geometry" />
+                </mxCell>
+
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

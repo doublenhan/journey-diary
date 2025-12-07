@@ -5,6 +5,7 @@ import app from './firebase/firebaseConfig';
 import { Heart, Mail, Lock, Eye, EyeOff, BookHeart, Calendar, Phone, X } from 'lucide-react';
 import { MoodTheme, themes } from './config/themes';
 import VisualEffects from './components/VisualEffects';
+import { logSecurityEvent } from './utils/securityMonitoring';
 import './styles/LoginPage.css';
 
 declare global {
@@ -127,9 +128,27 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
   const loginWithFirebase = async (email: string, password: string) => {
     const auth = getAuth(app);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Log successful login
+      logSecurityEvent({
+        type: 'LOGIN_SUCCESS',
+        userId: userCredential.user.uid,
+        details: { method: 'email' }
+      });
+      
       return { success: true };
     } catch (err: any) {
+      // Log failed login
+      logSecurityEvent({
+        type: 'LOGIN_FAILED',
+        details: { 
+          method: 'email',
+          email: email,
+          error: err.code || err.message 
+        }
+      });
+      
       return { success: false, message: err.message };
     }
   };
@@ -356,6 +375,13 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
       const { getAuth, sendPasswordResetEmail } = await import('firebase/auth');
       const auth = getAuth(app);
       await sendPasswordResetEmail(auth, forgotPasswordEmail);
+      
+      // Log password reset request
+      logSecurityEvent({
+        type: 'PASSWORD_RESET_REQUESTED',
+        details: { email: forgotPasswordEmail }
+      });
+      
       setSuccessMsg('Email khôi phục mật khẩu đã được gửi! Vui lòng kiểm tra hộp thư.');
       setShowForgotPasswordModal(false);
       setForgotPasswordEmail('');

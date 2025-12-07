@@ -1,4 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
+import { withRateLimit } from '../middleware/rateLimiter.js';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -6,7 +7,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export default async function handler(req, res) {
+async function imagesHandler(req, res) {
   // Set proper content type
   res.setHeader('Content-Type', 'application/json');
   
@@ -67,3 +68,6 @@ export default async function handler(req, res) {
     res.status(405).json({ error: 'Method not allowed' });
   }
 }
+
+// Export with rate limiting (100 requests/minute)
+export default withRateLimit(imagesHandler, 100);
