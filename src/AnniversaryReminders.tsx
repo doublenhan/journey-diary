@@ -39,7 +39,8 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
     date: '',
     type: 'custom' as AnniversaryType,
     reminderDays: 1,
-    isNotificationEnabled: true
+    isNotificationEnabled: true,
+    customTypeName: ''
   });
 
   type AnniversaryType =
@@ -214,6 +215,8 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         return <Gift className="w-6 h-6 text-yellow-400" />;
       case 'valentine':
         return <Heart className="w-6 h-6 text-red-400" />;
+      case 'custom':
+        return <Sparkles className="w-6 h-6" />;
       default:
         return <Calendar className="w-6 h-6" />;
     }
@@ -239,6 +242,35 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         return 'from-red-400 to-pink-200';
       default:
         return 'from-blue-400 to-purple-400';
+    }
+  };
+
+  const getAnniversaryTypeName = (anniversary: Anniversary) => {
+    if (anniversary.type === 'custom' && anniversary.customTypeName) {
+      return anniversary.customTypeName;
+    }
+    
+    switch (anniversary.type) {
+      case 'first_date':
+        return 'Hẹn Hò Lần Đầu';
+      case 'engagement':
+        return 'Đính Hôn';
+      case 'wedding':
+        return 'Đám Cưới';
+      case 'first_meeting':
+        return 'Gặp Nhau Lần Đầu';
+      case 'proposal':
+        return 'Cầu Hôn';
+      case 'honeymoon':
+        return 'Tuần Trăng Mật';
+      case 'birthday':
+        return 'Sinh Nhật';
+      case 'valentine':
+        return 'Lễ Tình Nhân';
+      case 'custom':
+        return 'Tùy Chỉnh';
+      default:
+        return 'Kỷ Niệm';
     }
   };
 
@@ -332,7 +364,8 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       date: '',
       type: 'custom',
       reminderDays: 1,
-      isNotificationEnabled: true
+      isNotificationEnabled: true,
+      customTypeName: ''
     });
     
     try {
@@ -345,7 +378,8 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         date: formattedDate || '',
         type: safeType,
         reminderDays: safeReminderDays,
-        isNotificationEnabled: !!isNotificationEnabled
+        isNotificationEnabled: !!isNotificationEnabled,
+        customTypeName: safeType === 'custom' ? formData.customTypeName : undefined
       };
 
       await anniversaryApi.add(userId, payload);
@@ -392,7 +426,8 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       date: anniversary.date,
       type: anniversary.type,
       reminderDays: anniversary.reminderDays,
-      isNotificationEnabled: anniversary.isNotificationEnabled
+      isNotificationEnabled: anniversary.isNotificationEnabled,
+      customTypeName: anniversary.customTypeName || ''
     });
     setShowAddForm(true);
   };
@@ -416,7 +451,8 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         date: '',
         type: 'custom',
         reminderDays: 1,
-        isNotificationEnabled: true
+        isNotificationEnabled: true,
+        customTypeName: ''
       });
       // Reload anniversaries
       const data = await anniversaryApi.getAll(userId);
@@ -703,6 +739,19 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                   {/* Card Content */}
                   <div className="card-content">
     <h3 className="anniversary-title">{anniversary.title}</h3>
+    <div className="anniversary-type-badge" style={{
+      display: 'inline-block',
+      padding: '4px 12px',
+      borderRadius: '12px',
+      fontSize: '0.75rem',
+      fontWeight: '500',
+      marginBottom: '8px',
+      background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(219, 39, 119, 0.1))',
+      color: '#ec4899',
+      border: '1px solid rgba(236, 72, 153, 0.2)'
+    }}>
+      {getAnniversaryTypeName(anniversary)}
+    </div>
     <div className="anniversary-fields-even">
       <div className="anniversary-date">
         <Calendar className="w-4 h-4" />
@@ -828,6 +877,19 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                 {/* Card Content */}
                 <div className="card-content">
                   <h3 className="anniversary-title">{anniversary.title}</h3>
+                  <div className="anniversary-type-badge" style={{
+                    display: 'inline-block',
+                    padding: '4px 12px',
+                    borderRadius: '12px',
+                    fontSize: '0.75rem',
+                    fontWeight: '500',
+                    marginBottom: '8px',
+                    background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(219, 39, 119, 0.1))',
+                    color: '#ec4899',
+                    border: '1px solid rgba(236, 72, 153, 0.2)'
+                  }}>
+                    {getAnniversaryTypeName(anniversary)}
+                  </div>
                   <div className="anniversary-date">
                     <Calendar className="w-4 h-4" />
                     <span>{formatDate(anniversary.date)}</span>
@@ -973,6 +1035,23 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                 </div>
               </div>
 
+              {newAnniversary.type === 'custom' && (
+                <div className="form-group">
+                  <label className="form-label">
+                    Tên Loại Kỷ Niệm (Tùy Chỉnh)
+                  </label>
+                  <div className="relative">
+                    <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-pink-500 pointer-events-none z-10" />
+                    <input
+                      type="text"
+                      value={newAnniversary.customTypeName}
+                      onChange={(e) => setNewAnniversary(prev => ({ ...prev, customTypeName: e.target.value }))}
+                      placeholder="vd: Kỷ Niệm Ngày Đầu Tiên"
+                      className="w-full pl-11 pr-4 py-3 rounded-xl border-2 border-pink-200 bg-white text-gray-900 focus:outline-none focus:border-pink-400 focus:ring-4 focus:ring-pink-100 transition-all"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="form-group">
                 <label className="form-label">
