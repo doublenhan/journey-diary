@@ -90,11 +90,15 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         if (thisYearDate < today) thisYearDate.setFullYear(today.getFullYear() + 1);
         const daysUntil = Math.ceil((thisYearDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         const yearsSince = today.getFullYear() - anniversaryDate.getFullYear();
+        const milestone = anniversaryTimeline.find(t => t.years === yearsSince);
         return {
           ...anniversary,
           yearsSince: yearsSince > 0 ? yearsSince : 0,
           daysUntil,
-          isUpcoming: daysUntil <= anniversary.reminderDays
+          isUpcoming: daysUntil <= anniversary.reminderDays,
+          meaning: milestone ? milestone.meaning : null,
+          milestoneTitle: milestone ? milestone.title : null,
+          milestoneMeaning: milestone ? milestone.meaning : null
         };
       });
       return processed.sort((a, b) => (a.daysUntil || 0) - (b.daysUntil || 0));
@@ -463,11 +467,15 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         if (thisYearDate < today) thisYearDate.setFullYear(today.getFullYear() + 1);
         const daysUntil = Math.ceil((thisYearDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         const yearsSince = today.getFullYear() - anniversaryDate.getFullYear();
+        const milestone = anniversaryTimeline.find(t => t.years === yearsSince);
         return {
           ...anniversary,
           yearsSince: yearsSince > 0 ? yearsSince : 0,
           daysUntil,
-          isUpcoming: daysUntil <= anniversary.reminderDays
+          isUpcoming: daysUntil <= anniversary.reminderDays,
+          meaning: milestone ? milestone.meaning : null,
+          milestoneTitle: milestone ? milestone.title : null,
+          milestoneMeaning: milestone ? milestone.meaning : null
         };
       });
       processed.sort((a, b) => (a.daysUntil || 0) - (b.daysUntil || 0));
@@ -519,11 +527,15 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         if (thisYearDate < today) thisYearDate.setFullYear(today.getFullYear() + 1);
         const daysUntil = Math.ceil((thisYearDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         const yearsSince = today.getFullYear() - anniversaryDate.getFullYear();
+        const milestone = anniversaryTimeline.find(t => t.years === yearsSince);
         return {
           ...anniversary,
           yearsSince: yearsSince > 0 ? yearsSince : 0,
           daysUntil,
-          isUpcoming: daysUntil <= anniversary.reminderDays
+          isUpcoming: daysUntil <= anniversary.reminderDays,
+          meaning: milestone ? milestone.meaning : null,
+          milestoneTitle: milestone ? milestone.title : null,
+          milestoneMeaning: milestone ? milestone.meaning : null
         };
       });
       processed.sort((a, b) => (a.daysUntil || 0) - (b.daysUntil || 0));
@@ -739,17 +751,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                   {/* Card Content */}
                   <div className="card-content">
     <h3 className="anniversary-title">{anniversary.title}</h3>
-    <div className="anniversary-type-badge" style={{
-      display: 'inline-block',
-      padding: '4px 12px',
-      borderRadius: '12px',
-      fontSize: '0.75rem',
-      fontWeight: '500',
-      marginBottom: '8px',
-      background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(219, 39, 119, 0.1))',
-      color: '#ec4899',
-      border: '1px solid rgba(236, 72, 153, 0.2)'
-    }}>
+    <div className="anniversary-type-badge" title={getAnniversaryTypeName(anniversary)}>
       {getAnniversaryTypeName(anniversary)}
     </div>
     <div className="anniversary-fields-even">
@@ -877,17 +879,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                 {/* Card Content */}
                 <div className="card-content">
                   <h3 className="anniversary-title">{anniversary.title}</h3>
-                  <div className="anniversary-type-badge" style={{
-                    display: 'inline-block',
-                    padding: '4px 12px',
-                    borderRadius: '12px',
-                    fontSize: '0.75rem',
-                    fontWeight: '500',
-                    marginBottom: '8px',
-                    background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(219, 39, 119, 0.1))',
-                    color: '#ec4899',
-                    border: '1px solid rgba(236, 72, 153, 0.2)'
-                  }}>
+                  <div className="anniversary-type-badge" title={getAnniversaryTypeName(anniversary)}>
                     {getAnniversaryTypeName(anniversary)}
                   </div>
                   <div className="anniversary-date">

@@ -1,3 +1,21 @@
+/* Anniversary type badge */
+.anniversary-type-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.12), rgba(219, 39, 119, 0.12));
+  color: #ec4899;
+  border: 1px solid rgba(236, 72, 153, 0.25);
+  max-width: fit-content;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
 /* Evenly space the three fields: date, duration badge, days to go */
 .anniversary-fields-even {
   display: flex;
@@ -585,6 +603,7 @@
   font-size: 0.875rem;
   font-weight: 600;
   border: 1px solid #fce7f3;
+  text-align: center;
 }
 
 .days-until {
@@ -830,13 +849,8 @@
   }
 
   .card-header {
-    flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
-  }
-
-  .card-actions {
-    align-self: flex-end;
   }
 
   .anniversary-details {
