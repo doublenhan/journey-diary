@@ -161,8 +161,7 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
             <div className="view-mode-toggle">
               <button
                 onClick={() => setViewMode('markers')}
-                className={viewMode === 'markers' ? 'active' : ''}
-                style={{ padding: '0.5rem 1rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', background: viewMode === 'markers' ? '#ec4899' : 'transparent', color: viewMode === 'markers' ? 'white' : '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: '500', transition: 'all 0.2s' }}
+                className={`view-mode-btn ${viewMode === 'markers' ? 'active' : ''}`}
                 title="Markers"
               >
                 <MapPin className="w-4 h-4" />
@@ -170,8 +169,7 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
               </button>
               <button
                 onClick={() => setViewMode('heatmap')}
-                className={viewMode === 'heatmap' ? 'active' : ''}
-                style={{ padding: '0.5rem 1rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', background: viewMode === 'heatmap' ? '#ec4899' : 'transparent', color: viewMode === 'heatmap' ? 'white' : '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: '500', transition: 'all 0.2s' }}
+                className={`view-mode-btn ${viewMode === 'heatmap' ? 'active' : ''}`}
                 title="Heat Map"
               >
                 <Flame className="w-4 h-4" />
@@ -179,8 +177,7 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
               </button>
               <button
                 onClick={() => setViewMode('route')}
-                className={viewMode === 'route' ? 'active' : ''}
-                style={{ padding: '0.5rem 1rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', background: viewMode === 'route' ? '#ec4899' : 'transparent', color: viewMode === 'route' ? 'white' : '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: '500', transition: 'all 0.2s' }}
+                className={`view-mode-btn ${viewMode === 'route' ? 'active' : ''}`}
                 title="Route"
               >
                 <Route className="w-4 h-4" />
