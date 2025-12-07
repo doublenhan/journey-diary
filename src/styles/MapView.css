@@ -115,7 +115,7 @@
 
 /* View Mode Toggle */
 .view-mode-toggle {
-    display: flex;
+    display: inline-flex;
     gap: 0.5rem;
 }
 
@@ -410,8 +410,13 @@
         gap: 1rem;
     }
 
+    .view-mode-toggle {
+        display: flex;
+        width: 100%;
+    }
+
     .view-mode-toggle button {
-        /* Remove width: 100% and flex: 1 to let container fit content */
+        flex: 1;
     }
 
     .map-container {
