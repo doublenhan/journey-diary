@@ -317,23 +317,62 @@
 
 /* Mobile */
 @media (max-width: 768px) {
+    .map-view-overlay {
+        padding: 0;
+    }
+
     .map-view-container {
         max-height: 100vh;
+        height: 100vh;
         border-radius: 0;
+        max-width: 100%;
+    }
+
+    .map-view-header {
+        padding: 1rem;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .map-view-title {
+        font-size: 1.25rem;
+    }
+
+    .map-view-subtitle {
+        font-size: 0.875rem;
     }
 
     .map-view-content {
         grid-template-columns: 1fr;
         grid-template-rows: 1fr auto;
+        height: calc(100vh - 140px) !important;
+    }
+
+    .view-mode-toggle {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .view-mode-toggle button {
+        flex: 1;
+        justify-content: center;
     }
 
     .map-locations-list {
-        max-height: 200px;
+        max-height: 150px;
+        position: relative;
+        border-top: 2px solid #e5e7eb;
     }
 
     .map-memory-detail {
-        left: 1rem;
-        right: 1rem;
-        bottom: 1rem;
+        left: 0.5rem;
+        right: 0.5rem;
+        bottom: 0.5rem;
+        max-width: calc(100% - 1rem);
+    }
+
+    .leaflet-container {
+        min-height: 350px;
     }
 }
