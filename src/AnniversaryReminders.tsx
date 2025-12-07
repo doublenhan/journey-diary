@@ -959,7 +959,8 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                     date: '',
                     type: 'custom',
                     reminderDays: 1,
-                    isNotificationEnabled: true
+                    isNotificationEnabled: true,
+                    customTypeName: ''
                   });
                 }}
                 className="modal-close"
@@ -1090,7 +1091,8 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                     date: '',
                     type: 'custom',
                     reminderDays: 1,
-                    isNotificationEnabled: true
+                    isNotificationEnabled: true,
+                    customTypeName: ''
                   });
                 }}
                 className="cancel-button"
