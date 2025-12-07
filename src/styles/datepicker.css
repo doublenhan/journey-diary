@@ -9,6 +9,16 @@
     width: 100%;
 }
 
+/* Input field styling */
+.custom-datepicker-input {
+    border-color: var(--datepicker-border) !important;
+}
+
+.custom-datepicker-input:focus {
+    border-color: var(--datepicker-primary) !important;
+    --tw-ring-color: color-mix(in srgb, var(--datepicker-primary) 20%, transparent) !important;
+}
+
 .react-datepicker {
     font-family: inherit;
     border-width: 2px;
