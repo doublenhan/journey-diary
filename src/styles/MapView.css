@@ -438,12 +438,12 @@
     }
 
     .view-mode-toggle {
-        display: flex;
-        width: 100%;
+        display: flex !important;
+        width: 100% !important;
     }
 
     .view-mode-btn {
-        flex: 1;
+        flex: 1 !important;
     }
 
     .map-container {
