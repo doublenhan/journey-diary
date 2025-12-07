@@ -42,7 +42,7 @@ async function parseFormWithTimeout(req, timeoutMs = 30000) {
   });
 }
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
   
   if (req.method !== 'POST') {
