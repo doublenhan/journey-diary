@@ -360,7 +360,7 @@
     }
 
     .map-locations-list {
-        max-height: 150px;
+        max-height: 200px;
         position: relative;
         border-top: 2px solid #e5e7eb;
     }
