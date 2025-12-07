@@ -29,6 +29,7 @@ export interface Anniversary {
     | 'valentine';
   reminderDays: number;
   isNotificationEnabled: boolean;
+  customTypeName?: string;
 }
 
 export const anniversaryApi = {
