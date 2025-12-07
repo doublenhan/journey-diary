@@ -77,10 +77,21 @@
 
 .map-view-header {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 1rem;
     padding: 1.5rem 2rem;
     border-bottom: 1px solid #f3f4f6;
+}
+
+.map-header-top-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.map-header-title-section {
+    flex: 1;
 }
 
 .map-view-title {
@@ -139,7 +150,8 @@
     gap: 1.5rem;
     padding: 1.5rem 2rem;
     overflow: hidden;
-    min-height: 0; /* Fix for flexbox children */
+    min-height: 0;
+    /* Fix for flexbox children */
 }
 
 .map-container {
@@ -370,8 +382,11 @@
 
     .map-view-header {
         padding: 1rem;
-        flex-wrap: wrap;
         gap: 0.75rem;
+    }
+
+    .map-header-top-row {
+        align-items: center;
     }
 
     /* Hide text labels on mobile, show only icons */
@@ -390,7 +405,9 @@
     .map-view-content {
         grid-template-columns: 1fr;
         grid-template-rows: 1fr auto;
-        height: calc(100vh - 140px) !important;
+        height: calc(100vh - 160px) !important;
+        padding: 1rem;
+        gap: 1rem;
     }
 
     .view-mode-toggle {
@@ -401,10 +418,18 @@
         flex: 1;
     }
 
+    .map-container {
+        height: 100%;
+        min-height: 350px;
+    }
+
     .map-locations-list {
-        max-height: 200px;
+        max-height: 180px;
+        min-height: 180px;
         position: relative;
         border-top: 2px solid #e5e7eb;
+        padding-top: 1rem;
+        background: white;
     }
 
     .map-memory-detail {
@@ -415,6 +440,13 @@
     }
 
     .leaflet-container {
-        min-height: 350px;
+        min-height: 300px !important;
+        height: 100% !important;
+    }
+
+    .map-view-close {
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
     }
 }
