@@ -123,6 +123,27 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.view-mode-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.view-mode-btn.active {
+    background: #ec4899;
+    color: white;
+}
+
 .view-mode-label {
     display: inline;
 }
@@ -419,7 +440,7 @@
         width: 100%;
     }
 
-    .view-mode-toggle button {
+    .view-mode-btn {
         flex: 1;
     }
 
