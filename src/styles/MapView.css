@@ -137,6 +137,8 @@
     font-size: 0.875rem;
     font-weight: 500;
     transition: all 0.2s;
+    width: auto;
+    white-space: nowrap;
 }
 
 .view-mode-btn.active {
