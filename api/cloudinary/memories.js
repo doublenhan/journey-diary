@@ -79,7 +79,7 @@ async function getMemoriesFromFirestore(userId) {
   }
 }
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   // Set correct content type
   res.setHeader('Content-Type', 'application/json');
   
