@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Search, Filter, X, Calendar, MapPin, Tag, ChevronDown } from 'lucide-react';
+import CustomDatePicker from './CustomDatePicker';
 import '../styles/EnhancedSearchFilter.css';
 
 interface EnhancedSearchFilterProps {
@@ -141,20 +142,36 @@ export function EnhancedSearchFilter({
                 Khoảng thời gian
               </label>
               <div className="date-range-inputs">
-                <input
-                  type="date"
-                  value={dateRange?.start || ''}
-                  onChange={(e) => onDateRangeChange({ start: e.target.value, end: dateRange?.end || '' })}
-                  className="date-input"
+                <CustomDatePicker
+                  selected={dateRange?.start ? new Date(dateRange.start) : null}
+                  onChange={(date) => {
+                    const dateStr = date ? date.toISOString().split('T')[0] : '';
+                    onDateRangeChange({ start: dateStr, end: dateRange?.end || '' });
+                  }}
                   placeholder="Từ ngày"
+                  maxDate={dateRange?.end ? new Date(dateRange.end) : undefined}
+                  theme={{
+                    colors: {
+                      primary: '#ec4899',
+                      border: '#fbcfe8'
+                    }
+                  }}
                 />
                 <span className="date-separator">đến</span>
-                <input
-                  type="date"
-                  value={dateRange?.end || ''}
-                  onChange={(e) => onDateRangeChange({ start: dateRange?.start || '', end: e.target.value })}
-                  className="date-input"
+                <CustomDatePicker
+                  selected={dateRange?.end ? new Date(dateRange.end) : null}
+                  onChange={(date) => {
+                    const dateStr = date ? date.toISOString().split('T')[0] : '';
+                    onDateRangeChange({ start: dateRange?.start || '', end: dateStr });
+                  }}
                   placeholder="Đến ngày"
+                  minDate={dateRange?.start ? new Date(dateRange.start) : undefined}
+                  theme={{
+                    colors: {
+                      primary: '#ec4899',
+                      border: '#fbcfe8'
+                    }
+                  }}
                 />
               </div>
             </div>
