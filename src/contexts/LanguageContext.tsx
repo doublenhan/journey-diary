@@ -29,18 +29,23 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   }, [currentLanguage]);
 
   const t = (key: string): string => {
-    const keys = key.split('.');
-    let value: any = translations[currentLanguage];
-    
-    for (const k of keys) {
-      value = value?.[k];
-      if (!value) {
-        console.warn(`Translation key not found: ${key}`);
-        return key; // Fallback to key if not found
+    try {
+      const keys = key.split('.');
+      let value: any = translations[currentLanguage];
+      
+      for (const k of keys) {
+        value = value?.[k];
+        if (!value) {
+          console.warn(`Translation key not found: ${key}`);
+          return key; // Fallback to key if not found
+        }
       }
+      
+      return typeof value === 'string' ? value : key;
+    } catch (error) {
+      console.error(`Translation error for key "${key}":`, error);
+      return key; // Fallback to key on error
     }
-    
-    return typeof value === 'string' ? value : key;
   };
 
   const dateLocale = currentLanguage === 'vi' ? 'vi-VN' : 'en-US';
