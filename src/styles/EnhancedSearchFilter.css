@@ -199,6 +199,11 @@
     gap: 0.75rem;
 }
 
+.date-range-inputs .custom-date-picker-container {
+    flex: 1;
+    min-width: 0;
+}
+
 .date-input {
     flex: 1;
     padding: 0.75rem;
@@ -207,6 +212,7 @@
     font-size: 0.875rem;
     transition: all 0.3s ease;
     background: white;
+    min-width: 0;
 }
 
 .date-input:focus {
@@ -219,6 +225,8 @@
     font-size: 0.875rem;
     color: #6b7280;
     font-weight: 500;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .filter-select-full {
@@ -230,6 +238,15 @@
     background: white;
     cursor: pointer;
     transition: all 0.3s ease;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.filter-select-full option {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .filter-select-full:focus {
@@ -314,11 +331,16 @@
     }
 
     .date-range-inputs {
-        flex-direction: column;
         gap: 0.5rem;
     }
 
+    .date-input {
+        font-size: 0.8125rem;
+        padding: 0.625rem 0.5rem;
+    }
+
     .date-separator {
-        display: none;
+        font-size: 0.75rem;
+        padding: 0 0.125rem;
     }
 }
