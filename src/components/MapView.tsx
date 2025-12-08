@@ -86,6 +86,7 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('markers');
+  const [routeGeometry, setRouteGeometry] = useState<[number, number][]>([]);
 
   useEffect(() => {
     const fetchMemories = async () => {
@@ -113,6 +114,51 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
 
     fetchMemories();
   }, [userId]);
+
+  // Fetch actual route using OSRM when in route mode
+  useEffect(() => {
+    const fetchRoute = async () => {
+      if (viewMode !== 'route' || memories.length < 2) {
+        setRouteGeometry([]);
+        return;
+      }
+
+      const coords = memories
+        .filter(m => m.coordinates)
+        .map(m => `${m.coordinates!.longitude},${m.coordinates!.latitude}`)
+        .join(';');
+
+      if (!coords) return;
+
+      try {
+        // Use OSRM public API for routing
+        const response = await fetch(
+          `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`
+        );
+        
+        if (!response.ok) throw new Error('Failed to fetch route');
+        
+        const data = await response.json();
+        
+        if (data.routes && data.routes[0] && data.routes[0].geometry) {
+          // Convert [lng, lat] to [lat, lng] for Leaflet
+          const geometry: [number, number][] = data.routes[0].geometry.coordinates.map(
+            (coord: [number, number]) => [coord[1], coord[0]]
+          );
+          setRouteGeometry(geometry);
+        }
+      } catch (err) {
+        console.error('Failed to fetch route:', err);
+        // Fallback to straight lines
+        const straightLine: [number, number][] = memories
+          .filter(m => m.coordinates)
+          .map(m => [m.coordinates!.latitude, m.coordinates!.longitude]);
+        setRouteGeometry(straightLine);
+      }
+    };
+
+    fetchRoute();
+  }, [viewMode, memories]);
 
   // Group memories by location
   const groupedByLocation = memories.reduce((acc, memory) => {
@@ -220,15 +266,14 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
                 {/* Heat Map Layer */}
                 {viewMode === 'heatmap' && <HeatMapLayer memories={memories} />}
                 
-                {/* Route Polyline */}
-                {viewMode === 'route' && routeCoordinates.length > 1 && (
+                {/* Route Polyline - Using actual road routing */}
+                {viewMode === 'route' && routeGeometry.length > 1 && (
                   <Polyline
-                    positions={routeCoordinates}
+                    positions={routeGeometry}
                     pathOptions={{
                       color: '#ec4899',
-                      weight: 3,
-                      opacity: 0.7,
-                      dashArray: '10, 10',
+                      weight: 4,
+                      opacity: 0.8,
                       lineCap: 'round',
                       lineJoin: 'round'
                     }}
