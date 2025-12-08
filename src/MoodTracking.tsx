@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useLanguage } from './hooks/useLanguage';
 
 interface MoodTrackingProps {
   theme: any;
@@ -9,14 +10,17 @@ interface MoodTrackingProps {
   isSaving?: boolean;
 }
 
-const MoodTracking: React.FC<MoodTrackingProps> = ({ theme, currentTheme, handleThemeChange, onSaveTheme, isSaveEnabled, isSaving }) => (
+const MoodTracking: React.FC<MoodTrackingProps> = ({ theme, currentTheme, handleThemeChange, onSaveTheme, isSaveEnabled, isSaving }) => {
+  const { t } = useLanguage();
+  
+  return (
   <div className="space-y-6">
     <div>
       <h2 className="text-2xl font-bold mb-2" style={{ color: theme.colors.textPrimary }}>
-        Chọn Giao Diện
+        {t('moodTracking.title')}
       </h2>
       <p style={{ color: theme.colors.textSecondary }}>
-        Chọn giao diện phù hợp với tâm trạng của bạn để cá nhân hóa trải nghiệm.
+        {t('moodTracking.subtitle')}
       </p>
     </div>
     {/* Theme Selection */}
@@ -29,7 +33,7 @@ const MoodTracking: React.FC<MoodTrackingProps> = ({ theme, currentTheme, handle
     >
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold" style={{ color: theme.colors.textPrimary }}>
-          Giao Diện
+          {t('moodTracking.themeLabel')}
         </h3>
         {onSaveTheme && (
           <button
@@ -38,7 +42,7 @@ const MoodTracking: React.FC<MoodTrackingProps> = ({ theme, currentTheme, handle
             onClick={onSaveTheme}
             disabled={!isSaveEnabled || isSaving}
           >
-            {isSaving ? 'Đang lưu...' : 'Lưu Giao Diện'}
+            {isSaving ? t('moodTracking.saving') : t('moodTracking.saveButton')}
           </button>
         )}
       </div>
@@ -78,5 +82,6 @@ const MoodTracking: React.FC<MoodTrackingProps> = ({ theme, currentTheme, handle
     </div>
   </div>
 );
+};
 
-export default MoodTracking;
+export default MoodTracking;export default MoodTracking;

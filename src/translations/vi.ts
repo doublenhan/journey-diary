@@ -260,5 +260,32 @@ export const vi = {
     saved: 'Đã lưu',
     deleted: 'Đã xóa',
     updated: 'Đã cập nhật',
-  }
+    saveError: 'Lỗi lưu. Vui lòng thử lại.',
+    loadError: 'Không thể tải. Vui lòng thử lại.',
+    themeError: 'Lỗi lưu theme. Vui lòng thử lại.',
+    effectsError: 'Lỗi lưu hiệu ứng. Vui lòng thử lại.',
+    memoryError: 'Lỗi lưu kỷ niệm. Vui lòng thử lại.',
+    networkError: 'Lỗi mạng hoặc server không khả dụng.',
+  },
+  errors: {
+    saveProfile: 'Lỗi lưu thông tin. Vui lòng thử lại.',
+    saveMemory: 'Lỗi lưu kỷ niệm',
+    saveMemoryRetry: 'Lỗi lưu kỷ niệm. Vui lòng thử lại.',
+    noMemoriesWithCoordinates: 'Chưa có kỷ niệm nào với tọa độ. Hãy tạo memory mới với GPS!',
+    cannotLoadMemories: 'Không thể tải memories. Vui lòng thử lại.',
+    imageMaxLimit: 'Chỉ có thể upload tối đa {max} ảnh. Hiện tại có {current} ảnh, bạn đang thêm {adding} ảnh.',
+    imageInvalidFormat: '{name}: Định dạng không hợp lệ. Chỉ chấp nhận JPG, PNG, WebP, HEIC',
+    imageTooLarge: '{name}: Kích thước {size}MB vượt quá giới hạn 20MB',
+  },
+  profile: {
+    preferences: 'Tùy chọn',
+    preferencesComingSoon: 'Các tùy chọn sẽ được thêm vào trong tương lai.',
+  },
+  moodTracking: {
+    title: 'Chọn Giao Diện',
+    subtitle: 'Chọn giao diện phù hợp với tâm trạng của bạn để cá nhân hóa trải nghiệm.',
+    themeLabel: 'Giao Diện',
+    saving: 'Đang lưu...',
+    saveButton: 'Lưu Giao Diện',
+  },
 };

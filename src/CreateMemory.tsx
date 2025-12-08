@@ -455,13 +455,13 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
       
       // Enhanced error reporting
       if (error instanceof Error) {
-        syncError(error.message || 'Lỗi lưu kỷ niệm');
+        syncError(error.message || t('errors.saveMemory'));
         setSaveMessage({
           type: 'error',
           text: error.message || 'Failed to save memory. Please try again.'
         });
       } else {
-        syncError('Lỗi lưu kỷ niệm. Vui lòng thử lại.');
+        syncError(t('errors.saveMemoryRetry'));
         setSaveMessage({
           type: 'error',
           text: 'Failed to save memory. Network error or server unavailable.'

@@ -78,8 +78,8 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
       setTimeout(() => setSuccess(false), 2000);
     } catch (error) {
       setSaving(false);
-      onSyncError?.('Lỗi lưu thông tin. Vui lòng thử lại.');
-      setError('Lỗi lưu thông tin. Vui lòng thử lại.');
+      onSyncError?.(t('errors.saveProfile'));
+      setError(t('errors.saveProfile'));
       console.error('Error saving profile:', error);
     }
   };
@@ -250,10 +250,10 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
           }}
         >
           <h3 className="font-semibold mb-4" style={{ color: theme.colors.textPrimary }}>
-            Preferences
+            {t('profile.preferences')}
           </h3>
           <p className="text-sm" style={{ color: theme.colors.textSecondary }}>
-            Các tùy chọn sẽ được thêm vào trong tương lai.
+            {t('profile.preferencesComingSoon')}
           </p>
         </div>
       </div>

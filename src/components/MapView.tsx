@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
 import { MapPin, Calendar, X, Loader, Flame, Route } from 'lucide-react';
 import { getMemoriesWithCoordinates, MemoryFirestore } from '../utils/memoryFirestore';
+import { useLanguage } from '../hooks/useLanguage';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat';
 import '../styles/MapView.css';
@@ -79,6 +80,7 @@ function FitBounds({ coordinates }: { coordinates: Array<{ lat: number; lng: num
 }
 
 export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
+  const { t } = useLanguage();
   const [memories, setMemories] = useState<MemoryFirestore[]>([]);
   const [selectedMemory, setSelectedMemory] = useState<MemoryFirestore | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -99,11 +101,11 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
         setMemories(sortedData);
         
         if (sortedData.length === 0) {
-          setError('Chưa có kỷ niệm nào với tọa độ. Hãy tạo memory mới với GPS!');
+          setError(t('errors.noMemoriesWithCoordinates'));
         }
       } catch (err) {
         console.error('Failed to fetch memories:', err);
-        setError('Không thể tải memories. Vui lòng thử lại.');
+        setError(t('errors.cannotLoadMemories'));
       } finally {
         setIsLoading(false);
       }
