@@ -5,6 +5,7 @@ import { auth, db, getCollectionName } from './firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import CustomDatePicker from './components/CustomDatePicker';
+import { useLanguage } from './hooks/useLanguage';
 
 interface ProfileInformationProps {
   theme: any;
@@ -14,6 +15,7 @@ interface ProfileInformationProps {
 }
 
 const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncStart, onSyncSuccess, onSyncError }) => {
+  const { t } = useLanguage();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState({
     displayName: '',
@@ -88,10 +90,10 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold mb-2" style={{ color: theme.colors.textPrimary }}>
-            Account Settings
+            {t('profile.accountSettings')}
           </h2>
           <p style={{ color: theme.colors.textSecondary }}>
-            Manage your profile and preferences.
+            {t('profile.accountSubtitle')}
           </p>
         </div>
         <div 
@@ -103,7 +105,7 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
         >
           <div className="flex items-center mb-4">
             <h3 className="font-semibold mr-2" style={{ color: theme.colors.textPrimary }}>
-              Profile Information
+              {t('profile.title')}
             </h3>
             {!editMode && (
               <button
@@ -111,14 +113,14 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
                 className="ml-2 p-1 rounded-full hover:bg-gray-100"
                 style={{ color: theme.colors.primary }}
                 onClick={() => setEditMode(true)}
-                aria-label="Edit Profile"
+                aria-label={t('profile.editProfile')}
               >
                 <Pencil className="w-4 h-4" />
               </button>
             )}
           </div>
           {loading ? (
-            <div className="text-center">Loading...</div>
+            <div className="text-center">{t('profile.loading')}</div>
           ) : (
           <form className="space-y-4" onSubmit={e => { e.preventDefault(); handleSave(); }}>
             <div className="flex items-center space-x-4">
@@ -147,15 +149,15 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
               )}
               <div>
                 <h4 className="font-medium" style={{ color: theme.colors.textPrimary }}>
-                  {user?.displayName || profile.displayName || 'No Name'}
+                  {user?.displayName || profile.displayName || t('profile.noName')}
                 </h4>
                 <p className="text-sm" style={{ color: theme.colors.textSecondary }}>
-                  {profile.email || 'No Email'}
+                  {profile.email || t('profile.noEmail')}
                 </p>
               </div>
             </div>
             <div>
-              <label className="block text-sm mb-1" style={{ color: theme.colors.textSecondary }}>Display Name</label>
+              <label className="block text-sm mb-1" style={{ color: theme.colors.textSecondary }}>{t('profile.displayName')}</label>
               <div className="relative flex items-center">
                 <User className="w-4 h-4 absolute left-3 text-gray-400" />
                 <input 
@@ -174,7 +176,7 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
               </div>
             </div>
             <div>
-              <label className="block text-sm mb-1" style={{ color: theme.colors.textSecondary }}>Email</label>
+              <label className="block text-sm mb-1" style={{ color: theme.colors.textSecondary }}>{t('profile.email')}</label>
               <div className="relative flex items-center">
                 <Mail className="w-4 h-4 absolute left-3 text-gray-400" />
                 <input 
@@ -191,7 +193,7 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
               </div>
             </div>
             <div>
-              <label className="block text-sm mb-1" style={{ color: theme.colors.textSecondary }}>Phone Number</label>
+              <label className="block text-sm mb-1" style={{ color: theme.colors.textSecondary }}>{t('profile.phone')}</label>
               <div className="relative flex items-center">
                 <Phone className="w-4 h-4 absolute left-3 text-gray-400" />
                 <input 
@@ -210,7 +212,7 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
               </div>
             </div>
             <div>
-              <label className="block text-sm mb-1" style={{ color: theme.colors.textSecondary }}>Date of Birth</label>
+              <label className="block text-sm mb-1" style={{ color: theme.colors.textSecondary }}>{t('profile.dateOfBirth')}</label>
               <div className={!editMode ? 'opacity-50 pointer-events-none' : ''}>
                 <CustomDatePicker
                   selected={profile.dob ? new Date(profile.dob) : null}
@@ -220,7 +222,7 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
                       setProfile(prev => ({ ...prev, dob: formattedDate }));
                     }
                   }}
-                  placeholder="Select date of birth"
+                  placeholder={t('profile.selectDateOfBirth')}
                   required
                   maxDate={new Date()}
                   theme={theme}
@@ -235,10 +237,10 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
                 style={{ background: theme.colors.buttonGradient }}
                 disabled={saving}
               >
-                {saving ? 'Saving...' : 'Save'}
+                {saving ? t('profile.saving') : t('profile.save')}
               </button>
             )}
-            {success && <div className="text-green-600 mt-2">Saved successfully!</div>}
+            {success && <div className="text-green-600 mt-2">{t('profile.savedSuccess')}</div>}
           </form>
           )}
         </div>

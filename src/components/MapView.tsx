@@ -147,10 +147,10 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
             <div className="map-header-title-section">
               <h2 className="map-view-title">
                 <MapPin className="w-6 h-6" />
-                Memory Map
+                {t('map.title')}
               </h2>
               <p className="map-view-subtitle">
-                {isLoading ? 'Đang tải...' : `${memories.length} memories trên bản đồ`}
+                {isLoading ? t('common.loading') : `${memories.length} ${t('map.subtitle')}`}
               </p>
             </div>
             <button className="map-view-close" onClick={onClose}>
@@ -164,26 +164,26 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
               <button
                 onClick={() => setViewMode('markers')}
                 className={`view-mode-btn ${viewMode === 'markers' ? 'active' : ''}`}
-                title="Markers"
+                title={t('map.viewModes.markers')}
               >
                 <MapPin className="w-4 h-4" />
-                <span className="view-mode-label">Markers</span>
+                <span className="view-mode-label">{t('map.viewModes.markers')}</span>
               </button>
               <button
                 onClick={() => setViewMode('heatmap')}
                 className={`view-mode-btn ${viewMode === 'heatmap' ? 'active' : ''}`}
-                title="Heat Map"
+                title={t('map.viewModes.heat')}
               >
                 <Flame className="w-4 h-4" />
-                <span className="view-mode-label">Heat</span>
+                <span className="view-mode-label">{t('map.viewModes.heat')}</span>
               </button>
               <button
                 onClick={() => setViewMode('route')}
                 className={`view-mode-btn ${viewMode === 'route' ? 'active' : ''}`}
-                title="Route"
+                title={t('map.viewModes.route')}
               >
                 <Route className="w-4 h-4" />
-                <span className="view-mode-label">Route</span>
+                <span className="view-mode-label">{t('map.viewModes.route')}</span>
               </button>
             </div>
           )}
@@ -193,7 +193,7 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
           {isLoading ? (
             <div className="map-loading">
               <Loader className="w-8 h-8 animate-spin" style={{ color: '#ec4899' }} />
-              <p>Đang tải bản đồ...</p>
+              <p>{t('common.loading')}</p>
             </div>
           ) : error ? (
             <div className="map-error">
@@ -263,7 +263,7 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
                           </p>
                           {mems.length > 1 && (
                             <p style={{ margin: '0.5rem 0 0', fontSize: '0.875rem', color: '#ec4899', fontWeight: '600' }}>
-                              +{mems.length - 1} memories khác tại đây
+                              +{mems.length - 1} {t('map.otherMemories')}
                             </p>
                           )}
                         </div>
@@ -286,8 +286,8 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
                     >
                       <MapPin className="w-4 h-4 text-pink-500" />
                       <div className="location-item-content">
-                        <div className="location-name">{mems[0].location || 'Không có tên'}</div>
-                        <div className="location-count">{mems.length} {mems.length === 1 ? 'memory' : 'memories'}</div>
+                        <div className="location-name">{mems[0].location || t('map.noLocation')}</div>
+                        <div className="location-count">{mems.length} {t('map.memoryCount')}</div>
                       </div>
                     </div>
                   ))}

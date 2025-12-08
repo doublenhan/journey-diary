@@ -12,14 +12,24 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
     
+    // Helper function to validate language code
+    function isValidLanguage() {
+      return !('language' in request.resource.data) || 
+             request.resource.data.language in ['vi', 'en'];
+    }
+    
     // Dev Users collection (development environment)
+    // Stores user profile data including: displayName, email, phone, dob, language
     match /dev_users/{userId} {
-      allow read, write: if isOwner(userId);
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && isValidLanguage();
     }
     
     // Production Users collection
+    // Stores user profile data including: displayName, email, phone, dob, language
     match /users/{userId} {
-      allow read, write: if isOwner(userId);
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && isValidLanguage();
     }
     
     // Dev Memories collection (development environment)
