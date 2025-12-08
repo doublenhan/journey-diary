@@ -3,6 +3,7 @@ import { Heart, Calendar, Bell, Plus, X, Edit3, Trash2, ArrowLeft, Gift, Sparkle
 import { anniversaryApi, Anniversary as ApiAnniversary } from './apis/anniversaryApi';
 import { auth } from './firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
+import { useLanguage } from './hooks/useLanguage';
 import { MoodTheme, themes } from './config/themes';
 import VisualEffects from './components/VisualEffects';
 import { useSyncStatus } from './hooks/useSyncStatus';
@@ -30,6 +31,7 @@ interface AnniversaryRemindersProps {
 
 function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProps) {
   const { syncStatus, lastSyncTime, errorMessage, startSync, syncSuccess, syncError } = useSyncStatus();
+  const { t } = useLanguage();
   const [anniversaries, setAnniversaries] = useState<Anniversary[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);

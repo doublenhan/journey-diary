@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
+import { useLanguage } from './hooks/useLanguage';
 import { MoodTheme, themes, isValidTheme } from './config/themes';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import './styles/App.css';
@@ -146,6 +147,7 @@ async function fetchCloudinaryImages(options: FetchCloudinaryOptions = {}) {
 function App() {
   const navigate = useNavigate();
   const { userId, loading } = useCurrentUserId();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (loading) return;
@@ -244,23 +246,23 @@ function App() {
   const features = [
     {
       icon: <BookOpen className="w-8 h-8" />,
-      title: "Nhật Ký Tình Yêu",
-      description: "Viết và lưu giữ những kỷ niệm lãng mạn quý giá nhất của bạn với giao diện nhật ký đẹp mắt."
+      title: t('landing.feature1Title'),
+      description: t('landing.feature1Desc')
     },
     {
       icon: <Camera className="w-8 h-8" />,
-      title: "Bộ Sưu Tập Ảnh",
-      description: "Tải lên và sắp xếp những bức ảnh yêu thích của bạn, tạo dòng thời gian trực quan cho câu chuyện tình yêu."
+      title: t('landing.feature2Title'),
+      description: t('landing.feature2Desc')
     },
     {
       icon: <Bell className="w-8 h-8" />,
-      title: " Sự Kiện Kỷ Niệm",
-      description: "Không bao giờ bỏ lỡ những ngày quan trọng với nhắc nhở thông minh cho kỷ niệm, sinh nhật và những khoảnh khắc đặc biệt."
+      title: t('landing.feature3Title'),
+      description: t('landing.feature3Desc')
     },
     {
       icon: <Download2 className="w-8 h-8" />,
-      title: "Đồng Bộ Cloud",
-      description: "Giữ an toàn kỷ niệm của bạn với sao lưu tự động và đồng bộ trên tất cả các thiết bị."
+      title: t('landing.feature4Title'),
+      description: t('landing.feature4Desc')
     }
   ];
 
@@ -339,13 +341,13 @@ function App() {
                   <div className="header-content">
                     <div className="logo">
                       <Heart className="logo-icon" />
-                      <span className="logo-text">Nhật Ký Tình Yêu</span>
+                      <span className="logo-text">{t('landing.heroHighlight')}</span>
                     </div>
                     <nav className="nav-desktop">
-                      <a href="/create-memory" className="nav-link">Tạo Kỷ Niệm</a>
-                      <a href="/view-memory" className="nav-link">Xem Kỷ Niệm</a>
-                      <a href="/anniversary-reminders" className="nav-link"> Sự Kiện Kỷ Niệm</a>
-                      <a href="/setting-page" className="nav-link">Cài Đặt</a>
+                      <a href="/create-memory" className="nav-link">{t('nav.create')}</a>
+                      <a href="/view-memory" className="nav-link">{t('nav.memories')}</a>
+                      <a href="/anniversary-reminders" className="nav-link">{t('nav.anniversary')}</a>
+                      <a href="/setting-page" className="nav-link">{t('nav.settings')}</a>
                     </nav>
                     <button className="mobile-menu-button" onClick={() => setMobileMenuOpen(true)} aria-label="Open menu">
                       <Menu size={28} />
@@ -380,7 +382,7 @@ function App() {
                         >
                         <span className="mobile-menu-link-row">
                           <BookOpen size={20} className="mobile-menu-link-icon" />
-                          Tạo Kỷ Niệm
+                          {t('nav.create')}
                         </span>
                       </a>
                       <a 
@@ -394,7 +396,7 @@ function App() {
                       >
                         <span className="mobile-menu-link-row">
                           <Camera size={20} className="mobile-menu-link-icon" />
-                          Xem Kỷ Niệm
+                          {t('nav.memories')}
                         </span>
                       </a>
                       <a 
@@ -408,7 +410,7 @@ function App() {
                       >
                         <span className="mobile-menu-link-row">
                           <Bell size={20} className="mobile-menu-link-icon" />
-                           Sự Kiện Kỷ Niệm
+                          {t('nav.anniversary')}
                         </span>
                       </a>
                       <a 
@@ -422,7 +424,7 @@ function App() {
                       >
                         <span className="mobile-menu-link-row">
                           <Download2 size={20} className="mobile-menu-link-icon" />
-                          Cài Đặt
+                          {t('nav.settings')}
                         </span>
                       </a>
                     </div>
@@ -436,14 +438,14 @@ function App() {
                     <div className="hero-grid">
                       <div className="hero-content">
                         <h1 className="hero-title">
-                          Chào Mừng Đến <span className="hero-title-highlight">Nhật Ký Tình Yêu</span>
+                          {t('landing.heroTitle')} <span className="hero-title-highlight">{t('landing.heroHighlight')}</span>
                         </h1>
                         <p className="hero-description">
-                          Lưu giữ kỷ niệm, tôn vinh tình yêu của bạn.
+                          {t('landing.heroSubtitle')}
                         </p>
                         <div className="hero-buttons">
-                          <a href="/create-memory" className="hero-button-primary">Bắt Đầu Tạo Kỷ Niệm</a>
-                          <a href="/view-memory" className="hero-button-secondary">Xem Kỷ Niệm</a>
+                          <a href="/create-memory" className="hero-button-primary">{t('landing.getStarted')}</a>
+                          <a href="/view-memory" className="hero-button-secondary">{t('nav.memories')}</a>
                         </div>
                       </div>
                       <div className="hero-image-container">
@@ -464,10 +466,10 @@ function App() {
                   <div className="features-container">
                     <div className="features-header">
                       <h2 className="features-title">
-                        <span className="features-title-highlight">Tính Năng</span>
+                        <span className="features-title-highlight">{t('landing.featuresTitle')}</span>
                       </h2>
                       <p className="features-description">
-                        Tất cả những gì bạn cần để làm cho câu chuyện tình yêu trở nên không thể quên.
+                        {t('landing.featuresTitle')}
                       </p>
                     </div>
                     <div className="features-grid">
@@ -485,13 +487,10 @@ function App() {
                   <div className="gallery-container">
                     <div className="gallery-header">
                       <h2 className="gallery-title" style={{ color: '#111827' }}>
-                        <span className="gallery-title-highlight" style={{ color: '#dc2626' }}>Bộ Sưu Tập Ảnh</span>
+                        <span className="gallery-title-highlight" style={{ color: '#dc2626' }}>{t('landing.galleryTitle')}</span>
                       </h2>
                       <p className="gallery-description" style={{ color: '#4b5563' }}>
-                        {galleryImages.length > 0 
-                          ? `${galleryImages.length} khoảnh khắc đẹp mà bạn có thể lưu giữ.`
-                          : 'Những khoảnh khắc đẹp mà bạn có thể lưu giữ.'
-                        }
+                        {t('landing.gallerySubtitle')}
                       </p>
                     </div>
                     <div className="gallery-carousel-wrapper">
@@ -506,7 +505,7 @@ function App() {
                         }}
                       >
                         {galleryImages.length === 0 ? (
-                          <div style={{width:'100%',textAlign:'center',padding:'2rem',color:'#aaa'}}>Không tìm thấy hình ảnh.</div>
+                          <div style={{width:'100%',textAlign:'center',padding:'2rem',color:'#aaa'}}>{t('landing.emptyState')}</div>
                         ) : (
                           galleryImages.slice(0, 6).map((img, idx) => (
                             <div
@@ -540,13 +539,13 @@ function App() {
                 </section>
                 <section className="cta-section">
                   <div className="cta-container">
-                    <h2 className="cta-title">Bắt Đầu Hành Trình Tình Yêu Ngay Hôm Nay!</h2>
-                    <p className="cta-description">Trân trọng và tái tạo những kỷ niệm quý giá nhất của bạn cùng nhau.</p>
+                    <h2 className="cta-title">{t('landing.ctaTitle')}</h2>
+                    <p className="cta-description">{t('landing.ctaSubtitle')}</p>
                     <div className="cta-buttons">
-                      <a href="/create-memory" className="cta-button">Tạo Kỷ Niệm <BookOpen size={18} /></a>
-                      <a href="/view-memory" className="cta-button">Xem Kỷ Niệm <Camera size={18} /></a>
+                      <a href="/create-memory" className="cta-button">{t('nav.create')} <BookOpen size={18} /></a>
+                      <a href="/view-memory" className="cta-button">{t('nav.memories')} <Camera size={18} /></a>
                     </div>
-                    <div className="cta-note">Cần tài khoản để bắt đầu lưu giữ kỷ niệm!</div>
+                    <div className="cta-note">{t('landing.ctaButton')}</div>
                   </div>
                 </section>
               </main>

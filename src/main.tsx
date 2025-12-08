@@ -5,11 +5,14 @@ import './index.css';
 import 'leaflet/dist/leaflet.css';
 import './styles/datepicker.css';
 import { BrowserRouter } from 'react-router-dom';
+import { LanguageProvider } from './contexts/LanguageContext';
 //import './styles/SettingPage.css';
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <LanguageProvider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </LanguageProvider>
   </StrictMode>
 );
