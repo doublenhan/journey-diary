@@ -81,7 +81,7 @@ const MoodTracking: React.FC<MoodTrackingProps> = ({ theme, currentTheme, handle
       </div>
     </div>
   </div>
-);
+  );
 };
 
-export default MoodTracking;export default MoodTracking;
+export default MoodTracking;
