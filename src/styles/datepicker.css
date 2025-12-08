@@ -125,19 +125,10 @@
     .react-datepicker-popper {
         position: fixed !important;
         left: 50% !important;
-        transform: translateX(-50%) !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
         width: auto !important;
         margin: 0 !important;
-    }
-
-    .react-datepicker-popper[data-placement^="bottom"] {
-        top: auto !important;
-        bottom: auto !important;
-    }
-
-    .react-datepicker-popper[data-placement^="top"] {
-        top: auto !important;
-        bottom: auto !important;
     }
 
     .react-datepicker {
