@@ -161,22 +161,22 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
       // Registration validation
       if (registerMethod === 'phone') {
         if (!phone) {
-          setError('Please enter your phone number to register.');
+          setError(t('auth.errorPhoneRequired'));
           return;
         }
       } else {
         if (!email) {
-          setError('Please enter your email to register.');
+          setError(t('auth.errorEmailRequired'));
           return;
         }
       }
       // Validate password requirements
       const passwordRequirements = [
-        { regex: /.{6,}/, message: 'Password must be at least 6 characters.' },
-        { regex: /[A-Z]/, message: 'Password must contain an uppercase letter.' },
-        { regex: /[a-z]/, message: 'Password must contain a lowercase letter.' },
-        { regex: /[0-9]/, message: 'Password must contain a number.' },
-        { regex: /[^A-Za-z0-9]/, message: 'Password must contain a special character.' },
+        { regex: /.{6,}/, message: t('auth.errorPasswordLength') },
+        { regex: /[A-Z]/, message: t('auth.errorPasswordUppercase') },
+        { regex: /[a-z]/, message: t('auth.errorPasswordLowercase') },
+        { regex: /[0-9]/, message: t('auth.errorPasswordNumber') },
+        { regex: /[^A-Za-z0-9]/, message: t('auth.errorPasswordSpecial') },
       ];
       for (const req of passwordRequirements) {
         if (!req.regex.test(password)) {
@@ -186,7 +186,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
       }
     } else {
       if (!email || !password) {
-        setError('Vui lòng điền đầy đủ thông tin để tiếp tục hành trình tình yêu 💕');
+        setError(t('auth.errorLoginRequired'));
         return;
       }
     }
@@ -202,13 +202,13 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
       }
       setIsLoading(false);
       if (result.success) {
-        setSuccessMsg('Tạo tài khoản thành công!');
+        setSuccessMsg(t('auth.successRegistered'));
         setIsRegister(false);
         setPhone('');
         setEmail('');
         setPassword('');
       } else {
-        setError(result.message || 'Registration failed. Please try again.');
+        setError(result.message || t('auth.errorRegistrationFailed'));
       }
     } else {
       // Login
@@ -224,7 +224,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
         }
         navigate('/landing');
       } else {
-        setError(result.message || 'Login failed. Please try again.');
+        setError(result.message || t('auth.errorLoginFailed'));
       }
     }
   };
@@ -322,7 +322,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
   // Submit OTP verification
   const handleOtpSubmit = async (code: string) => {
     if (!confirmationResult) {
-      setOtpError('Có lỗi xảy ra. Vui lòng thử lại.');
+      setOtpError(t('auth.otpErrorGeneral'));
       return;
     }
     
@@ -330,12 +330,12 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
     try {
       await confirmationResult.confirm(code);
       setShowOtpModal(false);
-      setSuccessMsg('Xác thực thành công! Tài khoản đã được tạo.');
+      setSuccessMsg(t('auth.successOtpVerified'));
       setIsRegister(false);
       setPhone('');
       setOtpCode(['', '', '', '', '', '']);
     } catch (err: any) {
-      setOtpError('Mã xác thực không đúng. Vui lòng thử lại.');
+      setOtpError(t('auth.otpErrorInvalid'));
     } finally {
       setIsLoading(false);
     }
@@ -355,7 +355,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
       setCanResend(false);
       setOtpError('');
     } else {
-      setOtpError(result.message || 'Không thể gửi lại mã. Vui lòng thử lại.');
+      setOtpError(result.message || t('auth.otpErrorResendFailed'));
     }
   };
 
@@ -363,7 +363,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!forgotPasswordEmail) {
-      setError('Vui lòng nhập email của bạn.');
+      setError(t('auth.forgotPasswordEmailRequired'));
       return;
     }
     
@@ -382,11 +382,11 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
         details: { email: forgotPasswordEmail }
       });
       
-      setSuccessMsg('Email khôi phục mật khẩu đã được gửi! Vui lòng kiểm tra hộp thư.');
+      setSuccessMsg(t('auth.forgotPasswordSuccess'));
       setShowForgotPasswordModal(false);
       setForgotPasswordEmail('');
     } catch (err: any) {
-      setError(err.message || 'Không thể gửi email. Vui lòng thử lại.');
+      setError(err.message || t('auth.forgotPasswordError'));
     } finally {
       setIsLoading(false);
     }
@@ -440,8 +440,8 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
             <div className="logo-container">
               <BookHeart className="logo-icon" />
             </div>
-            <h1 className="login-title">Nhật Ký Tình Yêu</h1>
-            <p className="login-subtitle">Hành Trình Tình Yêu 💌</p>
+            <h1 className="login-title">{t('auth.appTitle')}</h1>
+            <p className="login-subtitle">{t('auth.appSubtitle')}</p>
           </div>
 
           {/* Current Date */}
@@ -463,7 +463,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                     checked={registerMethod === 'email'}
                     onChange={() => setRegisterMethod('email')}
                   />{' '}
-                  Đăng ký bằng Email
+                  {t('auth.registerMethodEmail')}
                 </label>
                 <label style={{ marginLeft: '1.5em' }}>
                   <input
@@ -473,7 +473,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                     checked={registerMethod === 'phone'}
                     onChange={() => setRegisterMethod('phone')}
                   />{' '}
-                  Đăng ký bằng Điện Thoại
+                  {t('auth.registerMethodPhone')}
                 </label>
               </div>
             )}
@@ -483,7 +483,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
               registerMethod === 'phone' ? (
                 <div className="form-group">
                   <label htmlFor="phone" className="form-label">
-                    Số Điện Thoại
+                    {t('auth.phoneLabel')}
                   </label>
                   <div className="phone-input-container" ref={dropdownRef}>
                     {/* Country Code Dropdown Button */}
@@ -540,7 +540,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
               ) : (
                 <div className="form-group">
                   <label htmlFor="email" className="form-label">
-                    Email
+                    {t('auth.emailLabel')}
                   </label>
                   <div className="input-container">
                     <Mail className="input-icon" />
@@ -559,7 +559,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
             ) : (
               <div className="form-group">
                 <label htmlFor="email" className="form-label">
-                  Email
+                  {t('auth.emailLabel')}
                 </label>
                 <div className="input-container">
                   <Mail className="input-icon" />
@@ -569,7 +569,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="form-input"
-                    placeholder="Nhập email của bạn"
+                    placeholder={t('auth.emailPlaceholder')}
                     required
                   />
                 </div>
@@ -617,7 +617,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                   onChange={e => setRememberMe(e.target.checked)}
                   className="remember-me-checkbox"
                 />
-                <span className="remember-me-text">Lưu Thông Tin</span>
+                <span className="remember-me-text">{t('auth.rememberMe')}</span>
               </label>
             </div>
 
@@ -643,12 +643,12 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
               {isLoading ? (
                 <>
                   <Heart className="login-button-icon loading fill-current" />
-                  <span>{isRegister ? 'Đang tạo tài khoản...' : 'Đang đăng nhập...'}</span>
+                  <span>{isRegister ? t('auth.registering') : t('auth.loggingIn')}</span>
                 </>
               ) : (
                 <>
                   <Heart className="login-button-icon fill-current" />
-                  <span>{isRegister ? 'Tạo Tài Khoản' : 'Tiếp Tục Hành Trình Tình Yêu'}</span>
+                  <span>{isRegister ? t('auth.registerButton') : t('auth.loginButton')}</span>
                   <Heart className="login-button-icon fill-current" />
                 </>
               )}
@@ -658,7 +658,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
           {/* Divider */}
           <div className="divider">
             <div className="divider-line"></div>
-            <span className="divider-text">hoặc</span>
+            <span className="divider-text">{t('auth.or')}</span>
             <div className="divider-line"></div>
           </div>
 
@@ -666,12 +666,12 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
           <div className="social-login">
             <button className="social-button">
               <div className="social-icon google">G</div>
-              <span>Đăng nhập bằng Google</span>
+              <span>{t('auth.googleLogin')}</span>
             </button>
             
             <button className="social-button">
               <div className="social-icon facebook">f</div>
-              <span>Đăng nhập bằng Facebook</span>
+              <span>{t('auth.facebookLogin')}</span>
             </button>
           </div>
 
@@ -680,7 +680,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
             <p className="footer-text">
               {isRegister ? (
                 <>
-                  Đã có tài khoản?{' '}
+                  {t('auth.existingUser')}{' '}
                   <button
                     type="button"
                     className="footer-link"
@@ -690,12 +690,12 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                       setSuccessMsg('');
                     }}
                   >
-                    Đăng Nhập
+                    {t('auth.login')}
                   </button>
                 </>
               ) : (
                 <>
-                  Mới sử dụng Nhật Ký Tình Yêu?{' '}
+                  {t('auth.newUser')}{' '}
                   <button
                     type="button"
                     className="footer-link"
@@ -705,7 +705,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                       setSuccessMsg('');
                     }}
                   >
-                    Tạo Tài Khoản
+                    {t('auth.createAccount')}
                   </button>
                 </>
               )}
@@ -720,7 +720,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                 setForgotPasswordEmail(email);
               }}
             >
-              Quên Mật Khẩu?
+              {t('auth.forgotPassword')}
             </button>
           </div>
         </div>
@@ -739,9 +739,9 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
               
               <div className="otp-modal-header">
                 <Mail className="otp-modal-icon" />
-                <h2 className="otp-modal-title">Quên Mật Khẩu?</h2>
+                <h2 className="otp-modal-title">{t('auth.forgotPasswordTitle')}</h2>
                 <p className="otp-modal-subtitle">
-                  Nhập email của bạn để nhận link khôi phục mật khẩu
+                  {t('auth.forgotPasswordSubtitle')}
                 </p>
               </div>
 
@@ -754,7 +754,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                       value={forgotPasswordEmail}
                       onChange={(e) => setForgotPasswordEmail(e.target.value)}
                       className="form-input"
-                      placeholder="Nhập email của bạn"
+                      placeholder={t('auth.forgotPasswordEmailPlaceholder')}
                       required
                       autoFocus
                     />
@@ -775,12 +775,12 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                   {isLoading ? (
                     <>
                       <Heart className="animate-pulse" />
-                      <span>Đang gửi...</span>
+                      <span>{t('auth.forgotPasswordSending')}</span>
                     </>
                   ) : (
                     <>
                       <Mail style={{ width: '20px', height: '20px' }} />
-                      <span>Gửi Email Khôi Phục</span>
+                      <span>{t('auth.forgotPasswordSendButton')}</span>
                     </>
                   )}
                 </button>
@@ -794,7 +794,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                     }}
                     className="otp-resend-button"
                   >
-                    Quay lại đăng nhập
+                    {t('auth.forgotPasswordBackToLogin')}
                   </button>
                 </div>
               </form>
@@ -816,9 +816,9 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
               
               <div className="otp-modal-header">
                 <Phone className="otp-modal-icon" />
-                <h2 className="otp-modal-title">Xác Thực OTP</h2>
+                <h2 className="otp-modal-title">{t('auth.otpTitle')}</h2>
                 <p className="otp-modal-subtitle">
-                  Nhập mã 6 chữ số đã được gửi đến<br />
+                  {t('auth.otpSubtitle')}<br />
                   <strong>{selectedCountry.flag} {selectedCountry.code} {phone}</strong>
                 </p>
               </div>
@@ -853,10 +853,10 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                 {isLoading ? (
                   <>
                     <Heart className="animate-pulse" />
-                    <span>Đang xác thực...</span>
+                    <span>{t('auth.otpVerifying')}</span>
                   </>
                 ) : (
-                  'Xác Nhận'
+                  t('auth.otpConfirmButton')
                 )}
               </button>
 
@@ -867,11 +867,11 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                     disabled={isLoading}
                     className="otp-resend-button"
                   >
-                    Gửi lại mã OTP
+                    {t('auth.otpResendButton')}
                   </button>
                 ) : (
                   <p className="otp-countdown">
-                    Gửi lại mã sau <strong>{resendCountdown}s</strong>
+                    {t('auth.otpResendCountdown')} <strong>{resendCountdown}s</strong>
                   </p>
                 )}
               </div>
