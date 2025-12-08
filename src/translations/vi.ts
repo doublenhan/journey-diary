@@ -240,6 +240,7 @@ export const vi = {
   },
   map: {
     title: 'Bản Đồ Kỷ Niệm',
+    subtitle: 'kỷ niệm trên bản đồ',
     viewModes: {
       markers: 'Điểm Đánh Dấu',
       heat: 'Bản Đồ Nhiệt',
@@ -247,6 +248,8 @@ export const vi = {
     },
     locationList: 'Danh Sách Địa Điểm',
     noLocation: 'Không có vị trí',
+    otherMemories: 'kỷ niệm khác tại đây',
+    memoryCount: 'kỷ niệm',
   },
   validation: {
     required: 'Trường này là bắt buộc',
@@ -278,8 +281,23 @@ export const vi = {
     imageTooLarge: '{name}: Kích thước {size}MB vượt quá giới hạn 20MB',
   },
   profile: {
+    title: 'Thông Tin Cá Nhân',
+    editProfile: 'Chỉnh Sửa Thông Tin',
+    loading: 'Đang tải...',
+    displayName: 'Tên Hiển Thị',
+    email: 'Email',
+    phone: 'Số Điện Thoại',
+    dateOfBirth: 'Ngày Sinh',
+    selectDateOfBirth: 'Chọn ngày sinh',
+    noName: 'Chưa có tên',
+    noEmail: 'Chưa có email',
+    saving: 'Đang lưu...',
+    save: 'Lưu',
+    savedSuccess: 'Lưu thành công!',
     preferences: 'Tùy chọn',
     preferencesComingSoon: 'Các tùy chọn sẽ được thêm vào trong tương lai.',
+    accountSettings: 'Cài Đặt Tài Khoản',
+    accountSubtitle: 'Quản lý thông tin cá nhân và tùy chọn của bạn.',
   },
   moodTracking: {
     title: 'Chọn Giao Diện',

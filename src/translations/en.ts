@@ -241,6 +241,7 @@ export const en = {
   },
   map: {
     title: 'Memory Map',
+    subtitle: 'memories on map',
     viewModes: {
       markers: 'Markers',
       heat: 'Heat Map',
@@ -248,6 +249,8 @@ export const en = {
     },
     locationList: 'Location List',
     noLocation: 'No location',
+    otherMemories: 'other memories here',
+    memoryCount: 'memories',
   },
   validation: {
     required: 'This field is required',
@@ -279,8 +282,23 @@ export const en = {
     imageTooLarge: '{name}: Size {size}MB exceeds 20MB limit',
   },
   profile: {
+    title: 'Profile Information',
+    editProfile: 'Edit Profile',
+    loading: 'Loading...',
+    displayName: 'Display Name',
+    email: 'Email',
+    phone: 'Phone Number',
+    dateOfBirth: 'Date of Birth',
+    selectDateOfBirth: 'Select date of birth',
+    noName: 'No Name',
+    noEmail: 'No Email',
+    saving: 'Saving...',
+    save: 'Save',
+    savedSuccess: 'Saved successfully!',
     preferences: 'Preferences',
-    preferencesComingSoon: 'Options will be added in the future.',
+    preferencesComingSoon: 'Preferences will be added in the future.',
+    accountSettings: 'Account Settings',
+    accountSubtitle: 'Manage your profile and preferences.',
   },
   moodTracking: {
     title: 'Select Theme',

@@ -333,9 +333,7 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
                 {Object.values(LANGUAGES).map((lang) => (
                   <button
                     key={lang.code}
-                    className={`w-full flex items-center justify-between p-4 rounded-xl transition-all duration-300 ${
-                      currentLanguage === lang.code ? 'ring-2' : ''
-                    }`}
+                    className={`language-button ${currentLanguage === lang.code ? 'active' : ''}`}
                     style={{
                       backgroundColor: currentLanguage === lang.code 
                         ? theme.colors.hoverBg 
@@ -343,23 +341,22 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
                       borderColor: currentLanguage === lang.code 
                         ? theme.colors.primary 
                         : theme.colors.border,
-                      border: '2px solid',
                     }}
                     onClick={() => setLanguage(lang.code)}
                   >
-                    <div className="flex items-center space-x-3">
-                      <span className="text-2xl">{lang.flag}</span>
-                      <div className="text-left">
-                        <p className="font-semibold" style={{ color: theme.colors.textPrimary }}>
+                    <div className="language-button-content">
+                      <span className="language-button-flag">{lang.flag}</span>
+                      <div className="language-button-text">
+                        <p className="language-button-title" style={{ color: theme.colors.textPrimary }}>
                           {lang.nativeName}
                         </p>
-                        <p className="text-sm" style={{ color: theme.colors.textSecondary }}>
+                        <p className="language-button-subtitle" style={{ color: theme.colors.textSecondary }}>
                           {lang.name}
                         </p>
                       </div>
                     </div>
                     {currentLanguage === lang.code && (
-                      <Check className="w-5 h-5" style={{ color: theme.colors.primary }} />
+                      <Check className="language-button-check" style={{ color: theme.colors.primary }} />
                     )}
                   </button>
                 ))}
