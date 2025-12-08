@@ -96,15 +96,20 @@
   font-size: 1rem;
   line-height: 1.5;
   margin-bottom: 0.125rem;
-  white-space: normal;
-  word-wrap: break-word;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
 }
 
 .language-button-subtitle {
   font-size: 0.875rem;
   line-height: 1.4;
-  white-space: normal;
-  word-wrap: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .language-button-check {
@@ -115,7 +120,7 @@
 }
 
 .language-button.active {
-  ring: 2px;
+  box-shadow: 0 0 0 2px currentColor;
 }
 
 @media (max-width: 640px) {
