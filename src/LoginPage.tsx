@@ -6,6 +6,7 @@ import { Heart, Mail, Lock, Eye, EyeOff, BookHeart, Calendar, Phone, X } from 'l
 import { MoodTheme, themes } from './config/themes';
 import VisualEffects from './components/VisualEffects';
 import { logSecurityEvent } from './utils/securityMonitoring';
+import { useLanguage } from './hooks/useLanguage';
 import './styles/LoginPage.css';
 
 declare global {
@@ -64,6 +65,7 @@ interface LoginPageProps {
 
 function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [email, setEmail] = useState(() => localStorage.getItem('rememberEmail') || '');
   const [password, setPassword] = useState(() => localStorage.getItem('rememberPassword') || '');
   const [rememberMe, setRememberMe] = useState(true);
