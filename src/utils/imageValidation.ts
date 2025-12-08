@@ -1,7 +1,7 @@
 // Image validation constants and utilities
 
 export const IMAGE_VALIDATION = {
-  MAX_FILE_SIZE: 20 * 1024 * 1024, // 20MB in bytes
+  MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB in bytes
   MAX_IMAGES: 10,
   ALLOWED_FORMATS: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif'],
   ALLOWED_EXTENSIONS: ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif']
@@ -25,7 +25,7 @@ export function validateImageFile(file: File): string | null {
   // Check file size
   if (file.size > IMAGE_VALIDATION.MAX_FILE_SIZE) {
     const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-    return `${file.name}: Kích thước ${sizeMB}MB vượt quá giới hạn 20MB`;
+    return `${file.name}: Kích thước ${sizeMB}MB vượt quá giới hạn 10MB`;
   }
 
   return null;

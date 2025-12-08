@@ -129,17 +129,17 @@
         width: auto !important;
         margin: 0 !important;
     }
-    
+
     .react-datepicker-popper[data-placement^="bottom"] {
         top: auto !important;
         bottom: auto !important;
     }
-    
+
     .react-datepicker-popper[data-placement^="top"] {
         top: auto !important;
         bottom: auto !important;
     }
-    
+
     .react-datepicker {
         width: 300px;
         max-width: calc(100vw - 2rem);
