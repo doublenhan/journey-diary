@@ -274,17 +274,17 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
         {/* Page Header */}
         <div className="page-header">
           <h1 className="page-title">
-            Những Kỷ Niệm
-            <span className="gradient-text"> Của Chúng Ta</span>
+            {t('memory.viewTitle')}
+            <span className="gradient-text"> {t('landing.gallerySubtitle')}</span>
           </h1>
           <p className="page-subtitle">
-            Mỗi khoảnh khắc chúng ta chia sẻ, mỗi lần cười, mỗi cuộc phiêu lưu - tất cả đều được lưu lại ở câu chuyện tình yêu.
+            {t('landing.heroSubtitle')}
           </p>
         </div>
 
         {/* Dashboard: Your Love Story by the Numbers */}
         <div className="love-story-dashboard mb-8">
-          <h2 className="dashboard-title text-xl font-bold mb-4 text-pink-600">Câu Chuyện Tình Yêu Của Bạn</h2>
+          <h2 className="dashboard-title text-xl font-bold mb-4 text-pink-600">{t('memory.statistics')}</h2>
           {isLoading ? (
             <DashboardSkeleton />
           ) : (
@@ -294,19 +294,19 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
               <div className="dashboard-number text-2xl font-bold">{
                 (Object.values(memoriesByYear) as any[][]).reduce((total, arr) => total + (Array.isArray(arr) ? arr.length : 0), 0)
               }</div>
-              <div className="dashboard-label text-sm text-gray-500">Kỷ Niệm</div>
+              <div className="dashboard-label text-sm text-gray-500">{t('memory.totalMemories')}</div>
             </div>
             <div className="dashboard-card bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
               <Calendar className="w-8 h-8 text-blue-500 mb-2" />
               <div className="dashboard-number text-2xl font-bold">{allYears.length}</div>
-              <div className="dashboard-label text-sm text-gray-500">Năm</div>
+              <div className="dashboard-label text-sm text-gray-500">{t('common.all')}</div>
             </div>
             <div className="dashboard-card bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
               <Image className="w-8 h-8 text-purple-500 mb-2" />
               <div className="dashboard-number text-2xl font-bold">{
                 (Object.values(memoriesByYear) as any[][]).reduce((total, arr) => total + (Array.isArray(arr) ? arr.reduce((p, m) => p + (Array.isArray(m.images) ? m.images.length : 0), 0) : 0), 0)
               }</div>
-              <div className="dashboard-label text-sm text-gray-500">Ảnh</div>
+              <div className="dashboard-label text-sm text-gray-500">{t('memory.withPhotos')}</div>
             </div>
             <div className="dashboard-card bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
               <Clock className="w-8 h-8 text-amber-500 mb-2" />
@@ -352,9 +352,9 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
         {!isLoading && !error && years.length === 0 && (
           <EmptyState
             icon="📸"
-            title="Chưa có kỷ niệm nào"
-            description="Bắt đầu tạo những kỷ niệm đẹp cùng nhau! Mỗi khoảnh khắc bạn ghi lại sẽ xuất hiện ở đây."
-            actionLabel="Tạo Kỷ Niệm Đầu Tiên"
+            title={t('memory.noMemories')}
+            description={t('memory.noMemoriesDesc')}
+            actionLabel={t('nav.create')}
             onAction={() => window.location.href = '/create-memory'}
           />
         )}
@@ -375,9 +375,9 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
             {resultCount === 0 && (
               <EmptyState
                 icon="🔍"
-                title="Không tìm thấy kỷ niệm"
-                description="Thử điều chỉnh bộ lọc hoặc tìm kiếm với từ khóa khác."
-                actionLabel="Xóa Bộ Lọc"
+                title={t('memory.noMemories')}
+                description={t('memory.searchPlaceholder')}
+                actionLabel={t('common.filter')}
                 onAction={() => {
                   setSearchQuery('');
                   setSelectedYear('ALL');

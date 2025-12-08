@@ -256,28 +256,19 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       return anniversary.customTypeName;
     }
     
-    switch (anniversary.type) {
-      case 'first_date':
-        return 'Hẹn Hò Lần Đầu';
-      case 'engagement':
-        return 'Đính Hôn';
-      case 'wedding':
-        return 'Đám Cưới';
-      case 'first_meeting':
-        return 'Gặp Nhau Lần Đầu';
-      case 'proposal':
-        return 'Cầu Hôn';
-      case 'honeymoon':
-        return 'Tuần Trăng Mật';
-      case 'birthday':
-        return 'Sinh Nhật';
-      case 'valentine':
-        return 'Lễ Tình Nhân';
-      case 'custom':
-        return 'Tùy Chỉnh';
-      default:
-        return 'Kỷ Niệm';
-    }
+    const typeMap: Record<string, string> = {
+      'first_date': t('anniversary.types.firstDate'),
+      'engagement': t('anniversary.types.engagement'),
+      'wedding': t('anniversary.types.wedding'),
+      'first_meeting': t('anniversary.types.firstMeet'),
+      'proposal': t('anniversary.types.proposal'),
+      'honeymoon': t('anniversary.types.honeymoon'),
+      'birthday': t('anniversary.types.birthday'),
+      'valentine': t('anniversary.types.valentine'),
+      'custom': t('anniversary.types.custom')
+    };
+    
+    return typeMap[anniversary.type] || t('anniversary.title');
   };
 
   // Format date to always show the correct day regardless of timezone
@@ -664,7 +655,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
               className="add-button"
             >
               <Plus className="w-5 h-5" />
-              <span className="add-button-text">Thêm</span>
+              <span className="add-button-text">{t('anniversary.addNew')}</span>
             </button>
           </div>
         </div>
@@ -675,10 +666,10 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         {/* Page Header */}
         <div className="page-header">
           <h1 className="page-title">
-            Sự Kiện Kỷ Niệm
+            {t('anniversary.title')}
           </h1>
           <p className="page-subtitle">
-            Không bao giờ bỏ lỡ những ngày quan trọng - theo dõi tất cả các cột mốc trong mối quan hệ của bạn
+            {t('anniversary.subtitle')}
           </p>
         </div>
 
@@ -688,10 +679,10 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
             <div className="section-header">
               <div className="section-title-container">
                 <BellRing className="w-6 h-6 text-pink-500 animate-pulse" />
-                <h2 className="section-title">Sắp Đến</h2>
+                <h2 className="section-title">{t('anniversary.comingSoon')}</h2>
               </div>
               <div className="upcoming-count">
-                {upcomingAnniversaries.length} sắp đến
+                {upcomingAnniversaries.length} {t('anniversary.daysRemaining')}
               </div>
             </div>
             
@@ -806,10 +797,10 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
           <div className="section-header">
             <div className="section-title-container">
               <Heart className="w-6 h-6 text-pink-500" />
-              <h2 className="section-title">Tất Cả Kỷ Niệm</h2>
+              <h2 className="section-title">{t('anniversary.allAnniversaries')}</h2>
             </div>
             <div className="total-count">
-              {anniversaries.length} tổng cộng
+              {anniversaries.length} {t('common.all')}
             </div>
           </div>
           

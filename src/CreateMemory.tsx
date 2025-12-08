@@ -515,7 +515,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
             <button 
               onClick={onBack}
               className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-pink-200 hover:bg-pink-50 hover:border-pink-300 transition-all duration-300 shadow-sm hover:shadow-md active:scale-90 active:shadow-inner"
-              title="Quay Lại"
+              title={t('common.back')}
             >
               <ArrowLeft className="w-5 h-5 text-pink-600" />
             </button>
@@ -540,10 +540,10 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
           {/* Page Header */}
           <div className="memory-card-header">
             <h1 className="memory-card-title">
-              Tạo Kỷ Niệm Mới
+              {t('memory.createTitle')}
             </h1>
             <p className="memory-card-subtitle">
-              Lưu giữ khoảnh khắc đẹp đẽ này mãi mãi
+              {t('memory.createSubtitle')}
             </p>
           </div>
 
@@ -554,14 +554,14 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
               <label className="form-label">
                 <span className="form-label-row">
                   <Type className="w-5 h-5 form-label-icon" />
-                  Đặt tiêu đề cho kỷ niệm này <span className="required-field">*</span>
+                  {t('memory.titlePlaceholder')} <span className="required-field">*</span>
                 </span>
               </label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Ví dụ: Ngày hẹn hò đầu tiên, Bữa tối sinh nhật, Tuần cuối cùng..."
+                placeholder={t('memory.titlePlaceholder')}
                 className="form-input"
                 required
               />
@@ -582,7 +582,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Gõ để tìm kiếm địa điểm... (VD: Hanoi, Vietnam)"
+                    placeholder={t('memory.locationPlaceholder')}
                     className="form-input"
                     style={{ flex: 1 }}
                     required
@@ -732,19 +732,19 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
               <label className="form-label">
                 <span className="form-label-row">
                   <Heart className="w-5 h-5 form-label-icon" />
-                  Kể câu chuyện của bạn <span className="required-field">*</span>
+                  {t('memory.story')} <span className="required-field">*</span>
                 </span>
               </label>
               <textarea
                 value={memoryText}
                 onChange={(e) => setMemoryText(e.target.value)}
-                placeholder="Viết về khoảnh khắc đặc biệt này... Điều gì làm cho nó trở nên kỳ diệu? Nó làm cho bạn cảm thấy thế nào?"
+                placeholder={t('memory.storyPlaceholder')}
                 rows={8}
                 className="form-textarea"
                 required
               />
               <div className="character-counter">
-                {memoryText.length} ký tự
+                {memoryText.length} {t('memory.charactersRemaining')}
               </div>
             </div>
 
@@ -753,7 +753,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
               <label className="form-label">
                 <span className="form-label-row">
                   <Camera className="w-5 h-5 form-label-icon" />
-                  Thêm ảnh <span className="required-field">*</span>
+                  {t('memory.photos')} <span className="required-field">*</span>
                 </span>
               </label>
               
@@ -818,12 +818,12 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
                 {isLoading ? (
                   <>
                     <div className="loading-spinner" />
-                    <span>Đang Lưu Kỷ Niệm...</span>
+                    <span>{t('memory.saving')}</span>
                   </>
                 ) : (
                   <>
                     <Save className="w-5 h-5" />
-                    <span>Lưu Kỷ Niệm</span>
+                    <span>{t('common.save')}</span>
                   </>
                 )}
               </button>
@@ -853,15 +853,15 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
               
               {validationAttempted && !isFormValid && !saveMessage && !validationErrors.length && (
                 <div className="save-validation-message">
-                  <span className="validation-heading">Vui lòng hoàn thành tất cả các trường bắt buộc:</span>
+                  <span className="validation-heading">{t('validation.required')}</span>
                   <ul className="validation-list">
-                    {title.trim().length === 0 && <li>• Thêm tiêu đề cho kỷ niệm của bạn</li>}
-                    {location.trim().length === 0 && <li>• Chỉ định vị trí</li>}
-                    {memoryText.trim().length === 0 && <li>• Viết văn bản kỷ niệm của bạn</li>}
-                    {selectedDay <= 0 && <li>• Chọn một ngày hợp lệ</li>}
-                    {selectedMonth <= 0 && <li>• Chọn một tháng hợp lệ</li>}
-                    {selectedYear <= 1900 && <li>• Chọn một năm hợp lệ</li>}
-                    {uploadedImages.length === 0 && <li>• Tải lên ít nhất một ảnh</li>}
+                    {title.trim().length === 0 && <li>• {t('memory.memoryTitle')}</li>}
+                    {location.trim().length === 0 && <li>• {t('memory.location')}</li>}
+                    {memoryText.trim().length === 0 && <li>• {t('memory.story')}</li>}
+                    {selectedDay <= 0 && <li>• {t('memory.date')}</li>}
+                    {selectedMonth <= 0 && <li>• {t('memory.date')}</li>}
+                    {selectedYear <= 1900 && <li>• {t('memory.date')}</li>}
+                    {uploadedImages.length === 0 && <li>• {t('memory.photos')}</li>}
                   </ul>
                 </div>
               )}
@@ -873,28 +873,28 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
         <div className="tips-section">
           <h3 className="tips-title">
             <Heart className="w-5 h-5 tips-title-icon" />
-            Mẹo để ghi lại những kỷ niệm
+            {t('memory.tips')}
           </h3>
           <ul className="tips-list">
             <li className="tips-item">
               <span className="tips-bullet">•</span>
-              <span className="tips-text">Chọn một tiêu đề có ý nghĩa phản ánh bản chất của kỷ niệm của bạn</span>
+              <span className="tips-text">{t('memory.tip1')}</span>
             </li>
             <li className="tips-item">
               <span className="tips-bullet">•</span>
-              <span className="tips-text">Bao gồm vị trí để giúp bạn nhớ nơi nó xảy ra</span>
+              <span className="tips-text">{t('memory.tip2')}</span>
             </li>
             <li className="tips-item">
               <span className="tips-bullet">•</span>
-              <span className="tips-text">Bao gồm chi tiết về những gì làm cho khoảnh khắc này trở nên đặc biệt</span>
+              <span className="tips-text">{t('memory.tip3')}</span>
             </li>
             <li className="tips-item">
               <span className="tips-bullet">•</span>
-              <span className="tips-text">Mô tả cảm xúc và tình cảm của bạn lúc đó</span>
+              <span className="tips-text">{t('memory.tip4')}</span>
             </li>
             <li className="tips-item">
               <span className="tips-bullet">•</span>
-              <span className="tips-text">Thêm ảnh để làm cho kỷ niệm của bạn sống động</span>
+              <span className="tips-text">{t('memory.tip5')}</span>
             </li>
           </ul>
         </div>
