@@ -123,38 +123,43 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
         return;
       }
 
-      const coords = memories
+      // For now, use straight lines due to CSP restrictions
+      // OSRM API is blocked by Content Security Policy in production
+      const straightLine: [number, number][] = memories
         .filter(m => m.coordinates)
-        .map(m => `${m.coordinates!.longitude},${m.coordinates!.latitude}`)
-        .join(';');
-
-      if (!coords) return;
-
-      try {
-        // Use OSRM public API for routing
-        const response = await fetch(
-          `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`
-        );
-        
-        if (!response.ok) throw new Error('Failed to fetch route');
-        
-        const data = await response.json();
-        
-        if (data.routes && data.routes[0] && data.routes[0].geometry) {
-          // Convert [lng, lat] to [lat, lng] for Leaflet
-          const geometry: [number, number][] = data.routes[0].geometry.coordinates.map(
-            (coord: [number, number]) => [coord[1], coord[0]]
-          );
-          setRouteGeometry(geometry);
-        }
-      } catch (err) {
-        console.error('Failed to fetch route:', err);
-        // Fallback to straight lines
-        const straightLine: [number, number][] = memories
-          .filter(m => m.coordinates)
-          .map(m => [m.coordinates!.latitude, m.coordinates!.longitude]);
-        setRouteGeometry(straightLine);
-      }
+        .map(m => [m.coordinates!.latitude, m.coordinates!.longitude]);
+      setRouteGeometry(straightLine);
+      
+      // TODO: Implement server-side routing proxy to bypass CSP
+      // const coords = memories
+      //   .filter(m => m.coordinates)
+      //   .map(m => `${m.coordinates!.longitude},${m.coordinates!.latitude}`)
+      //   .join(';');
+      // 
+      // if (!coords) return;
+      // 
+      // try {
+      //   const response = await fetch(
+      //     `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`
+      //   );
+      //   
+      //   if (!response.ok) throw new Error('Failed to fetch route');
+      //   
+      //   const data = await response.json();
+      //   
+      //   if (data.routes && data.routes[0] && data.routes[0].geometry) {
+      //     const geometry: [number, number][] = data.routes[0].geometry.coordinates.map(
+      //       (coord: [number, number]) => [coord[1], coord[0]]
+      //     );
+      //     setRouteGeometry(geometry);
+      //   }
+      // } catch (err) {
+      //   console.error('Failed to fetch route:', err);
+      //   const straightLine: [number, number][] = memories
+      //     .filter(m => m.coordinates)
+      //     .map(m => [m.coordinates!.latitude, m.coordinates!.longitude]);
+      //   setRouteGeometry(straightLine);
+      // }
     };
 
     fetchRoute();
