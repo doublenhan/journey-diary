@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { useSyncStatus } from './hooks/useSyncStatus';
+import { useLanguage } from './hooks/useLanguage';
 import { Heart, Camera, Calendar, Save, ArrowLeft, X, Upload, MapPin, Type, CheckCircle, AlertCircle, Navigation } from 'lucide-react';
 import type { MemoryData } from './apis/cloudinaryGalleryApi';
 import { MoodTheme, themes } from './config/themes';
@@ -26,6 +27,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
   const { userId, loading } = useCurrentUserId();
   useMemoriesCache(userId, loading);
   const { syncStatus, lastSyncTime, errorMessage, startSync, syncSuccess, syncError } = useSyncStatus();
+  const { t } = useLanguage();
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);

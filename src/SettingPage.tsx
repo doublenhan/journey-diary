@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Sparkles, Palette, User, Menu, X, Heart } from 'lucide-react';
+import { Sparkles, Palette, User, Menu, X, Heart, Globe, Check, Info } from 'lucide-react';
 import { auth } from './firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import { saveUserTheme, getUserTheme } from './apis/userThemeApi';
 import { saveUserEffects, getUserEffects, EffectsSettings } from './apis/userEffectsApi';
 import { MoodTheme } from './config/themes';
 import { settingThemes } from './config/settingThemes';
+import { LANGUAGES } from './config/languages';
+import { useLanguage } from './hooks/useLanguage';
 
 import VisualEffects from './components/VisualEffects';
 import ProfileInformation from './ProfileInformation';
@@ -14,7 +16,7 @@ import { useSyncStatus } from './hooks/useSyncStatus';
 import SyncStatus from './components/SyncStatus';
 import './styles/SettingPage.css';
 
-type MenuItemType = 'effects' | 'mood' | 'account';
+type MenuItemType = 'effects' | 'mood' | 'language' | 'account';
 
 interface SettingPageProps {
   onBack?: () => void;
@@ -30,6 +32,7 @@ interface MenuItem {
 
 function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps) {
   const { syncStatus, lastSyncTime, errorMessage, startSync, syncSuccess, syncError } = useSyncStatus();
+  const { t, currentLanguage, setLanguage } = useLanguage();
   
   const [activeMenuItem, setActiveMenuItem] = useState<MenuItemType>('mood');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -75,17 +78,22 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
   const menuItems: MenuItem[] = [
     {
       id: 'effects',
-      label: 'Hiệu Ứng',
+      label: t('settings.menuItems.effects'),
       icon: <Sparkles className="w-5 h-5" />
     },
     {
       id: 'mood',
-      label: 'Theo Dõi Tâm Trạng',
+      label: t('settings.menuItems.mood'),
       icon: <Palette className="w-5 h-5" />
     },
     {
+      id: 'language',
+      label: t('settings.menuItems.language'),
+      icon: <Globe className="w-5 h-5" />
+    },
+    {
       id: 'account',
-      label: 'Cài Đặt Tài Khoản',
+      label: t('settings.menuItems.account'),
       icon: <User className="w-5 h-5" />
     }
   ];
@@ -193,10 +201,10 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-bold mb-2" style={{ color: theme.colors.textPrimary }}>
-                Hiệu Ứng Hình Ảnh & Hoạt Hình
+                {t('settings.effects.title')}
               </h2>
               <p style={{ color: theme.colors.textSecondary }}>
-                Tùy chỉnh trải nghiệm hình ảnh của bạn với các hiệu ứng và chuyển tiếp.
+                {t('settings.effects.subtitle')}
               </p>
             </div>
 
@@ -209,7 +217,7 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
               }}
             >
               <h3 className="font-semibold mb-4" style={{ color: theme.colors.textPrimary }}>
-                Tốc Độ Chuyển Động Hiệu Ứng
+                {t('settings.effects.animationSpeed')}
               </h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -280,7 +288,7 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
                   color: isEffectsSaveEnabled ? 'white' : theme.colors.textSecondary
                 }}
               >
-                {isSaving ? 'Đang lưu...' : 'Lưu Cài Đặt'}
+                {isSaving ? t('common.loading') : t('settings.effects.saveEffects')}
               </button>
             </div>
           </div>
@@ -298,6 +306,78 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
           />
         );
       
+      case 'language':
+        return (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold mb-2" style={{ color: theme.colors.textPrimary }}>
+                {t('settings.language.title')}
+              </h2>
+              <p style={{ color: theme.colors.textSecondary }}>
+                {t('settings.language.subtitle')}
+              </p>
+            </div>
+
+            <div 
+              className="p-6 rounded-2xl border"
+              style={{ 
+                background: theme.colors.cardBg,
+                borderColor: theme.colors.border
+              }}
+            >
+              <h3 className="font-semibold mb-4" style={{ color: theme.colors.textPrimary }}>
+                {t('settings.language.selectLanguage')}
+              </h3>
+              
+              <div className="space-y-3">
+                {Object.values(LANGUAGES).map((lang) => (
+                  <button
+                    key={lang.code}
+                    className={`w-full flex items-center justify-between p-4 rounded-xl transition-all duration-300 ${
+                      currentLanguage === lang.code ? 'ring-2' : ''
+                    }`}
+                    style={{
+                      backgroundColor: currentLanguage === lang.code 
+                        ? theme.colors.hoverBg 
+                        : 'transparent',
+                      borderColor: currentLanguage === lang.code 
+                        ? theme.colors.primary 
+                        : theme.colors.border,
+                      border: '2px solid',
+                    }}
+                    onClick={() => setLanguage(lang.code)}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <span className="text-2xl">{lang.flag}</span>
+                      <div className="text-left">
+                        <p className="font-semibold" style={{ color: theme.colors.textPrimary }}>
+                          {lang.nativeName}
+                        </p>
+                        <p className="text-sm" style={{ color: theme.colors.textSecondary }}>
+                          {lang.name}
+                        </p>
+                      </div>
+                    </div>
+                    {currentLanguage === lang.code && (
+                      <Check className="w-5 h-5" style={{ color: theme.colors.primary }} />
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              <div 
+                className="mt-4 p-4 rounded-lg flex items-start gap-2"
+                style={{ backgroundColor: theme.colors.hoverBg }}
+              >
+                <Info className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: theme.colors.textSecondary }} />
+                <p className="text-sm" style={{ color: theme.colors.textSecondary }}>
+                  {t('settings.language.autoSave')}
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      
       case 'account':
         return <ProfileInformation 
           theme={theme} 
@@ -313,16 +393,8 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
 
   // Get description for each effect type
   const getEffectDescription = (effectType: keyof typeof effectsEnabled): string => {
-    const descriptions: Record<keyof typeof effectsEnabled, string> = {
-      particles: "Các hạt nổi trong nền để tạo hiệu ứng xung quanh tinh tế",
-      hearts: "Trái tim nổi hoạt hình để tạo vẻ lãng mạn",
-      transitions: "Chuyển tiếp mượt mà giữa các trang và thành phần",
-      glow: "Hiệu ứng phát sáng tinh tế xung quanh các phần tử quan trọng",
-      fadeIn: "Các phần tử biến mất một cách duyên dáng khi chúng xuất hiện",
-      slideIn: "Các phần tử trượt vào từ cạnh khi chúng xuất hiện"
-    };
-    
-    return descriptions[effectType];
+    const descriptionKey = `settings.effects.effectTypes.${effectType}` as const;
+    return t(descriptionKey);
   };
 
   return (
@@ -383,7 +455,7 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
                     Love Journal
                   </h1>
                   <p className="text-xs" style={{ color: theme.colors.textSecondary }}>
-                    Cài Đặt
+                    {t('settings.subtitle')}
                   </p>
                 </div>
               </div>
@@ -421,11 +493,11 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
                       color: 'white'
                     }}
                   >
-                    Quay Lại Trang Chủ
+                    {t('nav.backToHome')}
                   </button>
                 )}
                 <div className="text-center text-xs" style={{ color: theme.colors.textSecondary }}>
-                  Được tạo với tình yêu cho bạn
+                  {t('settings.footer')}
                 </div>
               </div>
             </div>
