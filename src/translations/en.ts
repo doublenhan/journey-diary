@@ -261,5 +261,32 @@ export const en = {
     saved: 'Saved',
     deleted: 'Deleted',
     updated: 'Updated',
-  }
+    saveError: 'Error saving. Please try again.',
+    loadError: 'Unable to load. Please try again.',
+    themeError: 'Error saving theme. Please try again.',
+    effectsError: 'Error saving effects. Please try again.',
+    memoryError: 'Error saving memory. Please try again.',
+    networkError: 'Network error or server unavailable.',
+  },
+  errors: {
+    saveProfile: 'Error saving information. Please try again.',
+    saveMemory: 'Error saving memory',
+    saveMemoryRetry: 'Error saving memory. Please try again.',
+    noMemoriesWithCoordinates: 'No memories with coordinates yet. Create a new memory with GPS!',
+    cannotLoadMemories: 'Unable to load memories. Please try again.',
+    imageMaxLimit: 'Can only upload a maximum of {max} images. Currently have {current} images, you are adding {adding} images.',
+    imageInvalidFormat: '{name}: Invalid format. Only JPG, PNG, WebP, HEIC accepted',
+    imageTooLarge: '{name}: Size {size}MB exceeds 20MB limit',
+  },
+  profile: {
+    preferences: 'Preferences',
+    preferencesComingSoon: 'Options will be added in the future.',
+  },
+  moodTracking: {
+    title: 'Select Theme',
+    subtitle: 'Choose a theme that suits your mood to personalize your experience.',
+    themeLabel: 'Theme',
+    saving: 'Saving...',
+    saveButton: 'Save Theme',
+  },
 };

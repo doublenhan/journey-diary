@@ -128,7 +128,7 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
       setSavedTheme(currentTheme);
       syncSuccess();
     } catch (error) {
-      syncError('Lỗi lưu theme. Vui lòng thử lại.');
+      syncError(t('notification.themeError'));
       console.error('Error saving theme:', error);
     } finally {
       setIsSaving(false);
@@ -149,7 +149,7 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
       setSavedEffects(effectsData);
       syncSuccess();
     } catch (error) {
-      syncError('Lỗi lưu hiệu ứng. Vui lòng thử lại.');
+      syncError(t('notification.effectsError'));
       console.error('Error saving effects:', error);
     } finally {
       setIsSaving(false);
