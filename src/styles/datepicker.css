@@ -117,25 +117,32 @@
 
 /* Popper positioning */
 .react-datepicker-popper {
-    z-index: 9999;
+    z-index: 9999 !important;
 }
 
 /* Center calendar on mobile */
 @media (max-width: 768px) {
-    .react-datepicker-popper[data-placement^="bottom"] {
-        transform: translate3d(0px, 0px, 0px) !important;
+    .react-datepicker-popper {
+        position: fixed !important;
         left: 50% !important;
-        margin-left: -150px !important;
+        transform: translateX(-50%) !important;
+        width: auto !important;
+        margin: 0 !important;
+    }
+    
+    .react-datepicker-popper[data-placement^="bottom"] {
+        top: auto !important;
+        bottom: auto !important;
     }
     
     .react-datepicker-popper[data-placement^="top"] {
-        transform: translate3d(0px, 0px, 0px) !important;
-        left: 50% !important;
-        margin-left: -150px !important;
+        top: auto !important;
+        bottom: auto !important;
     }
     
     .react-datepicker {
         width: 300px;
+        max-width: calc(100vw - 2rem);
     }
 }
 
