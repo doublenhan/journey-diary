@@ -67,6 +67,9 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
   const [allPhotos, setAllPhotos] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedYear, setSelectedYear] = useState('ALL');
+  const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: '', end: '' });
+  const [selectedLocation, setSelectedLocation] = useState<string>('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showMapView, setShowMapView] = useState(false);
   const [editingMemory, setEditingMemory] = useState<Memory | null>(null);
   const [shareModalMemory, setShareModalMemory] = useState<Memory | null>(null);
@@ -148,6 +151,24 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
   // Debounce search query for better performance
   const debouncedSearch = useDebouncedValue(searchQuery, 300);
 
+  // Extract available locations and tags from all memories
+  const { availableLocations, availableTags } = useMemo(() => {
+    const locations = new Set<string>();
+    const tags = new Set<string>();
+
+    Object.values(memoriesByYear).forEach(memories => {
+      memories.forEach(memory => {
+        if (memory.location) locations.add(memory.location);
+        if (memory.tags) memory.tags.forEach(tag => tags.add(tag));
+      });
+    });
+
+    return {
+      availableLocations: Array.from(locations).sort(),
+      availableTags: Array.from(tags).sort()
+    };
+  }, [memoriesByYear]);
+
   // Filter memories based on search and year
   // Important: Use years (visible) data, not allYears, to respect pagination
   const filteredMemoriesByYear = useMemo(() => {
@@ -162,26 +183,42 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
       filtered = { [selectedYear]: filtered[selectedYear] || [] };
     }
 
-    // Search across title, text, location, and date
-    if (debouncedSearch.trim()) {
-      const searchLower = debouncedSearch.toLowerCase();
-      filtered = Object.entries(filtered).reduce((acc, [year, memories]) => {
-        const matched = memories.filter(m => {
-          // Check all fields
+    // Apply all filters
+    filtered = Object.entries(filtered).reduce((acc, [year, memories]) => {
+      const matched = memories.filter(m => {
+        // Search filter: title, text, location, and date
+        if (debouncedSearch.trim()) {
+          const searchLower = debouncedSearch.toLowerCase();
           const titleMatch = m.title?.toLowerCase().includes(searchLower) || false;
           const textMatch = m.text?.toLowerCase().includes(searchLower) || false;
           const locationMatch = m.location?.toLowerCase().includes(searchLower) || false;
           const dateMatch = m.date?.includes(debouncedSearch) || false;
           
-          return titleMatch || textMatch || locationMatch || dateMatch;
-        });
-        if (matched.length > 0) acc[year] = matched;
-        return acc;
-      }, {} as MemoriesByYear);
-    }
+          if (!(titleMatch || textMatch || locationMatch || dateMatch)) return false;
+        }
+
+        // Date range filter
+        if (dateRange.start && m.date < dateRange.start) return false;
+        if (dateRange.end && m.date > dateRange.end) return false;
+
+        // Location filter
+        if (selectedLocation && m.location !== selectedLocation) return false;
+
+        // Tags filter (memory must have ALL selected tags)
+        if (selectedTags.length > 0) {
+          const memoryTags = m.tags || [];
+          if (!selectedTags.every(tag => memoryTags.includes(tag))) return false;
+        }
+
+        return true;
+      });
+      
+      if (matched.length > 0) acc[year] = matched;
+      return acc;
+    }, {} as MemoriesByYear);
 
     return filtered;
-  }, [memoriesByYear, debouncedSearch, selectedYear]);
+  }, [memoriesByYear, debouncedSearch, selectedYear, dateRange, selectedLocation, selectedTags]);
 
   // Calculate total result count
   const resultCount = useMemo(() => {
@@ -369,6 +406,14 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
               onYearChange={setSelectedYear}
               availableYears={allYears}
               resultCount={resultCount}
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+              selectedLocation={selectedLocation}
+              onLocationChange={setSelectedLocation}
+              availableLocations={availableLocations}
+              selectedTags={selectedTags}
+              onTagsChange={setSelectedTags}
+              availableTags={availableTags}
             />
 
             {/* No Results State - Show BELOW search bar when filtered results = 0 */}
@@ -381,6 +426,9 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                 onAction={() => {
                   setSearchQuery('');
                   setSelectedYear('ALL');
+                  setDateRange({ start: '', end: '' });
+                  setSelectedLocation('');
+                  setSelectedTags([]);
                 }}
               />
             )}
