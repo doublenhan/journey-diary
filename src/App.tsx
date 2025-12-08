@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense, useMemo } from 'react';
 import {
   Heart, BookOpen, Camera, Bell, Download as Download2,
   Menu, X, Instagram, Twitter, Facebook,
@@ -243,7 +243,7 @@ function App() {
     window.dispatchEvent(new CustomEvent('themechange', { detail: theme }));
   };
 
-  const features = [
+  const features = useMemo(() => [
     {
       icon: <BookOpen className="w-8 h-8" />,
       title: t('landing.feature1Title'),
@@ -264,7 +264,7 @@ function App() {
       title: t('landing.feature4Title'),
       description: t('landing.feature4Desc')
     }
-  ];
+  ], [t]);
 
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [carouselIndex, setCarouselIndex] = useState(0);
