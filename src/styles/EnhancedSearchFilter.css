@@ -127,10 +127,20 @@
     transition: all 0.3s ease;
 }
 
+.advanced-toggle svg {
+    color: #ec4899;
+    transition: color 0.3s ease;
+}
+
 .advanced-toggle:hover,
 .advanced-toggle.active {
     background: linear-gradient(135deg, #ec4899, #be185d);
     border-color: #ec4899;
+    color: white;
+}
+
+.advanced-toggle:hover svg,
+.advanced-toggle.active svg {
     color: white;
 }
 
