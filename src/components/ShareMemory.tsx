@@ -48,16 +48,24 @@ export function ShareMemory({ memory, onClose, theme }: ShareMemoryProps) {
     setError(null);
 
     try {
+      // Use higher quality settings for download
       const canvas = await html2canvas(cardRef.current, {
         backgroundColor: '#ffffff',
-        scale: 2, // Higher quality
-        useCORS: true, // Enable CORS for images
+        scale: 3, // Higher quality for download (3x)
+        useCORS: true,
         logging: false,
+        allowTaint: true,
+        imageTimeout: 0,
+        removeContainer: false,
         windowWidth: cardRef.current.scrollWidth,
         windowHeight: cardRef.current.scrollHeight,
+        width: cardRef.current.offsetWidth,
+        height: cardRef.current.offsetHeight,
+        scrollX: 0,
+        scrollY: 0,
       });
 
-      // Convert to blob
+      // Convert to blob with high quality
       canvas.toBlob((blob) => {
         if (!blob) {
           setError('Không thể tạo ảnh. Vui lòng thử lại.');
@@ -81,7 +89,7 @@ export function ShareMemory({ memory, onClose, theme }: ShareMemoryProps) {
         setTimeout(() => {
           onClose();
         }, 1000);
-      }, 'image/png');
+      }, 'image/png', 1.0); // Max quality
     } catch (err) {
       console.error('Error capturing memory:', err);
       setError('Đã xảy ra lỗi khi tạo ảnh. Vui lòng thử lại.');
