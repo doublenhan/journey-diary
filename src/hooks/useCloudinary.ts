@@ -1,11 +1,17 @@
 /**
- * Custom React hook for Cloudinary operations
- * Provides a clean interface for components to interact with Cloudinary
+ * Custom React hook for Cloudinary operations - V3.0
+ * Updated to use Firebase Direct services instead of API routes
  */
 
 import { useState, useCallback } from 'react';
 import type { CloudinaryImage, FetchOptions, UploadOptions } from '../apis/cloudinaryGalleryApi';
-// Đã chuyển sang fetch API serverless, xóa import service client
+import { 
+  uploadToCloudinary, 
+  deleteFromCloudinary,
+  generateCloudinaryUrl,
+  generateThumbnail 
+} from '../services/cloudinaryDirectService';
+import { fetchMemories } from '../services/firebaseMemoriesService';
 
 interface UseCloudinaryReturn {
   // State
@@ -46,17 +52,10 @@ export const useCloudinary = (): UseCloudinaryReturn => {
     setError(null);
     
     try {
-      const params = new URLSearchParams();
-      if (options.folder) params.append('folder', options.folder);
-      if (options.tags?.length) params.append('tags', options.tags.join(','));
-      if (options.maxResults) params.append('max_results', options.maxResults.toString());
-      if (options.nextCursor) params.append('next_cursor', options.nextCursor);
-      if (options.sortBy) params.append('sort_by', options.sortBy);
-      if (options.sortOrder) params.append('sort_order', options.sortOrder);
-      const res = await fetch(`/api/cloudinary/images?${params.toString()}`);
-      if (!res.ok) throw new Error('Failed to fetch images');
-      const response = await res.json();
-      setImages(response.resources);
+      // Note: This function is deprecated in V3.0
+      // Use fetchMemories from firebaseMemoriesService instead
+      console.warn('fetchImages is deprecated. Use fetchMemories from firebaseMemoriesService');
+      setImages([]);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch images';
       setError(errorMessage);
@@ -70,28 +69,35 @@ export const useCloudinary = (): UseCloudinaryReturn => {
     setUploading(true);
     setUploadProgress(0);
     setError(null);
+    
     try {
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 10, 90));
-      }, 100);
+      const result = await uploadToCloudinary(
+        file,
+        {
+          folder: options.folder,
+          tags: options.tags,
+          format: 'auto',
+          quality: 'auto',
+        },
+        (progress) => {
+          setUploadProgress(progress);
+        }
+      );
 
-      const formData = new FormData();
-      formData.append('file', file);
-      if (options.folder) formData.append('folder', options.folder);
-      if (options.tags && options.tags.length) formData.append('tags', options.tags.join(','));
-      // Thêm các option khác nếu cần
+      const cloudinaryImage: CloudinaryImage = {
+        public_id: result.public_id,
+        secure_url: result.secure_url,
+        url: result.url,
+        width: result.width,
+        height: result.height,
+        format: result.format,
+        resource_type: result.resource_type,
+        created_at: result.created_at,
+        bytes: result.bytes,
+      };
 
-      const res = await fetch('/api/cloudinary/upload', {
-        method: 'POST',
-        body: formData
-      });
-      clearInterval(progressInterval);
-      setUploadProgress(100);
-      if (!res.ok) throw new Error('Failed to upload image');
-      const result = await res.json();
-      setImages(prev => [result, ...prev]);
-      return result;
+      setImages(prev => [cloudinaryImage, ...prev]);
+      return cloudinaryImage;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to upload image';
       setError(errorMessage);
@@ -102,18 +108,17 @@ export const useCloudinary = (): UseCloudinaryReturn => {
       setTimeout(() => setUploadProgress(0), 1000);
     }
   }, []);
-
   const deleteImage = useCallback(async (publicId: string): Promise<boolean> => {
     setError(null);
     try {
-      const res = await fetch('/api/cloudinary/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ publicId })
-      });
-      if (!res.ok) throw new Error('Failed to delete image');
-      setImages(prev => prev.filter(img => img.public_id !== publicId));
-      return true;
+      const result = await deleteFromCloudinary(publicId);
+      
+      if (result.success) {
+        setImages(prev => prev.filter(img => img.public_id !== publicId));
+        return true;
+      }
+      
+      throw new Error(result.error || 'Failed to delete image');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete image';
       setError(errorMessage);
@@ -123,39 +128,55 @@ export const useCloudinary = (): UseCloudinaryReturn => {
   }, []);
 
   const generateImageUrl = useCallback((publicId: string, transformations: any = {}) => {
-    // Tạo URL Cloudinary thủ công nếu cần, hoặc trả về publicId nếu đã là URL
     if (publicId.startsWith('http')) return publicId;
-    // Thay YOUR_CLOUD_NAME bằng cloud_name thực tế
-    let url = `https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload`;
-    // Thêm transformations nếu cần
-    return `${url}/${publicId}`;
+    
+    return generateCloudinaryUrl(publicId, {
+      width: transformations.width,
+      height: transformations.height,
+      crop: transformations.crop,
+      quality: transformations.quality,
+      format: transformations.format,
+    });
   }, []);
 
   const generateThumbnailUrl = useCallback((publicId: string, size: 'small' | 'medium' | 'large' = 'medium') => {
-    // Tạo URL thumbnail Cloudinary thủ công
     if (publicId.startsWith('http')) return publicId;
-    let transformation = '';
-    if (size === 'small') transformation = 'w_100,h_100,c_fill';
-    if (size === 'medium') transformation = 'w_300,h_300,c_fill';
-    if (size === 'large') transformation = 'w_600,h_600,c_fill';
-    // Thay YOUR_CLOUD_NAME bằng cloud_name thực tế
-    return `https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/${transformation}/${publicId}`;
+    
+    return generateThumbnail(publicId, size);
   }, []);
 
-  // Add fetchMemories method for fetching memories from Cloudinary
-  const fetchMemories = useCallback(async (userId?: string) => {
+  const fetchMemoriesFromCloudinary = useCallback(async (userId: string) => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      const params = userId ? `?userId=${encodeURIComponent(userId)}` : '';
-      const res = await fetch(`/api/cloudinary/memories${params}`);
-      if (!res.ok) throw new Error('Failed to fetch memories');
-      const data = await res.json();
-      return data.memories || [];
-    } catch (e) {
-      console.error('Failed to fetch memories:', e);
+      // Fetch memories from Firestore using the Firebase Direct service
+      const memories = await fetchMemories({ userId });
+      
+      // Extract Cloudinary images from memories
+      const cloudinaryImages: CloudinaryImage[] = memories.flatMap(memory => 
+        memory.photos.map(photo => ({
+          public_id: photo.publicId,
+          secure_url: photo.url,
+          url: photo.url,
+          width: photo.width || 0,
+          height: photo.height || 0,
+          format: photo.format || 'jpg',
+          resource_type: 'image' as const,
+          created_at: memory.createdAt,
+          bytes: 0,
+        }))
+      );
+      
+      setImages(cloudinaryImages);
+      return cloudinaryImages;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch memories';
+      setError(errorMessage);
+      console.error('Error fetching memories:', err);
       return [];
-    }
-  }, []);
-
+    } finally {
+      setLoading(false);
   return {
     // State
     images,
@@ -172,8 +193,9 @@ export const useCloudinary = (): UseCloudinaryReturn => {
     generateThumbnailUrl,
     clearError,
     clearImages,
-    fetchMemories,
+    fetchMemories: fetchMemoriesFromCloudinary, // Renamed for clarity
   };
 };
+
 
 export default useCloudinary;
