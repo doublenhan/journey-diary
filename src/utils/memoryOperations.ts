@@ -1,5 +1,6 @@
 import { deleteFromFirestore, updateMemoryInFirestore } from './memoryFirestore';
 import { invalidateCache } from './memoryCacheUtils';
+import { deleteFromCloudinary } from '../services/cloudinaryDirectService';
 
 export interface UpdateMemoryData {
   id: string;
@@ -18,16 +19,14 @@ export interface UpdateMemoryData {
  */
 export async function deleteMemory(memoryId: string, userId: string, publicIds: string[]): Promise<void> {
   try {
-    // Delete images from Cloudinary
+    // Delete images from Cloudinary using direct service
     if (publicIds && publicIds.length > 0) {
-      const response = await fetch('/api/cloudinary/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ publicIds })
-      });
-
-      if (!response.ok) {
-        console.warn('Failed to delete from Cloudinary:', await response.text());
+      for (const publicId of publicIds) {
+        try {
+          await deleteFromCloudinary(publicId);
+        } catch (error) {
+          console.warn('Failed to delete image from Cloudinary:', publicId, error);
+        }
       }
     }
 
