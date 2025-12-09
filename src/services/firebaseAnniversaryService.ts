@@ -21,7 +21,7 @@ import {
   QueryConstraint,
   QueryDocumentSnapshot,
 } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { db } from '../firebase/firebaseConfig';
 
 // Determine collection name based on environment
 const COLLECTION_NAME = import.meta.env.VITE_FIREBASE_ENV === 'production'
