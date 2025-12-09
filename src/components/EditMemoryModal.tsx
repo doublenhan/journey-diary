@@ -5,6 +5,8 @@ import CustomDatePicker from './CustomDatePicker';
 import TextInput from './TextInput';
 import TextArea from './TextArea';
 import { validateImageFiles, IMAGE_VALIDATION } from '../utils/imageValidation';
+import { updateMemory as updateMemoryFirestore } from '../services/firebaseMemoriesService';
+import { uploadToCloudinary, deleteFromCloudinary } from '../services/cloudinaryDirectService';
 import '../styles/components.css';
 
 // Parse date string (YYYY-MM-DD) as local date to avoid timezone offset
@@ -90,26 +92,35 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
     setError(null);
 
     try {
-      // Delete removed images from Cloudinary first
+      // Delete removed images from Cloudinary
       if (deletedImageIds.length > 0) {
-        await fetch('/api/cloudinary/delete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ publicIds: deletedImageIds }),
-        });
+        console.log('Deleting images from Cloudinary:', deletedImageIds);
+        for (const publicId of deletedImageIds) {
+          try {
+            await deleteFromCloudinary(publicId);
+            console.log('✓ Deleted image:', publicId);
+          } catch (error) {
+            console.warn('Failed to delete image:', publicId, error);
+            // Continue even if deletion fails
+          }
+        }
       }
 
-      await updateMemory({
-        id: memory.id,
-        userId,
+      // Update memory in Firestore using new service
+      await updateMemoryFirestore(memory.id, {
         title: title.trim(),
-        text: text.trim(),
-        location: location.trim() || undefined,
-        date,
-        latitude: memory.coordinates?.latitude,
-        longitude: memory.coordinates?.longitude,
-        cloudinaryPublicIds: images.map(img => img.public_id)
+        description: text.trim(),
+        photos: images.map(img => img.secure_url),
+        location: location.trim() ? {
+          city: location.trim(),
+          coordinates: memory.coordinates ? {
+            lat: memory.coordinates.latitude,
+            lng: memory.coordinates.longitude,
+          } : undefined,
+        } : undefined,
       });
+
+      console.log('✓ Memory updated in Firestore:', memory.id);
 
       onSuccess();
       onClose();
@@ -220,44 +231,44 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
       
       for (let i = 0; i < validFiles.length; i++) {
         const file = validFiles[i];
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('folder', folder);
-        formData.append('tags', `memory,${memory.id}`);
         
-        // Add context metadata so API can group images properly
-        const context = {
-          memory_id: memory.id,
-          userId: userId,
-          title: title,
-          memory_text: text,
-          memory_date: date,
-          location: location || ''
-        };
-        formData.append('context', JSON.stringify(context));
+        try {
+          console.log(`Uploading image ${i + 1}/${validFiles.length}...`);
+          
+          const result = await uploadToCloudinary(
+            file,
+            {
+              folder: folder,
+              tags: ['memory', memory.id, userId],
+              userId: userId,
+              format: 'auto',
+              quality: 'auto',
+            },
+            (progress) => {
+              // Update progress for this specific file
+              const overallProgress = Math.round(
+                ((i + (progress / 100)) / validFiles.length) * 100
+              );
+              setUploadProgress(overallProgress);
+            }
+          );
 
-        const response = await fetch('/api/cloudinary/upload', {
-          method: 'POST',
-          body: formData,
-        });
+          uploadedImages.push({
+            public_id: result.public_id,
+            secure_url: result.secure_url,
+            width: result.width,
+            height: result.height,
+          });
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || `Failed to upload ${file.name}`);
+          console.log(`✓ Image ${i + 1}/${validFiles.length} uploaded:`, result.public_id);
+        } catch (err) {
+          console.error(`Failed to upload ${file.name}:`, err);
+          throw new Error(`Failed to upload ${file.name}`);
         }
-
-        const data = await response.json();
-        uploadedImages.push({
-          public_id: data.public_id,
-          secure_url: data.secure_url,
-          width: data.width,
-          height: data.height,
-        });
-
-        setUploadProgress(Math.round(((i + 1) / validFiles.length) * 100));
       }
 
       setImages(prev => [...prev, ...uploadedImages]);
+      console.log('✓ All images uploaded successfully');
     } catch (err) {
       console.error('Failed to upload images:', err);
       setError(err instanceof Error ? err.message : 'Failed to upload images. Please try again.');
