@@ -16,6 +16,8 @@ import { saveMemoryToFirestore } from './utils/memoryFirestore';
 import CustomDatePicker from './components/CustomDatePicker';
 import { validateImageFiles, IMAGE_VALIDATION } from './utils/imageValidation';
 import { sanitizePlainText, sanitizeRichText } from './utils/sanitize';
+import { createMemory } from './services/firebaseMemoriesService';
+import { uploadToCloudinary, uploadMultipleImages } from './services/cloudinaryDirectService';
 import './styles/CreateMemory.css';
 
 interface CreateMemoryProps {
@@ -325,29 +327,10 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
     syncSuccess(); // Show sync success animation
     
     try {
-      // Sanitize user inputs before sending to API
+      // Sanitize user inputs before processing
       const sanitizedTitle = sanitizePlainText(title.trim());
       const sanitizedLocation = sanitizePlainText(location.trim());
       const sanitizedText = sanitizeRichText(memoryText.trim());
-      
-      const memoryData: MemoryData & { userId?: string } = {
-        title: sanitizedTitle,
-        location: sanitizedLocation || undefined,
-        text: sanitizedText,
-        date: `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`,
-        tags: ['memory', 'love-journal'],
-        userId: userId || undefined
-      };
-      // Gửi dữ liệu memory và ảnh qua serverless API
-      const formData = new FormData();
-      formData.append('title', memoryData.title);
-      if (memoryData.location) formData.append('location', memoryData.location);
-      if (coordinates?.lat) formData.append('latitude', coordinates.lat.toString());
-      if (coordinates?.lng) formData.append('longitude', coordinates.lng.toString());
-      formData.append('text', memoryData.text);
-      formData.append('date', memoryData.date);
-      if (memoryData.tags?.length) formData.append('tags', memoryData.tags.join(','));
-      if (memoryData.userId) formData.append('userId', memoryData.userId);
       
       // Update progress as "uploading"
       setUploadProgress(prev => prev.map(item => ({
@@ -356,71 +339,98 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
         progress: 10
       })));
       
-      uploadedImages.forEach((file) => {
-        formData.append('images', file);
-      });
+      // Step 1: Upload images to Cloudinary directly from client
+      const uploadedUrls: string[] = [];
       
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => prev.map(item => {
-          if (item.status === 'uploading' && item.progress < 90) {
-            return { ...item, progress: Math.min(item.progress + 10, 90) };
+      if (uploadedImages.length > 0) {
+        console.log(`Uploading ${uploadedImages.length} images to Cloudinary...`);
+        
+        for (let i = 0; i < uploadedImages.length; i++) {
+          const file = uploadedImages[i];
+          const currentIndex = i;
+          
+          try {
+            const result = await uploadToCloudinary(
+              file,
+              {
+                folder: `journey-diary/${userId}/memories`,
+                tags: ['memory', 'love-journal', userId || 'anonymous'],
+                userId: userId,
+                format: 'auto',
+                quality: 'auto',
+              },
+              (progress) => {
+                // Update individual file progress
+                setUploadProgress(prev => prev.map((item, idx) => {
+                  if (idx === currentIndex) {
+                    return { ...item, progress, status: 'uploading' as const };
+                  }
+                  return item;
+                }));
+              }
+            );
+            
+            uploadedUrls.push(result.secure_url);
+            
+            // Mark this file as success
+            setUploadProgress(prev => prev.map((item, idx) => {
+              if (idx === currentIndex) {
+                return { ...item, progress: 100, status: 'success' as const };
+              }
+              return item;
+            }));
+            
+            console.log(`✓ Image ${i + 1}/${uploadedImages.length} uploaded:`, result.public_id);
+          } catch (error) {
+            console.error(`Failed to upload image ${i + 1}:`, error);
+            // Mark as error but continue with other images
+            setUploadProgress(prev => prev.map((item, idx) => {
+              if (idx === currentIndex) {
+                return { 
+                  ...item, 
+                  progress: 0, 
+                  status: 'error' as const,
+                  error: 'Upload failed'
+                };
+              }
+              return item;
+            }));
           }
-          return item;
-        }));
-      }, 300);
-      
-      const response = await fetch('/api/cloudinary/memory', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      clearInterval(progressInterval);
-      
-      if (!response.ok) {
-        // Mark all as error
-        setUploadProgress(prev => prev.map(item => ({
-          ...item,
-          status: 'error' as const,
-          error: 'Upload failed',
-          progress: 0
-        })));
-        throw new Error('Failed to save memory');
-      }
-      
-      // Mark all as success
-      setUploadProgress(prev => prev.map(item => ({
-        ...item,
-        status: 'success' as const,
-        progress: 100
-      })));
-      
-      const data = await response.json();
-      
-      // Save to Firestore with coordinates
-      if (userId && data.memory) {
-        try {
-          await saveMemoryToFirestore({
-            id: data.memory.id,
-            userId: userId,
-            title: data.memory.title,
-            text: data.memory.text,
-            date: data.memory.date,
-            location: data.memory.location,
-            latitude: data.memory.coordinates?.latitude || coordinates?.lat,
-            longitude: data.memory.coordinates?.longitude || coordinates?.lng,
-            cloudinaryPublicIds: data.memory.images.map((img: any) => img.public_id),
-            cloudinaryFolder: data.memory.folder,
-            tags: data.memory.tags || ['memory', 'love-journal']
-          });
-          console.log('✓ Memory saved to Firestore with coordinates:', data.memory.coordinates);
-        } catch (firestoreError) {
-          console.error('Failed to save to Firestore:', firestoreError);
-          // Don't fail the whole operation if Firestore fails
         }
       }
       
-      // API succeeded - clear form
+      // Step 2: Save memory to Firestore with uploaded image URLs
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+      
+      const memoryDate = new Date(
+        selectedYear,
+        selectedMonth - 1,
+        selectedDay
+      );
+      
+      const newMemory = await createMemory({
+        userId: userId,
+        title: sanitizedTitle,
+        description: sanitizedText,
+        mood: 'happy', // Default mood, can be made dynamic
+        photos: uploadedUrls,
+        location: sanitizedLocation ? {
+          city: sanitizedLocation,
+          coordinates: coordinates ? {
+            lat: coordinates.lat,
+            lng: coordinates.lng,
+          } : undefined,
+        } : undefined,
+        tags: ['memory', 'love-journal'],
+      });
+      
+      console.log('✓ Memory saved to Firestore:', newMemory.id);
+      
+      console.log('✓ Memory saved to Firestore:', newMemory.id);
+      
+      // Success! Clear form and update cache
       setTimeout(() => {
         setTitle('');
         setLocation('');
