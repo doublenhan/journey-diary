@@ -18,6 +18,7 @@ import { validateImageFiles, IMAGE_VALIDATION } from './utils/imageValidation';
 import { sanitizePlainText, sanitizeRichText } from './utils/sanitize';
 import { createMemory } from './services/firebaseMemoriesService';
 import { uploadToCloudinary, uploadMultipleImages } from './services/cloudinaryDirectService';
+import { reverseGeocode } from './services/geoService';
 import './styles/CreateMemory.css';
 
 interface CreateMemoryProps {
@@ -105,35 +106,17 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
           text: '🌍 Đang chuyển đổi tọa độ thành địa chỉ...'
         });
         
-        // Reverse geocode using unified geo API (FREE!)
+        // Reverse geocode using direct Nominatim API (V3.0: no proxy)
         try {
-          const controller = new AbortController();
-          const reverseTimeout = setTimeout(() => controller.abort(), 10000);
+          const data = await reverseGeocode(coords.lat, coords.lng);
           
-          const response = await fetch(
-            `/api/geo?action=reverse&lat=${coords.lat}&lon=${coords.lng}`,
-            {
-              headers: {
-                'Accept': 'application/json'
-              },
-              signal: controller.signal
-            }
-          );
-          
-          clearTimeout(reverseTimeout);
-          
-          if (response.ok) {
-            const data = await response.json();
-            setLocation(data.display_name);
-            setIsGettingLocation(false);
-            setSaveMessage({
-              type: 'success',
-              text: `✓ Đã lấy vị trí thành công!`
-            });
-            setTimeout(() => setSaveMessage(null), 3000);
-          } else {
-            throw new Error('Nominatim API error');
-          }
+          setLocation(data.display_name);
+          setIsGettingLocation(false);
+          setSaveMessage({
+            type: 'success',
+            text: `✓ Đã lấy vị trí thành công!`
+          });
+          setTimeout(() => setSaveMessage(null), 3000);
         } catch (error) {
           console.error('Reverse geocoding error:', error);
           setIsGettingLocation(false);
