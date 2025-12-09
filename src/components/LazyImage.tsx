@@ -35,26 +35,32 @@ export function LazyImage({
   const blurImgRef = useRef<HTMLImageElement>(null);
 
   // Apply Cloudinary transformations with WebP support
-  const getOptimizedUrl = (url: string, width?: number) => {
+  const getOptimizedUrl = (url: string, width?: number, format?: string) => {
     if (url.includes('cloudinary.com')) {
       const parts = url.split('/upload/');
       if (parts.length === 2) {
         // Enhanced transformations: WebP with JPEG fallback, auto quality
         const widthParam = width ? `,w_${width}` : '';
-        const transforms = `${transformations}${widthParam}`;
+        const formatParam = format ? `,f_${format}` : '';
+        const transforms = `${transformations}${widthParam}${formatParam}`;
         return `${parts[0]}/upload/${transforms}/${parts[1]}`;
       }
     }
     return url;
   };
 
+  // Generate WebP URL for picture element
+  const getWebPUrl = (url: string, width?: number) => {
+    return getOptimizedUrl(url, width, 'webp');
+  };
+
   // Generate responsive srcset for different screen sizes
-  const generateSrcSet = (url: string) => {
+  const generateSrcSet = (url: string, format?: string) => {
     if (!url.includes('cloudinary.com')) return undefined;
     
     const widths = [320, 640, 768, 1024, 1280, 1920];
     const srcsetArray = widths.map(w => 
-      `${getOptimizedUrl(url, w)} ${w}w`
+      `${getOptimizedUrl(url, w, format)} ${w}w`
     );
     
     return srcsetArray.join(', ');
@@ -74,6 +80,7 @@ export function LazyImage({
 
   const optimizedSrc = getOptimizedUrl(src);
   const srcSet = generateSrcSet(src);
+  const webpSrcSet = generateSrcSet(src, 'webp');
   const blurSrc = enableBlur ? getBlurUrl(src) : undefined;
 
   useEffect(() => {
@@ -144,21 +151,32 @@ export function LazyImage({
         />
       )}
       
-      {/* Main image with responsive srcset */}
+      {/* Main image with responsive srcset and WebP support */}
       {!imageError ? (
-        <img
-          ref={imgRef}
-          src={isInView ? optimizedSrc : undefined}
-          srcSet={isInView && srcSet ? srcSet : undefined}
-          sizes={isInView ? sizes : undefined}
-          alt={alt}
-          className="lazy-image"
-          onLoad={() => setIsLoaded(true)}
-          onError={handleImageError}
-          loading={priority ? 'eager' : 'lazy'}
-          decoding="async"
-          fetchpriority={priority ? 'high' : 'auto'}
-        />
+        <picture>
+          {/* WebP source for modern browsers */}
+          {isInView && webpSrcSet && src.includes('cloudinary.com') && (
+            <source 
+              srcSet={webpSrcSet}
+              sizes={sizes}
+              type="image/webp"
+            />
+          )}
+          {/* Fallback image */}
+          <img
+            ref={imgRef}
+            src={isInView ? optimizedSrc : undefined}
+            srcSet={isInView && srcSet ? srcSet : undefined}
+            sizes={isInView ? sizes : undefined}
+            alt={alt}
+            className="lazy-image"
+            onLoad={() => setIsLoaded(true)}
+            onError={handleImageError}
+            loading={priority ? 'eager' : 'lazy'}
+            decoding="async"
+            fetchpriority={priority ? 'high' : 'auto'}
+          />
+        </picture>
       ) : (
         <div className="lazy-image-error">
           <svg className="error-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -9,8 +9,12 @@ import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { useLanguage } from './hooks/useLanguage';
 import { MoodTheme, themes, isValidTheme } from './config/themes';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { PageTransition } from './components/PageTransition';
+import { LazyImage } from './components/LazyImage';
+import { GallerySkeleton } from './components/GallerySkeleton';
 import './styles/App.css';
 import './styles/PageLoader.css';
+import './styles/transitions.css';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 
 // Lazy load heavy components with prefetch hints
@@ -267,6 +271,7 @@ function App() {
   ], [t]);
 
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [galleryLoading, setGalleryLoading] = useState(true);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [heroIndex, setHeroIndex] = useState(0);
   const getImagesPerPage = () => {
@@ -298,6 +303,7 @@ function App() {
   useEffect(() => {
     async function fetchImages() {
       try {
+        setGalleryLoading(true);
         // Always limit to max 6 images for both desktop and mobile
         const maxResults = 6;
         const fetchOptions: FetchCloudinaryOptions = { maxResults };
@@ -311,6 +317,8 @@ function App() {
         setGalleryImages(res.resources.map((img: { secure_url: any; }) => img.secure_url));
       } catch (e) {
         setGalleryImages([]);
+      } finally {
+        setGalleryLoading(false);
       }
     }
     fetchImages();
@@ -329,6 +337,7 @@ function App() {
     <>
     <ErrorBoundary>
     <Suspense fallback={<PageLoader />}>
+    <PageTransition>
     <Routes>
       <Route path="/" element={<LoginPage currentTheme={currentTheme} />} />
       <Route path="/landing" element={
@@ -450,10 +459,13 @@ function App() {
                       </div>
                       <div className="hero-image-container">
                         <div className="hero-image-wrapper">
-                          <img
+                          <LazyImage
                             src={heroImages.length > 0 ? heroImages[heroIndex] : "https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=400"}
                             alt="Love Memory"
                             className="hero-image hero-image-consistent"
+                            priority={true}
+                            transformations="f_auto,q_auto,w_800"
+                            enableBlur={true}
                           />
                         </div>
                         <div className="hero-decoration-1"></div>
@@ -485,15 +497,19 @@ function App() {
                 </section>
                 <section className="gallery-section" style={{ background: 'white', color: '#111827' }}>
                   <div className="gallery-container">
-                    <div className="gallery-header">
-                      <h2 className="gallery-title" style={{ color: '#111827' }}>
-                        <span className="gallery-title-highlight" style={{ color: '#dc2626' }}>{t('landing.galleryTitle')}</span>
-                      </h2>
-                      <p className="gallery-description" style={{ color: '#4b5563' }}>
-                        {t('landing.gallerySubtitle')}
-                      </p>
-                    </div>
-                    <div className="gallery-carousel-wrapper">
+                    {galleryLoading ? (
+                      <GallerySkeleton />
+                    ) : (
+                      <>
+                        <div className="gallery-header">
+                          <h2 className="gallery-title" style={{ color: '#111827' }}>
+                            <span className="gallery-title-highlight" style={{ color: '#dc2626' }}>{t('landing.galleryTitle')}</span>
+                          </h2>
+                          <p className="gallery-description" style={{ color: '#4b5563' }}>
+                            {t('landing.gallerySubtitle')}
+                          </p>
+                        </div>
+                        <div className="gallery-carousel-wrapper">
                       <div
                         className="gallery-carousel"
                         ref={carouselRef}
@@ -512,12 +528,12 @@ function App() {
                               className="gallery-item"
                               key={idx}
                             >
-                              <img 
-                                src={img} 
-                                alt="Memory" 
-                                className="gallery-image" 
-                                loading="lazy"
-                                decoding="async"
+                              <LazyImage
+                                src={img}
+                                alt="Memory"
+                                className="gallery-image"
+                                transformations="f_auto,q_auto,w_600"
+                                enableBlur={true}
                               />
                               <div className="gallery-overlay"></div>
                               <Heart className="gallery-heart" />
@@ -534,7 +550,9 @@ function App() {
                           />
                         ))}
                       </div>
-                    </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </section>
                 <section className="cta-section">
@@ -558,6 +576,7 @@ function App() {
       <Route path="/anniversary-reminders" element={<AnniversaryReminders onBack={() => window.history.back()} currentTheme={currentTheme} />} />
       <Route path="/setting-page" element={<SettingPage onBack={() => window.history.back()} currentTheme={currentTheme} setCurrentTheme={setCurrentTheme} />} />
     </Routes>
+    </PageTransition>
     </Suspense>
     </ErrorBoundary>
     </>
