@@ -2,65 +2,144 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper function to check if user is authenticated
-    function isSignedIn() {
+    // ===========================
+    // Helper Functions - V3.0
+    // ===========================
+    
+    // Kiểm tra user đã đăng nhập chưa
+    function isAuthenticated() {
       return request.auth != null;
     }
     
-    // Helper function to check if user owns the resource
+    // Kiểm tra user có phải chủ sở hữu không
     function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+      return isAuthenticated() && request.auth.uid == userId;
     }
     
-    // Helper function to validate language code
+    // Validate mã ngôn ngữ
     function isValidLanguage() {
       return !('language' in request.resource.data) || 
              request.resource.data.language in ['vi', 'en'];
     }
     
+    // Validate Memory data structure
+    function isValidMemory() {
+      let data = request.resource.data;
+      return data.userId is string
+        && data.title is string
+        && data.title.size() <= 200
+        && data.photos is list
+        && data.photos.size() <= 10
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+    
+    // Validate Anniversary data structure
+    function isValidAnniversary() {
+      let data = request.resource.data;
+      return data.userId is string
+        && data.title is string
+        && data.title.size() <= 200
+        && data.date is timestamp;
+    }
+    
+    // ===========================
+    // User Collections
+    // ===========================
+    
     // Dev Users collection (development environment)
-    // Stores user profile data including: displayName, email, phone, dob, language
+    // Stores: displayName, email, phone, dob, language
     match /dev_users/{userId} {
       allow read: if isOwner(userId);
       allow write: if isOwner(userId) && isValidLanguage();
     }
     
     // Production Users collection
-    // Stores user profile data including: displayName, email, phone, dob, language
+    // Stores: displayName, email, phone, dob, language
     match /users/{userId} {
       allow read: if isOwner(userId);
       allow write: if isOwner(userId) && isValidLanguage();
     }
     
-    // Dev Memories collection (development environment)
+    // ===========================
+    // Memories Collections - V3.0 Enhanced Security
+    // ===========================
+    
+    // Dev Memories - Development environment
     match /dev_memories/{memoryId} {
-      // Require authentication for all operations
-      allow read, write: if isSignedIn();
+      // Chỉ đọc memories của mình
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      // Tạo mới: phải validate data + là owner
+      allow create: if isAuthenticated() 
+        && isOwner(request.resource.data.userId)
+        && isValidMemory();
+      // Update: phải là owner + validate data
+      allow update: if isAuthenticated() 
+        && isOwner(resource.data.userId)
+        && isValidMemory();
+      // Delete: chỉ owner mới xóa được
+      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
     }
     
-    // Production Memories collection
+    // Production Memories - Enhanced security
     match /memories/{memoryId} {
-      // Require authentication for all operations
-      allow read, write: if isSignedIn();
+      // Chỉ đọc memories của mình
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      // Tạo mới: phải validate data + là owner
+      allow create: if isAuthenticated() 
+        && isOwner(request.resource.data.userId)
+        && isValidMemory();
+      // Update: phải là owner + validate data
+      allow update: if isAuthenticated() 
+        && isOwner(resource.data.userId)
+        && isValidMemory();
+      // Delete: chỉ owner mới xóa được
+      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
     }
+    
+    // ===========================
+    // Anniversary Collections - V3.0 Enhanced Security
+    // ===========================
     
     // Dev Anniversary Events
     match /dev_AnniversaryEvent/{eventId} {
-      allow read, write: if isSignedIn();
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated() 
+        && isOwner(request.resource.data.userId)
+        && isValidAnniversary();
+      allow update: if isAuthenticated() && isOwner(resource.data.userId);
+      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
     }
     
     // Production Anniversary Events
     match /AnniversaryEvent/{eventId} {
-      allow read, write: if isSignedIn();
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated() 
+        && isOwner(request.resource.data.userId)
+        && isValidAnniversary();
+      allow update: if isAuthenticated() && isOwner(resource.data.userId);
+      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
     }
     
-    // User Effects collections
+    // ===========================
+    // User Effects Collections
+    // ===========================
+    
     match /dev_userEffects/{userId} {
       allow read, write: if isOwner(userId);
     }
     
     match /userEffects/{userId} {
       allow read, write: if isOwner(userId);
+    }
+    
+    // ===========================
+    // Default Deny - Security Best Practice
+    // ===========================
+    
+    // Từ chối tất cả truy cập khác không được định nghĩa ở trên
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
