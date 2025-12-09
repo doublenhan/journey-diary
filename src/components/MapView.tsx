@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-
 import { MapPin, Calendar, X, Loader, Flame, Route } from 'lucide-react';
 import { getMemoriesWithCoordinates, MemoryFirestore } from '../utils/memoryFirestore';
 import { useLanguage } from '../hooks/useLanguage';
+import { calculateRoute } from '../services/geoService';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat';
 import '../styles/MapView.css';
@@ -115,7 +116,7 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
     fetchMemories();
   }, [userId]);
 
-  // Fetch actual route using OSRM when in route mode
+  // Fetch actual route using OSRM when in route mode (V3.0: direct API)
   useEffect(() => {
     const fetchRoute = async () => {
       if (viewMode !== 'route' || memories.length < 2) {
@@ -123,23 +124,16 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
         return;
       }
 
-      // Build coordinates string for OSRM
-      const coords = memories
+      // Build coordinates array for OSRM [longitude, latitude]
+      const coordinates: [number, number][] = memories
         .filter(m => m.coordinates)
-        .map(m => `${m.coordinates!.longitude},${m.coordinates!.latitude}`)
-        .join(';');
+        .map(m => [m.coordinates!.longitude, m.coordinates!.latitude]);
       
-      if (!coords) return;
+      if (coordinates.length < 2) return;
       
       try {
-        // Use unified geo API with route action
-        const response = await fetch(
-          `/api/geo?action=route&coords=${encodeURIComponent(coords)}`
-        );
-        
-        if (!response.ok) throw new Error('Failed to fetch route');
-        
-        const data = await response.json();
+        // Use direct OSRM API (no proxy needed)
+        const data = await calculateRoute(coordinates);
         
         if (data.routes && data.routes[0] && data.routes[0].geometry) {
           // Convert GeoJSON coordinates [lon, lat] to Leaflet coordinates [lat, lon]

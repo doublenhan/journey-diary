@@ -2,6 +2,7 @@
 // FREE OpenStreetMap Nominatim Autocomplete (no API key needed!)
 
 import { useState, useEffect, useRef } from 'react';
+import { searchLocations, type NominatimSearchResult } from '../services/geoService';
 
 export interface PlaceResult {
   address: string;
@@ -10,12 +11,8 @@ export interface PlaceResult {
   placeId: string;
 }
 
-interface NominatimResult {
-  place_id: number;
-  display_name: string;
-  lat: string;
-  lon: string;
-}
+// Re-export for backward compatibility
+type NominatimResult = NominatimSearchResult;
 
 export function usePlacesAutocomplete(inputRef: React.RefObject<HTMLInputElement>) {
   const [place, setPlace] = useState<PlaceResult | null>(null);
@@ -25,7 +22,7 @@ export function usePlacesAutocomplete(inputRef: React.RefObject<HTMLInputElement
   const debounceTimerRef = useRef<NodeJS.Timeout>();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Search Nominatim API via proxy to avoid CORS
+  // Search using direct Nominatim API (V3.0: no proxy needed)
   const searchPlaces = async (query: string) => {
     if (query.length < 3) {
       setSuggestions([]);
@@ -34,20 +31,9 @@ export function usePlacesAutocomplete(inputRef: React.RefObject<HTMLInputElement
 
     setIsLoading(true);
     try {
-      const response = await fetch(
-        `/api/geo?action=search&q=${encodeURIComponent(query)}`,
-        {
-          headers: {
-            'Accept': 'application/json'
-          }
-        }
-      );
-      
-      if (response.ok) {
-        const data: NominatimResult[] = await response.json();
-        setSuggestions(data);
-        setShowDropdown(data.length > 0);
-      }
+      const data = await searchLocations(query, 5);
+      setSuggestions(data);
+      setShowDropdown(data.length > 0);
     } catch (error) {
       console.error('Nominatim search error:', error);
       setSuggestions([]);
