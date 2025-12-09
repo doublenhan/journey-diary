@@ -45,6 +45,11 @@ const LoginPage = lazy(() => import(
   './LoginPage'
 ));
 
+const TestFirebaseServices = lazy(() => import(
+  /* webpackChunkName: "test-services" */
+  './components/TestFirebaseServices'
+));
+
 // Loading component with heart balloon and person
 const PageLoader = () => {
   return (
@@ -553,6 +558,7 @@ function App() {
       <Route path="/view-memory" element={<ViewMemory onBack={() => window.history.back()} currentTheme={currentTheme} />} />
       <Route path="/anniversary-reminders" element={<AnniversaryReminders onBack={() => window.history.back()} currentTheme={currentTheme} />} />
       <Route path="/setting-page" element={<SettingPage onBack={() => window.history.back()} currentTheme={currentTheme} setCurrentTheme={setCurrentTheme} />} />
+      <Route path="/test-services" element={<TestFirebaseServices />} />
     </Routes>
     </PageTransition>
     </Suspense>
