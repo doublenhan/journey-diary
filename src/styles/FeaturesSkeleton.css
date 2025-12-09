@@ -1,98 +1,99 @@
 .features-skeleton {
-  padding: 4rem 1rem;
+    padding: 4rem 1rem;
 }
 
 .features-skeleton-header {
-  text-align: center;
-  margin-bottom: 3rem;
+    text-align: center;
+    margin-bottom: 3rem;
 }
 
 .features-skeleton-header .skeleton-title {
-  width: 350px;
-  height: 40px;
-  margin: 0 auto 1rem;
-  border-radius: 8px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    width: 350px;
+    height: 40px;
+    margin: 0 auto 1rem;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
 }
 
 .features-skeleton-header .skeleton-subtitle {
-  width: 450px;
-  height: 20px;
-  margin: 0 auto;
-  border-radius: 6px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    width: 450px;
+    height: 20px;
+    margin: 0 auto;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
 }
 
 .features-skeleton-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .feature-skeleton-card {
-  padding: 2rem;
-  border-radius: 12px;
-  background: white;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .feature-skeleton-card .skeleton-icon {
-  width: 50px;
-  height: 50px;
-  margin: 0 auto 1rem;
-  border-radius: 50%;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
 }
 
 .feature-skeleton-card .skeleton-text {
-  width: 70%;
-  height: 24px;
-  margin: 0 auto 1rem;
-  border-radius: 6px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    width: 70%;
+    height: 24px;
+    margin: 0 auto 1rem;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
 }
 
 .feature-skeleton-card .skeleton-description {
-  width: 90%;
-  height: 16px;
-  margin: 0 auto;
-  border-radius: 4px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    width: 90%;
+    height: 16px;
+    margin: 0 auto;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
 }
 
 @keyframes skeleton-shimmer {
-  0% {
-    background-position: -1000px 0;
-  }
-  100% {
-    background-position: 1000px 0;
-  }
+    0% {
+        background-position: -1000px 0;
+    }
+
+    100% {
+        background-position: 1000px 0;
+    }
 }
 
 .skeleton-animate {
-  animation: skeleton-shimmer 2s infinite linear;
-  background-size: 1000px 100%;
+    animation: skeleton-shimmer 2s infinite linear;
+    background-size: 1000px 100%;
 }
 
 @media (max-width: 768px) {
-  .features-skeleton {
-    padding: 2rem 1rem;
-  }
+    .features-skeleton {
+        padding: 2rem 1rem;
+    }
 
-  .features-skeleton-header .skeleton-title {
-    width: 80%;
-    height: 32px;
-  }
+    .features-skeleton-header .skeleton-title {
+        width: 80%;
+        height: 32px;
+    }
 
-  .features-skeleton-header .skeleton-subtitle {
-    width: 90%;
-    height: 18px;
-  }
+    .features-skeleton-header .skeleton-subtitle {
+        width: 90%;
+        height: 18px;
+    }
 
-  .features-skeleton-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
+    .features-skeleton-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
 }
