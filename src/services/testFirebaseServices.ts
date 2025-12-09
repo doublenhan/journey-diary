@@ -245,7 +245,7 @@ export const runAllTests = async () => {
   console.log('\n---\n');
 
   // Test 2: Real-time subscription
-  results.realTime = await testRealTimeSubscription();
+  results.realTime = (await testRealTimeSubscription()) as boolean;
   console.log('\n---\n');
 
   // Test 3: Anniversary CRUD

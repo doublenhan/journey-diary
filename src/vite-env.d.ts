@@ -3,6 +3,7 @@
 interface ImportMetaEnv {
   readonly VITE_CLOUDINARY_CLOUD_NAME: string;
   readonly VITE_CLOUDINARY_API_KEY: string;
+  readonly VITE_CLOUDINARY_UPLOAD_PRESET?: string;
   readonly VITE_API_URL?: string;
   
   // Firebase config
@@ -16,6 +17,7 @@ interface ImportMetaEnv {
   
   // Environment prefix for DEV/PROD separation
   readonly VITE_ENV_PREFIX?: string;
+  readonly VITE_FIREBASE_ENV?: 'development' | 'production';
 }
 
 interface ImportMeta {
