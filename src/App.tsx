@@ -172,29 +172,7 @@ function App() {
     }
   }, [userId, loading, navigate]);
 
-  // ✅ Gọi API health check từ serverless Vercel (non-blocking)
-  useEffect(() => {
-    const checkHealth = async () => {
-      try {
-        const buildVersion = `${new Date().toISOString().split('T')[0]}-${Math.random().toString(36).substring(7)}`;
-        const res = await fetch('/api/cloudinary/health', {
-          method: 'GET',
-          headers: { 'Accept': 'application/json' }
-        });
-        
-        // Check if response is ok and has correct content type
-        const contentType = res.headers.get('content-type');
-        if (res.ok && contentType && contentType.includes('application/json')) {
-          const data = await res.json();
-        } else {
-        }
-      } catch (err) {
-        // Silently fail - don't block page load
-      }
-    };
-    
-    checkHealth();
-  }, []);
+  // Health check removed - no longer needed to stay within Vercel function limit
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [menuMounted, setMenuMounted] = useState(false);
