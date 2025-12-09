@@ -135,23 +135,13 @@ type FetchCloudinaryOptions = {
   maxResults?: number;
   nextCursor?: string;
   sortBy?: string;
-  sortOrder?: string;
+  sortOrder?: 'asc' | 'desc';
   userId?: string;
 };
 
-async function fetchCloudinaryImages(options: FetchCloudinaryOptions = {}) {
-  const params = new URLSearchParams();
-  if (options.folder) params.append('folder', options.folder);
-  if (options.tags && options.tags.length) params.append('tags', options.tags.join(','));
-  if (options.maxResults !== undefined) params.append('max_results', options.maxResults.toString());
-  if (options.nextCursor) params.append('next_cursor', options.nextCursor);
-  if (options.sortBy) params.append('sort_by', options.sortBy);
-  if (options.sortOrder) params.append('sort_order', options.sortOrder);
-  if (options.userId) params.append('userId', options.userId);
-  const res = await fetch(`/api/cloudinary/images?${params.toString()}`);
-  if (!res.ok) throw new Error('Failed to fetch images');
-  return await res.json();
-}
+// Note: fetchCloudinaryImages is deprecated in V3.0
+// Use fetchMemories from firebaseMemoriesService instead
+// This interface is kept for backward compatibility only
 
 function App() {
   const navigate = useNavigate();

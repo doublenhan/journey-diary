@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MemoriesByYear, Memory } from './useMemoriesCache';
+import { fetchMemories } from '../services/firebaseMemoriesService';
+import type { Memory as FirebaseMemory } from '../services/firebaseMemoriesService';
 
 const YEARS_PER_PAGE = 2; // Load 2 years at a time
 
@@ -59,24 +61,35 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
       }
     }
 
-    // If no valid cache or forced refresh, fetch from API
+    // If no valid cache or forced refresh, fetch from Firebase
     if (!cacheValid) {
       (async () => {
         try {
-          const params = userId ? `?userId=${encodeURIComponent(userId)}` : '';
-          const res = await fetch(`/api/cloudinary/memories${params}`);
+          // Fetch memories directly from Firestore
+          const firebaseMemories = await fetchMemories({ userId: userId || undefined });
           
-          if (!res.ok) {
-            console.warn(`Memories API returned ${res.status}`);
-            setMemoriesByYear({});
-            setAllYears([]);
-            setVisibleYears([]);
-            setIsLoading(false);
-            return;
-          }
-          
-          const data = await res.json();
-          const memories = data.memories || [];
+          // Transform Firebase memories to app format
+          const memories: Memory[] = firebaseMemories.map((m: FirebaseMemory) => ({
+            id: m.id,
+            title: m.title,
+            date: m.date,
+            text: m.text,
+            location: m.location?.address || null,
+            images: m.photos.map(photo => ({
+              public_id: photo.publicId,
+              secure_url: photo.url,
+              url: photo.url,
+              width: photo.width || 0,
+              height: photo.height || 0,
+              format: photo.format || 'jpg',
+              resource_type: 'image' as const,
+              created_at: m.createdAt,
+              bytes: 0,
+            })),
+            created_at: m.createdAt,
+            tags: m.tags || [],
+            folder: `journey-diary/${m.userId}/memories`,
+          }));
           
           // Save to cache
           localStorage.setItem(cacheKey, JSON.stringify({ memories, timestamp: Date.now() }));
