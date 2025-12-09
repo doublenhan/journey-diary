@@ -35,7 +35,7 @@ export function usePlacesAutocomplete(inputRef: React.RefObject<HTMLInputElement
     setIsLoading(true);
     try {
       const response = await fetch(
-        `/api/nominatim/search?q=${encodeURIComponent(query)}`,
+        `/api/geo?action=search&q=${encodeURIComponent(query)}`,
         {
           headers: {
             'Accept': 'application/json'

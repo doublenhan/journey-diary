@@ -132,9 +132,9 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
       if (!coords) return;
       
       try {
-        // Use server-side proxy to bypass CSP restrictions
+        // Use unified geo API with route action
         const response = await fetch(
-          `/api/routing/osrm?coords=${encodeURIComponent(coords)}`
+          `/api/geo?action=route&coords=${encodeURIComponent(coords)}`
         );
         
         if (!response.ok) throw new Error('Failed to fetch route');

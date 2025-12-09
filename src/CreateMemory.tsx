@@ -103,13 +103,13 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
           text: '🌍 Đang chuyển đổi tọa độ thành địa chỉ...'
         });
         
-        // Reverse geocode using Nominatim via proxy (FREE!)
+        // Reverse geocode using unified geo API (FREE!)
         try {
           const controller = new AbortController();
           const reverseTimeout = setTimeout(() => controller.abort(), 10000);
           
           const response = await fetch(
-            `/api/nominatim/reverse?lat=${coords.lat}&lon=${coords.lng}`,
+            `/api/geo?action=reverse&lat=${coords.lat}&lon=${coords.lng}`,
             {
               headers: {
                 'Accept': 'application/json'
