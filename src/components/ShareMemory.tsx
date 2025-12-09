@@ -48,24 +48,29 @@ export function ShareMemory({ memory, onClose, theme }: ShareMemoryProps) {
     setError(null);
 
     try {
-      // Use higher quality settings for download
+      // Wait a bit for any animations to complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Use optimized settings for high-quality download
       const canvas = await html2canvas(cardRef.current, {
         backgroundColor: '#ffffff',
-        scale: 3, // Higher quality for download (3x)
+        scale: 2.5,
         useCORS: true,
+        allowTaint: false,
         logging: false,
-        allowTaint: true,
-        imageTimeout: 0,
-        removeContainer: false,
+        imageTimeout: 15000,
+        removeContainer: true,
         windowWidth: cardRef.current.scrollWidth,
         windowHeight: cardRef.current.scrollHeight,
         width: cardRef.current.offsetWidth,
         height: cardRef.current.offsetHeight,
         scrollX: 0,
-        scrollY: 0,
+        scrollY: -window.scrollY,
+        x: 0,
+        y: 0,
       });
 
-      // Convert to blob with high quality
+      // Convert to blob with maximum quality
       canvas.toBlob((blob) => {
         if (!blob) {
           setError('Không thể tạo ảnh. Vui lòng thử lại.');
