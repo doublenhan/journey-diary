@@ -1,0 +1,250 @@
+<mxfile host="65bd71144e">
+    <diagram name="Architecture V3" id="arch-v3">
+        <mxGraphModel dx="2311" dy="808" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1400" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="Love Journey Diary - Architecture V3.0&#xa;Firebase Direct Backend + Optimized Frontend" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#1a1a1a;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="20" width="1200" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="Date: December 9, 2025 | Status: Planning | Target: Q1 2026" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="80" width="1200" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fce4ec;strokeColor=#ec4899;strokeWidth=3;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="140" width="1520" height="300" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="LAYER 1: VERCEL FRONTEND (Static Hosting Only)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;fontColor=#ec4899;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="150" width="500" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="React SPA&#xa;(Optimized Build)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ec4899;strokeColor=#be185d;strokeWidth=2;fontColor=#ffffff;fontSize=14;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="200" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#ec4899;strokeWidth=2;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="310" width="720" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="Pages (Route-based Lazy Loading)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#ec4899;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="320" width="250" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="HomePage" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbcfe8;strokeColor=#ec4899;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="350" width="100" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="16" value="CreateMemory" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbcfe8;strokeColor=#ec4899;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="220" y="350" width="100" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="ViewMemory" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbcfe8;strokeColor=#ec4899;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="350" width="100" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="18" value="Anniversaries" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbcfe8;strokeColor=#ec4899;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="460" y="350" width="100" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" value="Journey" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbcfe8;strokeColor=#ec4899;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="580" y="350" width="100" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="20" value="Settings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbcfe8;strokeColor=#ec4899;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="700" y="350" width="90" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#ec4899;strokeWidth=2;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="840" y="200" width="700" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="22" value="Frontend Optimizations" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#ec4899;" parent="1" vertex="1">
+                    <mxGeometry x="860" y="210" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="23" value="Code Splitting&#xa;(Vendor + Features)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbcfe8;strokeColor=#ec4899;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="860" y="240" width="140" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="24" value="Lazy Loading&#xa;(Routes + Components)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbcfe8;strokeColor=#ec4899;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="1020" y="240" width="140" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="25" value="Tree Shaking&#xa;(Remove unused)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbcfe8;strokeColor=#ec4899;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="1180" y="240" width="140" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="26" value="Service Worker&#xa;(Offline support)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbcfe8;strokeColor=#ec4899;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="860" y="310" width="140" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="27" value="Performance&#xa;(Web Vitals)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbcfe8;strokeColor=#ec4899;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="1020" y="310" width="140" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="28" value="Progressive Images&#xa;(Blur-up)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbcfe8;strokeColor=#ec4899;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="1180" y="310" width="140" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;strokeWidth=3;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="480" width="760" height="420" as="geometry"/>
+                </mxCell>
+                <mxCell id="31" value="LAYER 2: FIREBASE BACKEND (Direct SDK Connection)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;fontColor=#f97316;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="490" width="550" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="32" value="Firebase Authentication&#xa;&#xa;• Email/Password&#xa;• Phone (SMS)&#xa;• Session Management&#xa;• Token Refresh" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f97316;strokeColor=#c2410c;strokeWidth=2;fontColor=#ffffff;fontSize=11;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="540" width="200" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="33" value="Cloud Firestore&#xa;&#xa;• memories collection&#xa;• anniversaries collection&#xa;• users collection&#xa;• Real-time listeners&#xa;• Offline persistence" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f97316;strokeColor=#c2410c;strokeWidth=2;fontColor=#ffffff;fontSize=11;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="300" y="540" width="200" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="34" value="Firebase Storage&#xa;&#xa;• User avatars&#xa;• Backup files&#xa;• PDF exports&#xa;• Signed URLs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f97316;strokeColor=#c2410c;strokeWidth=2;fontColor=#ffffff;fontSize=11;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="520" y="540" width="200" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="35" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#f97316;strokeWidth=2;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="690" width="640" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="36" value="Security &amp; Performance Features" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#f97316;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="700" width="250" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="37" value="Security Rules&#xa;• User ownership&#xa;• Data validation&#xa;• Rate limiting" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fed7aa;strokeColor=#f97316;fontSize=10;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="730" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="38" value="Firestore Indexes&#xa;• userId + createdAt&#xa;• userId + location&#xa;• Compound queries" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fed7aa;strokeColor=#f97316;fontSize=10;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="300" y="730" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="39" value="Query Optimization&#xa;• Pagination&#xa;• Cache-first&#xa;• Real-time listeners" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fed7aa;strokeColor=#f97316;fontSize=10;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="730" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="40" value="Firebase Extensions&#xa;• App Check&#xa;• Rate limiting" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fed7aa;strokeColor=#f97316;fontSize=10;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="825" width="180" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="41" value="Monitoring&#xa;• Usage dashboard&#xa;• Cost alerts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fed7aa;strokeColor=#f97316;fontSize=10;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="300" y="825" width="180" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="42" value="Offline Support&#xa;• IndexedDB cache&#xa;• Sync when online" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fed7aa;strokeColor=#f97316;fontSize=10;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="825" width="180" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="50" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ecfdf5;strokeColor=#10b981;strokeWidth=3;" parent="1" vertex="1">
+                    <mxGeometry x="840" y="480" width="720" height="420" as="geometry"/>
+                </mxCell>
+                <mxCell id="51" value="LAYER 3: CLOUDINARY (Direct Upload + CDN)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;fontColor=#10b981;" parent="1" vertex="1">
+                    <mxGeometry x="860" y="490" width="500" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="52" value="Upload Widget&#xa;&#xa;• Direct browser upload&#xa;• Multi-file support&#xa;• Drag &amp; drop&#xa;• Camera access&#xa;• Progress tracking" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#10b981;strokeColor=#047857;strokeWidth=2;fontColor=#ffffff;fontSize=11;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="880" y="540" width="220" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="53" value="Image Processing&#xa;&#xa;• Auto format (WebP, AVIF)&#xa;• Auto quality&#xa;• Responsive images&#xa;• Lazy loading&#xa;• Progressive loading" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#10b981;strokeColor=#047857;strokeWidth=2;fontColor=#ffffff;fontSize=11;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="540" width="220" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="54" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#10b981;strokeWidth=2;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="880" y="690" width="460" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="55" value="Image Transformations &amp; Optimizations" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#10b981;" parent="1" vertex="1">
+                    <mxGeometry x="900" y="700" width="300" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="56" value="Responsive Sizing&#xa;• Thumbnail: 200x200&#xa;• Preview: 800x600&#xa;• Full: 1920x1080" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a7f3d0;strokeColor=#10b981;fontSize=10;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="900" y="730" width="130" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="57" value="Quality Control&#xa;• Auto:good (default)&#xa;• Auto:best (premium)&#xa;• Auto:low (thumb)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a7f3d0;strokeColor=#10b981;fontSize=10;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="1050" y="730" width="130" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="58" value="Format Selection&#xa;• WebP (modern)&#xa;• AVIF (next-gen)&#xa;• Auto (best)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a7f3d0;strokeColor=#10b981;fontSize=10;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="1200" y="730" width="130" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="59" value="Lazy Loading&#xa;Intersection Observer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a7f3d0;strokeColor=#10b981;fontSize=10;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="900" y="820" width="130" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="60" value="CDN Caching&#xa;Global distribution" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a7f3d0;strokeColor=#10b981;fontSize=10;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="1050" y="820" width="130" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="61" value="Secure URLs&#xa;Signed uploads" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a7f3d0;strokeColor=#10b981;fontSize=10;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="1200" y="820" width="130" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="70" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=1;strokeWidth=3;strokeColor=#f97316;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="12" target="32" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="800" y="600" as="sourcePoint"/>
+                        <mxPoint x="850" y="550" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="60" y="240"/>
+                            <mxPoint x="60" y="400"/>
+                            <mxPoint x="60" y="600"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="71" value="Firebase SDK&#xa;(Direct)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#f97316;fontStyle=1" parent="70" vertex="1" connectable="0">
+                    <mxGeometry x="-0.1" y="2" relative="1" as="geometry">
+                        <mxPoint x="10" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="72" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=1;strokeWidth=3;strokeColor=#10b981;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" parent="1" source="12" target="52" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="800" y="600" as="sourcePoint"/>
+                        <mxPoint x="850" y="550" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="790" y="240"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="73" value="Cloudinary Widget&#xa;(Direct Upload)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#10b981;fontStyle=1" parent="72" vertex="1" connectable="0">
+                    <mxGeometry x="0.1" relative="1" as="geometry">
+                        <mxPoint x="-10" y="-15" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="80" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#22c55e;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="940" width="760" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="81" value="Benefits of V3.0 Architecture" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#22c55e;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="950" width="300" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="82" value="Cost Reduction: -38%&#xa;No serverless costs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bbf7d0;strokeColor=#22c55e;fontSize=11;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="990" width="220" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="83" value="Lower Latency: -50%&#xa;1 hop instead of 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bbf7d0;strokeColor=#22c55e;fontSize=11;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="300" y="990" width="220" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="84" value="Better Security&#xa;Firebase Rules" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bbf7d0;strokeColor=#22c55e;fontSize=11;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="990" width="220" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="85" value="Smaller Bundle: -33%&#xa;450KB to 300KB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bbf7d0;strokeColor=#22c55e;fontSize=11;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="1055" width="220" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="86" value="Offline Support&#xa;Firebase cache" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bbf7d0;strokeColor=#22c55e;fontSize=11;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="300" y="1055" width="220" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="87" value="Auto-scaling&#xa;Firebase handles load" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bbf7d0;strokeColor=#22c55e;fontSize=11;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="1055" width="220" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="90" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="840" y="940" width="720" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="91" value="Performance Targets" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#3b82f6;" parent="1" vertex="1">
+                    <mxGeometry x="860" y="950" width="300" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="92" value="Initial Load&#xa;&lt;2s on 4G" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bfdbfe;strokeColor=#3b82f6;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="860" y="990" width="130" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="93" value="Bundle Size&#xa;&lt;300KB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bfdbfe;strokeColor=#3b82f6;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="1010" y="990" width="130" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="94" value="Images&#xa;150-400KB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bfdbfe;strokeColor=#3b82f6;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="1160" y="990" width="130" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="95" value="LCP: &lt;2.5s" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bfdbfe;strokeColor=#3b82f6;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="1310" y="990" width="130" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="96" value="TTI: &lt;3s" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bfdbfe;strokeColor=#3b82f6;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="860" y="1055" width="130" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="97" value="CLS: &lt;0.1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bfdbfe;strokeColor=#3b82f6;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="1010" y="1055" width="130" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="98" value="Cost: -60%" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bfdbfe;strokeColor=#3b82f6;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="1160" y="1055" width="130" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="99" value="Lighthouse: 90+" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bfdbfe;strokeColor=#3b82f6;fontSize=11;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="1310" y="1055" width="130" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="100" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f9fafb;strokeColor=#9ca3af;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="1160" width="300" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="101" value="Legend" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#1f2937;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="1170" width="300" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="102" value="Frontend Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fce4ec;strokeColor=#ec4899;fontSize=11;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="1210" width="260" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="103" value="Firebase Backend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=11;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="1250" width="260" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="104" value="Cloudinary CDN" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ecfdf5;strokeColor=#10b981;fontSize=11;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="1290" width="260" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="105" value="Stats: 10 pages, 15+ components, 10+ hooks&#xa;0 API endpoints - Direct SDK integration&#xa;Cost: $68/month (down from $110)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#6b7280;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="1325" width="260" height="30" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
