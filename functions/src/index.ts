@@ -1,9 +1,15 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import { v2 as cloudinary } from 'cloudinary';
+import { defineString } from 'firebase-functions/params';
 
 // Initialize Firebase Admin
 admin.initializeApp();
+
+// Define environment parameters for Gen 2 functions
+const cloudinaryCloudName = defineString('CLOUDINARY_CLOUD_NAME', { default: 'dhelefhv1' });
+const cloudinaryApiKey = defineString('CLOUDINARY_API_KEY', { default: '296369272882129' });
+const cloudinaryApiSecret = defineString('CLOUDINARY_API_SECRET');
 
 /**
  * Delete an image from Cloudinary
@@ -11,13 +17,11 @@ admin.initializeApp();
  */
 export const deleteCloudinaryImage = functions.https.onCall(
   async (data: any, context: any) => {
-    // Configure Cloudinary with credentials from Firebase config
-    // This is done inside the function to access runtime config
-    const cloudinaryConfig = functions.config().cloudinary || {};
+    // Configure Cloudinary with environment variables
     cloudinary.config({
-      cloud_name: cloudinaryConfig.cloud_name || 'dhelefhv1',
-      api_key: cloudinaryConfig.api_key || '296369272882129',
-      api_secret: cloudinaryConfig.api_secret,
+      cloud_name: cloudinaryCloudName.value(),
+      api_key: cloudinaryApiKey.value(),
+      api_secret: cloudinaryApiSecret.value(),
     });
 
     // Verify user is authenticated
