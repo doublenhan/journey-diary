@@ -10,6 +10,50 @@ admin.initializeApp();
 const corsHandler = cors({ origin: true });
 
 /**
+ * Extract publicId from Cloudinary URL
+ * Example: https://res.cloudinary.com/dhelefhv1/image/upload/v1765358332/dev/love-journal/users/.../image.jpg
+ * Returns: dev/love-journal/users/.../image (without extension)
+ */
+const extractPublicIdFromUrl = (urlOrPublicId: string): string => {
+  // If it's not a URL, return as-is
+  if (!urlOrPublicId.startsWith('http://') && !urlOrPublicId.startsWith('https://')) {
+    return urlOrPublicId;
+  }
+
+  try {
+    const url = new URL(urlOrPublicId);
+    const pathParts = url.pathname.split('/');
+    
+    // Find the index of 'upload' in the path
+    const uploadIndex = pathParts.indexOf('upload');
+    if (uploadIndex === -1) {
+      throw new Error('Invalid Cloudinary URL format');
+    }
+    
+    // Get everything after 'upload' and version (v1234567890)
+    // Skip the version part (starts with 'v' followed by numbers)
+    let startIndex = uploadIndex + 1;
+    if (pathParts[startIndex]?.match(/^v\d+$/)) {
+      startIndex++;
+    }
+    
+    // Join the remaining parts
+    const publicIdWithExtension = pathParts.slice(startIndex).join('/');
+    
+    // Remove file extension
+    const lastDotIndex = publicIdWithExtension.lastIndexOf('.');
+    const publicId = lastDotIndex > 0 
+      ? publicIdWithExtension.substring(0, lastDotIndex)
+      : publicIdWithExtension;
+    
+    return publicId;
+  } catch (error) {
+    console.error('Error extracting publicId from URL:', error);
+    return urlOrPublicId; // Return original if parsing fails
+  }
+};
+
+/**
  * Delete an image from Cloudinary
  * Requires Firebase Authentication
  */
@@ -18,7 +62,7 @@ export const deleteCloudinaryImage = functions.https.onRequest((req, res) => {
     try {
       // Parse request body
       const { data } = req.body;
-      const { publicId } = data || {};
+      const { publicId: publicIdOrUrl } = data || {};
 
       // Get auth token from Authorization header
       const authHeader = req.headers.authorization;
@@ -40,8 +84,8 @@ export const deleteCloudinaryImage = functions.https.onRequest((req, res) => {
       console.log('Authenticated user:', decodedToken.uid);
 
       // Validate input
-      if (!publicId || typeof publicId !== 'string') {
-        console.error('Invalid publicId:', publicId);
+      if (!publicIdOrUrl || typeof publicIdOrUrl !== 'string') {
+        console.error('Invalid publicId:', publicIdOrUrl);
         res.status(400).json({
           error: {
             message: 'Invalid argument: publicId is required',
@@ -50,6 +94,11 @@ export const deleteCloudinaryImage = functions.https.onRequest((req, res) => {
         });
         return;
       }
+
+      // Extract publicId from URL if necessary
+      const publicId = extractPublicIdFromUrl(publicIdOrUrl);
+      console.log('Original input:', publicIdOrUrl);
+      console.log('Extracted publicId:', publicId);
 
       // Configure Cloudinary
       cloudinary.config({
