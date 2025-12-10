@@ -338,8 +338,11 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
             const year = now.getFullYear();
             const month = now.toLocaleString('en-US', { month: 'long' }).toLowerCase();
             const envPrefix = import.meta.env.VITE_CLOUDINARY_FOLDER || '';
+            console.log('[DEBUG] VITE_CLOUDINARY_FOLDER:', import.meta.env.VITE_CLOUDINARY_FOLDER);
+            console.log('[DEBUG] envPrefix:', envPrefix);
             const baseFolder = envPrefix ? `${envPrefix}/love-journal` : 'love-journal';
             const folder = `${baseFolder}/users/${userId}/${year}/${month}/memories`;
+            console.log('[DEBUG] Final folder path:', folder);
             
             const result = await uploadToCloudinary(
               file,
