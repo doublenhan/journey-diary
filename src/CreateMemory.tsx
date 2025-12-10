@@ -325,6 +325,9 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
       // Step 1: Upload images to Cloudinary directly from client
       const uploadedUrls: string[] = [];
       
+      console.log('[DEBUG] All ENV VARS:', import.meta.env);
+      console.log('[DEBUG] VITE_CLOUDINARY_FOLDER at start:', import.meta.env.VITE_CLOUDINARY_FOLDER);
+      
       if (uploadedImages.length > 0) {
         console.log(`Uploading ${uploadedImages.length} images to Cloudinary...`);
         
