@@ -47,9 +47,6 @@ export const uploadToCloudinary = async (
   onProgress?: (progress: number) => void
 ): Promise<CloudinaryUploadResult> => {
   try {
-    console.log('[DEBUG cloudinaryDirectService] Upload options received:', options);
-    console.log('[DEBUG cloudinaryDirectService] Folder:', options.folder);
-    
     // Validate cloud name và upload preset
     if (!CLOUDINARY_CLOUD_NAME) {
       throw new Error('Cloudinary cloud name not configured');
@@ -64,7 +61,6 @@ export const uploadToCloudinary = async (
 
     // Add folder nếu có
     if (options.folder) {
-      console.log('[DEBUG cloudinaryDirectService] Appending folder to FormData:', options.folder);
       formData.append('folder', options.folder);
     }
 

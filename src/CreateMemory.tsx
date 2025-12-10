@@ -27,12 +27,6 @@ interface CreateMemoryProps {
 }
 
 function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
-  // DEBUG: Log environment variables immediately when component mounts
-  console.log('🔍 [CreateMemory Component Loaded]');
-  console.log('VITE_CLOUDINARY_FOLDER:', import.meta.env.VITE_CLOUDINARY_FOLDER);
-  console.log('VITE_ENV_PREFIX:', import.meta.env.VITE_ENV_PREFIX);
-  console.log('All env vars:', import.meta.env);
-  
   const { userId, loading } = useCurrentUserId();
   useMemoriesCache(userId, loading);
   const { syncStatus, lastSyncTime, errorMessage, startSync, syncSuccess, syncError } = useSyncStatus();
@@ -331,9 +325,6 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
       // Step 1: Upload images to Cloudinary directly from client
       const uploadedUrls: string[] = [];
       
-      console.log('[DEBUG] All ENV VARS:', import.meta.env);
-      console.log('[DEBUG] VITE_CLOUDINARY_FOLDER at start:', import.meta.env.VITE_CLOUDINARY_FOLDER);
-      
       if (uploadedImages.length > 0) {
         console.log(`Uploading ${uploadedImages.length} images to Cloudinary...`);
         
@@ -347,17 +338,21 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
             const year = now.getFullYear();
             const month = now.toLocaleString('en-US', { month: 'long' }).toLowerCase();
             
-            // TEMPORARY FIX: Force 'dev' for git-dev preview deployments
+            // Environment detection for Vercel deployments
             const hostname = window.location.hostname;
-            const isDev = hostname.includes('git-dev') || hostname.includes('localhost');
-            const envPrefix = isDev ? 'dev' : (import.meta.env.VITE_CLOUDINARY_FOLDER || 'production');
+            // Preview deployments: journey-diary-git-dev-*.vercel.app OR journey-diary-*-doublenhans-projects.vercel.app
+            // Production: journey-diary.vercel.app (custom domain hoặc main branch)
+            const isPreview = hostname.includes('git-dev') || 
+                             hostname.includes('doublenhans-projects.vercel.app') ||
+                             hostname.includes('localhost');
+            const envPrefix = isPreview ? 'dev' : 'production';
             
-            console.log('[DEBUG] hostname:', hostname);
-            console.log('[DEBUG] isDev:', isDev);
-            console.log('[DEBUG] VITE_CLOUDINARY_FOLDER from env:', import.meta.env.VITE_CLOUDINARY_FOLDER);
-            console.log('[DEBUG] Final envPrefix:', envPrefix);
+            console.log('[CreateMemory Upload]');
+            console.log('  hostname:', hostname);
+            console.log('  isPreview:', isPreview);
+            console.log('  envPrefix:', envPrefix);
             
-            const baseFolder = envPrefix ? `${envPrefix}/love-journal` : 'love-journal';
+            const baseFolder = `${envPrefix}/love-journal`;
             const folder = `${baseFolder}/users/${userId}/${year}/${month}/memories`;
             console.log('[DEBUG] Final folder path:', folder);
             
