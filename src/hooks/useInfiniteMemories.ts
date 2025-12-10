@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MemoriesByYear, Memory } from './useMemoriesCache';
+import { MemoriesByYear, Memory, MemoryImage } from './useMemoriesCache';
 import { fetchMemories } from '../services/firebaseMemoriesService';
 import type { Memory as FirebaseMemory } from '../services/firebaseMemoriesService';
 
@@ -66,7 +66,7 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
       (async () => {
         try {
           // Fetch memories directly from Firestore
-          const firebaseMemories = await fetchMemories({ userId: userId || undefined });
+          const firebaseMemories = await fetchMemories({ userId: userId || '' });
           
           // Detect current environment
           const hostname = window.location.hostname;
@@ -81,13 +81,13 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
           console.log('  currentEnv:', currentEnv);
           
           // Transform Firebase memories to app format
-          const memories: Memory[] = firebaseMemories.map((m: FirebaseMemory) => {
+          const transformedMemories = firebaseMemories.map((m: FirebaseMemory) => {
             // Handle both old format (cloudinaryPublicIds) and new format (photos)
             const rawData = m as any;
-            let images = [];
+            let images: MemoryImage[] = [];
             
             if (m.photos && Array.isArray(m.photos)) {
-              images = m.photos.map(photo => {
+              images = m.photos.map((photo: any) => {
                 if (typeof photo === 'string') {
                   // Check if it's a URL or publicId
                   if (photo.startsWith('http://') || photo.startsWith('https://')) {
@@ -100,8 +100,9 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
                       height: 0,
                       format: 'jpg',
                       resource_type: 'image' as const,
-                      created_at: m.createdAt instanceof Date ? m.createdAt.toISOString() : m.createdAt,
+                      created_at: typeof m.createdAt === 'string' ? m.createdAt : new Date().toISOString(),
                       bytes: 0,
+                      tags: [],
                     };
                   } else {
                     // It's a publicId, build Cloudinary URL
@@ -113,22 +114,24 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
                       height: 0,
                       format: 'jpg',
                       resource_type: 'image' as const,
-                      created_at: m.createdAt instanceof Date ? m.createdAt.toISOString() : m.createdAt,
+                      created_at: typeof m.createdAt === 'string' ? m.createdAt : new Date().toISOString(),
                       bytes: 0,
+                      tags: [],
                     };
                   }
                 } else {
                   // Photo is object with publicId, url, etc
                   return {
-                    public_id: photo.publicId || photo.public_id,
-                    secure_url: photo.url || photo.secure_url,
-                    url: photo.url,
+                    public_id: photo.publicId || photo.public_id || '',
+                    secure_url: photo.url || photo.secure_url || '',
+                    url: photo.url || '',
                     width: photo.width || 0,
                     height: photo.height || 0,
                     format: photo.format || 'jpg',
                     resource_type: 'image' as const,
-                    created_at: m.createdAt instanceof Date ? m.createdAt.toISOString() : m.createdAt,
+                    created_at: typeof m.createdAt === 'string' ? m.createdAt : new Date().toISOString(),
                     bytes: 0,
+                    tags: photo.tags || [],
                   };
                 }
               });
@@ -137,7 +140,7 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
             return {
               id: m.id,
               title: m.title,
-              date: m.date instanceof Date ? m.date.toISOString().split('T')[0] : (rawData.date || ''),
+              date: typeof rawData.date === 'string' ? rawData.date : (m.date ? new Date(m.date as any).toISOString().split('T')[0] : ''),
               text: m.description || rawData.text || '',
               location: m.location?.city || m.location?.address || rawData.location || null,
               coordinates: m.location?.coordinates ? {
@@ -145,13 +148,14 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
                 lng: m.location.coordinates.lng,
               } : undefined,
               images,
-              created_at: m.createdAt instanceof Date ? m.createdAt.toISOString() : m.createdAt,
+              created_at: typeof m.createdAt === 'string' ? m.createdAt : new Date().toISOString(),
               tags: m.tags || [],
               folder: rawData.cloudinaryFolder || `journey-diary/${m.userId}/memories`,
             };
-          })
-          // IMPORTANT: Filter memories by environment based on Cloudinary folder prefix
-          .filter(memory => {
+          });
+          
+          // Filter by environment
+          const memories: Memory[] = transformedMemories.filter(memory => {
             // Check if any image URL contains the current environment prefix
             const hasMatchingImages = memory.images.some(img => {
               const publicId = img.public_id || '';
