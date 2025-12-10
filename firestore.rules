@@ -22,16 +22,49 @@ service cloud.firestore {
              request.resource.data.language in ['vi', 'en'];
     }
     
-    // Validate Memory data structure
+    // Validate string with min/max length
+    function isValidString(str, minLength, maxLength) {
+      return str is string 
+        && str.size() >= minLength 
+        && str.size() <= maxLength;
+    }
+    
+    // Validate timestamp is recent (within 1 minute of server time)
+    function isRecentTimestamp(ts) {
+      return ts is timestamp
+        && ts > request.time - duration.value(1, 'm')
+        && ts < request.time + duration.value(1, 'm');
+    }
+    
+    // Validate Memory data structure - Enhanced
     function isValidMemory() {
       let data = request.resource.data;
       return data.userId is string
-        && data.title is string
-        && data.title.size() <= 200
+        && isValidString(data.title, 1, 200)
         && data.photos is list
+        && data.photos.size() >= 1
         && data.photos.size() <= 10
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
+    }
+    
+    // Validate Memory on create - stricter validation
+    function isValidMemoryCreate() {
+      let data = request.resource.data;
+      return isValidMemory()
+        && data.createdAt == data.updatedAt
+        && isRecentTimestamp(data.createdAt);
+    }
+    
+    // Validate Memory on update - prevent critical changes
+    function isValidMemoryUpdate() {
+      let data = request.resource.data;
+      let oldData = resource.data;
+      return isValidMemory()
+        && data.userId == oldData.userId
+        && data.createdAt == oldData.createdAt
+        && data.updatedAt > oldData.updatedAt
+        && isRecentTimestamp(data.updatedAt);
     }
     
     // Validate Anniversary data structure
@@ -69,14 +102,14 @@ service cloud.firestore {
     match /dev_memories/{memoryId} {
       // Chỉ đọc memories của mình
       allow read: if isAuthenticated() && isOwner(resource.data.userId);
-      // Tạo mới: phải validate data + là owner
+      // Tạo mới: phải validate data + là owner + stricter checks
       allow create: if isAuthenticated() 
         && isOwner(request.resource.data.userId)
-        && isValidMemory();
-      // Update: phải là owner + validate data
+        && isValidMemoryCreate();
+      // Update: phải là owner + validate data + prevent critical changes
       allow update: if isAuthenticated() 
         && isOwner(resource.data.userId)
-        && isValidMemory();
+        && isValidMemoryUpdate();
       // Delete: chỉ owner mới xóa được
       allow delete: if isAuthenticated() && isOwner(resource.data.userId);
     }
@@ -85,14 +118,14 @@ service cloud.firestore {
     match /memories/{memoryId} {
       // Chỉ đọc memories của mình
       allow read: if isAuthenticated() && isOwner(resource.data.userId);
-      // Tạo mới: phải validate data + là owner
+      // Tạo mới: phải validate data + là owner + stricter checks
       allow create: if isAuthenticated() 
         && isOwner(request.resource.data.userId)
-        && isValidMemory();
-      // Update: phải là owner + validate data
+        && isValidMemoryCreate();
+      // Update: phải là owner + validate data + prevent critical changes
       allow update: if isAuthenticated() 
         && isOwner(resource.data.userId)
-        && isValidMemory();
+        && isValidMemoryUpdate();
       // Delete: chỉ owner mới xóa được
       allow delete: if isAuthenticated() && isOwner(resource.data.userId);
     }
