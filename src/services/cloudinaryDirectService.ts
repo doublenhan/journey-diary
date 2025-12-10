@@ -155,26 +155,31 @@ export const uploadToCloudinary = async (
 };
 
 /**
- * Xóa ảnh từ Cloudinary
- * Note: Cần API key và signature để xóa, có thể cần Cloud Function
- * Hoặc sử dụng Cloudinary Upload API với authenticated request
+ * Xóa ảnh từ Cloudinary via Vercel API endpoint
  */
 export const deleteFromCloudinary = async (
   publicId: string
 ): Promise<CloudinaryDeleteResult> => {
   try {
-    // Note: Client-side deletion requires signed request
-    // Có thể implement bằng cách:
-    // 1. Sử dụng Firebase Cloud Function để tạo signature
-    // 2. Hoặc để ảnh tự động expire sau một thời gian
-    // 3. Hoặc chỉ xóa reference trong Firestore, giữ ảnh trên Cloudinary
+    console.log('🗑️ Deleting image from Cloudinary:', publicId);
     
-    console.warn('⚠️ Direct client-side deletion not implemented yet');
-    console.warn('Consider using Firebase Cloud Function for deletion');
+    const response = await fetch('/api/cloudinary-delete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ publicId }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to delete image');
+    }
+
+    const result = await response.json();
+    console.log('✅ Image deleted successfully:', result);
     
-    // For now, just return success
-    // In production, implement proper deletion via Cloud Function
-    return { result: 'ok' };
+    return { result: result.result || 'ok' };
   } catch (error) {
     console.error('❌ Error deleting from Cloudinary:', error);
     throw error;
