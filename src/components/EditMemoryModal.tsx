@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { X, Save, Trash2, GripVertical, Upload, Check, Type, MapPin } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Save, Trash2, GripVertical, Upload, Check, Type, MapPin, Navigation } from 'lucide-react';
 import { updateMemory, deleteMemory } from '../utils/memoryOperations';
 import CustomDatePicker from './CustomDatePicker';
 import TextInput from './TextInput';
@@ -7,6 +7,8 @@ import TextArea from './TextArea';
 import { validateImageFiles, IMAGE_VALIDATION } from '../utils/imageValidation';
 import { updateMemory as updateMemoryFirestore } from '../services/firebaseMemoriesService';
 import { uploadToCloudinary, deleteFromCloudinary } from '../services/cloudinaryDirectService';
+import { reverseGeocode } from '../services/geoService';
+import { usePlacesAutocomplete } from '../hooks/usePlacesAutocomplete';
 import '../styles/components.css';
 
 // Parse date string (YYYY-MM-DD) as local date to avoid timezone offset
@@ -46,6 +48,10 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
   const [title, setTitle] = useState(memory.title);
   const [text, setText] = useState(memory.text);
   const [location, setLocation] = useState(memory.location || '');
+  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(
+    memory.coordinates ? { lat: memory.coordinates.latitude, lng: memory.coordinates.longitude } : null
+  );
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [date, setDate] = useState(memory.date);
   const [images, setImages] = useState(memory.images);
   const [deletedImageIds, setDeletedImageIds] = useState<string[]>([]);
@@ -58,6 +64,69 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+
+  // Places autocomplete
+  const locationInputRef = useRef<HTMLInputElement>(null);
+  const { place, suggestions, isLoading: isSearching, showDropdown, selectPlace, dropdownRef } = usePlacesAutocomplete(locationInputRef);
+  
+  // Update location and coordinates when place is selected
+  useEffect(() => {
+    if (place) {
+      setLocation(place.address);
+      setCoordinates({ lat: place.lat, lng: place.lng });
+    }
+  }, [place]);
+
+  // Get current location using GPS
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setError('Trình duyệt không hỗ trợ GPS');
+      return;
+    }
+
+    setIsGettingLocation(true);
+    setError(null);
+
+    const timeoutId = setTimeout(() => {
+      setIsGettingLocation(false);
+      setError('GPS timeout. Vui lòng thử lại.');
+    }, 30000);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        clearTimeout(timeoutId);
+        
+        const coords = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+        setCoordinates(coords);
+        
+        try {
+          const data = await reverseGeocode(coords.lat, coords.lng);
+          setLocation(data.display_name);
+          setIsGettingLocation(false);
+          setError(null);
+        } catch (error) {
+          console.error('Reverse geocoding error:', error);
+          setIsGettingLocation(false);
+          // GPS coordinates saved, but address lookup failed due to CORS/network
+          setError('✓ GPS lấy được tọa độ. Vui lòng nhập địa chỉ thủ công.');
+          setTimeout(() => setError(null), 5000);
+        }
+      },
+      (error) => {
+        clearTimeout(timeoutId);
+        setIsGettingLocation(false);
+        setError('Không lấy được vị trí GPS. Kiểm tra quyền truy cập.');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 30000,
+        maximumAge: 0
+      }
+    );
+  };
 
   // Track if there are unsaved changes
   const hasChanges = () => {
@@ -107,21 +176,28 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
       }
 
       // Update memory in Firestore using new service
+      const locationData = location.trim() ? {
+        city: location.trim(),
+        ...(coordinates && {
+          coordinates: {
+            lat: coordinates.lat,
+            lng: coordinates.lng,
+          }
+        })
+      } : undefined;
+      
       await updateMemoryFirestore(memory.id, {
         title: title.trim(),
         description: text.trim(),
         photos: images.map(img => img.secure_url),
-        location: location.trim() ? {
-          city: location.trim(),
-          coordinates: memory.coordinates ? {
-            lat: memory.coordinates.latitude,
-            lng: memory.coordinates.longitude,
-          } : undefined,
-        } : undefined,
+        location: locationData,
       });
 
       console.log('✓ Memory updated in Firestore:', memory.id);
 
+      // Invalidate cache to force refresh
+      window.dispatchEvent(new CustomEvent('memoryCacheInvalidated', { detail: { userId } }));
+      
       onSuccess();
       onClose();
     } catch (err) {
@@ -303,14 +379,28 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
 
         <div className="modal-body">
           <div className="form-group">
-            <label>Title *</label>
-            <TextInput
+            <label>
+              <Type className="w-4 h-4" style={{ display: 'inline', marginRight: '8px' }} />
+              Title *
+            </label>
+            <input
+              type="text"
               value={title}
-              onChange={setTitle}
+              onChange={(e) => setTitle(e.target.value)}
               placeholder="Memory title"
               maxLength={100}
-              icon={Type}
               required
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                borderRadius: '12px',
+                border: '2px solid #fbcfe8',
+                fontSize: '1rem',
+                outline: 'none',
+                transition: 'all 0.3s ease',
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#ec4899'}
+              onBlur={(e) => e.target.style.borderColor = '#fbcfe8'}
             />
           </div>
 
@@ -326,30 +416,155 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
           </div>
 
           <div className="form-group">
-            <label>Location</label>
-            <TextInput
-              value={location}
-              onChange={setLocation}
-              placeholder="Where was this?"
-              icon={MapPin}
-            />
+            <label>
+              <MapPin className="w-4 h-4" style={{ display: 'inline', marginRight: '8px' }} />
+              Location
+            </label>
+            <div style={{ position: 'relative' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                <input
+                  ref={locationInputRef}
+                  type="text"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="Where was this?"
+                  style={{
+                    flex: 1,
+                    padding: '0.75rem',
+                    borderRadius: '12px',
+                    border: '2px solid #fbcfe8',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'all 0.3s ease',
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#ec4899'}
+                  onBlur={(e) => e.target.style.borderColor = '#fbcfe8'}
+                />
+                <button
+                  type="button"
+                  onClick={getCurrentLocation}
+                  disabled={isGettingLocation}
+                  title="Use current GPS location"
+                  style={{
+                    padding: '0.75rem 1rem',
+                    borderRadius: '12px',
+                    border: '2px solid #ec4899',
+                    background: coordinates ? '#ec4899' : 'white',
+                    color: coordinates ? 'white' : '#ec4899',
+                    cursor: isGettingLocation ? 'wait' : 'pointer',
+                    transition: 'all 0.3s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    fontWeight: '600',
+                    whiteSpace: 'nowrap',
+                    opacity: isGettingLocation ? 0.6 : 1,
+                    minWidth: '110px',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <Navigation className="w-5 h-5" style={{ 
+                    animation: isGettingLocation ? 'spin 1s linear infinite' : 'none' 
+                  }} />
+                  {isGettingLocation ? 'Đang lấy...' : coordinates ? '✓ GPS' : 'GPS'}
+                </button>
+              </div>
+              
+              {/* Autocomplete Dropdown */}
+              {showDropdown && suggestions.length > 0 && (
+                <div 
+                  ref={dropdownRef}
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: '120px',
+                    marginTop: '0.5rem',
+                    background: 'white',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                    zIndex: 1000,
+                    maxHeight: '300px',
+                    overflowY: 'auto'
+                  }}
+                >
+                  {suggestions.map((suggestion) => (
+                    <div
+                      key={suggestion.place_id}
+                      onClick={() => selectPlace(suggestion)}
+                      style={{
+                        padding: '0.75rem 1rem',
+                        cursor: 'pointer',
+                        borderBottom: '1px solid #f3f4f6',
+                        transition: 'background 0.2s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                    >
+                      <MapPin className="w-4 h-4" style={{ color: '#ec4899', flexShrink: 0 }} />
+                      <span style={{ fontSize: '0.875rem', color: '#374151' }}>
+                        {suggestion.display_name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {coordinates && (
+                <div style={{
+                  marginTop: '0.5rem',
+                  padding: '0.75rem',
+                  background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+                  border: '1px solid #86efac',
+                  borderRadius: '8px',
+                  fontSize: '0.875rem',
+                  color: '#166534',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  <MapPin className="w-4 h-4" style={{ color: '#22c55e' }} />
+                  <span style={{ fontWeight: '600' }}>GPS:</span>
+                  <span>{coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}</span>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="form-group">
             <label>Description *</label>
-            <TextArea
+            <textarea
               value={text}
-              onChange={setText}
+              onChange={(e) => setText(e.target.value)}
               placeholder="Tell your story..."
               rows={6}
               maxLength={2000}
-              showCounter
               required
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                borderRadius: '12px',
+                border: '2px solid #fbcfe8',
+                fontSize: '1rem',
+                outline: 'none',
+                transition: 'all 0.3s ease',
+                resize: 'vertical',
+                fontFamily: 'inherit',
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#ec4899'}
+              onBlur={(e) => e.target.style.borderColor = '#fbcfe8'}
             />
+            <div style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#6b7280', textAlign: 'right' }}>
+              {text.length} / 2000
+            </div>
           </div>
 
           <div className="form-group">
-            <label>Images (Drag to reorder) - Tối đa {IMAGE_VALIDATION.MAX_IMAGES} ảnh, mỗi ảnh ≤ 20MB</label>
+            <label>Images (Drag to reorder) - Tối đa {IMAGE_VALIDATION.MAX_IMAGES} ảnh, mỗi ảnh ≤ 10MB</label>
             <div className="images-grid">
               {images.map((img, index) => (
                 <div

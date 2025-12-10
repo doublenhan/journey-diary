@@ -78,15 +78,9 @@ export const uploadToCloudinary = async (
       formData.append('public_id', options.public_id);
     }
 
-    // Add transformations để tự động optimize
-    const transformation = [
-      options.format ? `f_${options.format}` : 'f_auto', // Auto format detection
-      options.quality ? `q_${options.quality}` : 'q_auto', // Auto quality
-      'c_limit', // Limit dimensions
-      'w_2000', // Max width 2000px
-      'h_2000', // Max height 2000px
-    ].join(',');
-    formData.append('transformation', transformation);
+    // Note: Unsigned uploads don't support transformation parameters
+    // Transformations should be configured in the upload preset
+    // or applied via URL when displaying images
 
     // Upload URL
     const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;

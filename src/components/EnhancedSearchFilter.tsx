@@ -143,13 +143,20 @@ export function EnhancedSearchFilter({
               </label>
               <div className="date-range-inputs">
                 <CustomDatePicker
-                  selected={dateRange?.start ? new Date(dateRange.start) : null}
+                  selected={dateRange?.start ? (() => {
+                    // Parse date string as local date, not UTC
+                    const [year, month, day] = dateRange.start.split('-').map(Number);
+                    return new Date(year, month - 1, day);
+                  })() : null}
                   onChange={(date) => {
                     const dateStr = date ? date.toISOString().split('T')[0] : '';
                     onDateRangeChange({ start: dateStr, end: dateRange?.end || '' });
                   }}
                   placeholder="Từ ngày"
-                  maxDate={dateRange?.end ? new Date(dateRange.end) : undefined}
+                  maxDate={dateRange?.end ? (() => {
+                    const [year, month, day] = dateRange.end.split('-').map(Number);
+                    return new Date(year, month - 1, day);
+                  })() : undefined}
                   theme={{
                     colors: {
                       primary: '#ec4899',
@@ -159,13 +166,19 @@ export function EnhancedSearchFilter({
                 />
                 <span className="date-separator">đến</span>
                 <CustomDatePicker
-                  selected={dateRange?.end ? new Date(dateRange.end) : null}
+                  selected={dateRange?.end ? (() => {
+                    const [year, month, day] = dateRange.end.split('-').map(Number);
+                    return new Date(year, month - 1, day);
+                  })() : null}
                   onChange={(date) => {
                     const dateStr = date ? date.toISOString().split('T')[0] : '';
                     onDateRangeChange({ start: dateRange?.start || '', end: dateStr });
                   }}
                   placeholder="Đến ngày"
-                  minDate={dateRange?.start ? new Date(dateRange.start) : undefined}
+                  minDate={dateRange?.start ? (() => {
+                    const [year, month, day] = dateRange.start.split('-').map(Number);
+                    return new Date(year, month - 1, day);
+                  })() : undefined}
                   theme={{
                     colors: {
                       primary: '#ec4899',

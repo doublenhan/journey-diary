@@ -11,6 +11,10 @@ export interface Memory {
   date: string;
   text: string;
   location?: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
   images: MemoryImage[];
   created_at?: string;
   tags?: string[];

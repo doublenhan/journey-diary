@@ -42,7 +42,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   const [validationAttempted, setValidationAttempted] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgressItem[]>([]);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
@@ -333,14 +333,20 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
           const currentIndex = i;
           
           try {
+            // Build folder structure: dev/love-journal/users/{userId}/{year}/{month}/memories
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.toLocaleString('en-US', { month: 'long' }).toLowerCase();
+            const envPrefix = import.meta.env.VITE_CLOUDINARY_FOLDER || ''; // 'dev' or ''
+            const baseFolder = envPrefix ? `${envPrefix}/love-journal` : 'love-journal';
+            const folder = `${baseFolder}/users/${userId}/${year}/${month}/memories`;
+            
             const result = await uploadToCloudinary(
               file,
               {
-                folder: `journey-diary/${userId}/memories`,
+                folder,
                 tags: ['memory', 'love-journal', userId || 'anonymous'],
-                userId: userId,
-                format: 'auto',
-                quality: 'auto',
+                userId: userId || undefined,
               },
               (progress) => {
                 // Update individual file progress
@@ -366,20 +372,27 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
             console.log(`✓ Image ${i + 1}/${uploadedImages.length} uploaded:`, result.public_id);
           } catch (error) {
             console.error(`Failed to upload image ${i + 1}:`, error);
-            // Mark as error but continue with other images
+            // Mark as error and throw to stop the process
             setUploadProgress(prev => prev.map((item, idx) => {
               if (idx === currentIndex) {
                 return { 
                   ...item, 
                   progress: 0, 
                   status: 'error' as const,
-                  error: 'Upload failed'
+                  error: error instanceof Error ? error.message : 'Upload failed'
                 };
               }
               return item;
             }));
+            // Stop the entire save process if any image fails
+            throw new Error(`Failed to upload image ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
           }
         }
+      }
+      
+      // Validate: Must have at least one uploaded image
+      if (uploadedImages.length > 0 && uploadedUrls.length === 0) {
+        throw new Error('No images were successfully uploaded. Please try again.');
       }
       
       // Step 2: Save memory to Firestore with uploaded image URLs
@@ -387,11 +400,8 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
         throw new Error('User not authenticated');
       }
       
-      const memoryDate = new Date(
-        selectedYear,
-        selectedMonth - 1,
-        selectedDay
-      );
+      // Format date as YYYY-MM-DD
+      const formattedDate = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
       
       const newMemory = await createMemory({
         userId: userId,
@@ -399,6 +409,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
         description: sanitizedText,
         mood: 'happy', // Default mood, can be made dynamic
         photos: uploadedUrls,
+        date: formattedDate,
         location: sanitizedLocation ? {
           city: sanitizedLocation,
           coordinates: coordinates ? {
@@ -408,8 +419,6 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
         } : undefined,
         tags: ['memory', 'love-journal'],
       });
-      
-      console.log('✓ Memory saved to Firestore:', newMemory.id);
       
       console.log('✓ Memory saved to Firestore:', newMemory.id);
       
@@ -767,7 +776,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
                     Nhấp để tải lên ảnh hoặc kéo và thả <span className="required-field">(bắt buộc)</span>
                   </p>
                   <p className="upload-subtext">
-                    JPG, PNG, WebP, HEIC - Tối đa {IMAGE_VALIDATION.MAX_IMAGES} ảnh, mỗi ảnh ≤ 20MB
+                    JPG, PNG, WebP, HEIC - Tối đa {IMAGE_VALIDATION.MAX_IMAGES} ảnh, mỗi ảnh ≤ 10MB
                   </p>
                 </div>
               </div>

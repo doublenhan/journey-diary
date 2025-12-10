@@ -7,6 +7,7 @@ import {
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { useLanguage } from './hooks/useLanguage';
+import { fetchMemories } from './services/firebaseMemoriesService';
 import { MoodTheme, themes, isValidTheme } from './config/themes';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { PageTransition } from './components/PageTransition';
@@ -270,27 +271,44 @@ function App() {
 
   useEffect(() => {
     async function fetchImages() {
+      if (!userId) {
+        setGalleryLoading(false);
+        return;
+      }
+      
       try {
         setGalleryLoading(true);
-        // Always limit to max 6 images for both desktop and mobile
-        const maxResults = 6;
-        const fetchOptions: FetchCloudinaryOptions = { maxResults };
+        // Fetch recent memories with photos
+        const memories = await fetchMemories({ 
+          userId, 
+          limitCount: 20 // Get more memories to ensure we have 6+ photos
+        });
         
-        // Add userId if available to fetch from user-specific folder
-        if (userId) {
-          fetchOptions.userId = userId;
-        }
+        // Extract all photo URLs from memories
+        const allPhotos: string[] = [];
+        memories.forEach(memory => {
+          if (memory.photos && memory.photos.length > 0) {
+            memory.photos.forEach(photo => {
+              // Build Cloudinary URL from publicId
+              const url = photo.startsWith('http') 
+                ? photo 
+                : `https://res.cloudinary.com/dhelefhv1/image/upload/${photo}`;
+              allPhotos.push(url);
+            });
+          }
+        });
         
-        const res = await fetchCloudinaryImages(fetchOptions);
-        setGalleryImages(res.resources.map((img: { secure_url: any; }) => img.secure_url));
+        // Limit to 6 images for gallery
+        setGalleryImages(allPhotos.slice(0, 6));
       } catch (e) {
+        console.error('Failed to fetch gallery images:', e);
         setGalleryImages([]);
       } finally {
         setGalleryLoading(false);
       }
     }
     fetchImages();
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     if (!galleryImages.length) return;
