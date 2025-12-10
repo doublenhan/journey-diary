@@ -337,9 +337,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
             const now = new Date();
             const year = now.getFullYear();
             const month = now.toLocaleString('en-US', { month: 'long' }).toLowerCase();
-            // Force dev environment for non-production deployments
-            const envPrefix = import.meta.env.VITE_CLOUDINARY_FOLDER || 
-                             (window.location.hostname.includes('git-dev') ? 'dev' : '');
+            const envPrefix = import.meta.env.VITE_CLOUDINARY_FOLDER || '';
             const baseFolder = envPrefix ? `${envPrefix}/love-journal` : 'love-journal';
             const folder = `${baseFolder}/users/${userId}/${year}/${month}/memories`;
             
