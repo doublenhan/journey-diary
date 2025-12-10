@@ -68,6 +68,18 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
           // Fetch memories directly from Firestore
           const firebaseMemories = await fetchMemories({ userId: userId || undefined });
           
+          // Detect current environment
+          const hostname = window.location.hostname;
+          const isPreview = hostname.includes('git-dev') || 
+                           hostname.includes('doublenhans-projects.vercel.app') ||
+                           hostname.includes('localhost');
+          const currentEnv = isPreview ? 'dev' : 'production';
+          
+          console.log('[useInfiniteMemories] Environment detection:');
+          console.log('  hostname:', hostname);
+          console.log('  isPreview:', isPreview);
+          console.log('  currentEnv:', currentEnv);
+          
           // Transform Firebase memories to app format
           const memories: Memory[] = firebaseMemories.map((m: FirebaseMemory) => {
             // Handle both old format (cloudinaryPublicIds) and new format (photos)
@@ -137,6 +149,23 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
               tags: m.tags || [],
               folder: rawData.cloudinaryFolder || `journey-diary/${m.userId}/memories`,
             };
+          })
+          // IMPORTANT: Filter memories by environment based on Cloudinary folder prefix
+          .filter(memory => {
+            // Check if any image URL contains the current environment prefix
+            const hasMatchingImages = memory.images.some(img => {
+              const publicId = img.public_id || '';
+              const url = img.secure_url || '';
+              // Check both publicId and URL for environment prefix
+              return publicId.startsWith(`${currentEnv}/`) || url.includes(`/${currentEnv}/`);
+            });
+            
+            // If no images, include in both environments (backward compatibility)
+            if (memory.images.length === 0) {
+              return true;
+            }
+            
+            return hasMatchingImages;
           });
           
           // Save to cache

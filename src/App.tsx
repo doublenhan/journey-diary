@@ -144,17 +144,6 @@ function App() {
   const { userId, loading } = useCurrentUserId();
   const { t } = useLanguage();
 
-  // DEBUG: Log all environment variables on app load
-  useEffect(() => {
-    console.log('=== ENVIRONMENT VARIABLES DEBUG ===');
-    console.log('VITE_CLOUDINARY_FOLDER:', import.meta.env.VITE_CLOUDINARY_FOLDER);
-    console.log('VITE_ENV_PREFIX:', import.meta.env.VITE_ENV_PREFIX);
-    console.log('VITE_CLOUDINARY_CLOUD_NAME:', import.meta.env.VITE_CLOUDINARY_CLOUD_NAME);
-    console.log('VITE_CLOUDINARY_UPLOAD_PRESET:', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
-    console.log('All import.meta.env:', import.meta.env);
-    console.log('===================================');
-  }, []);
-
   useEffect(() => {
     if (loading) return;
     const currentPath = window.location.pathname;

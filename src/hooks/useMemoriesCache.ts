@@ -79,6 +79,15 @@ export function useMemoriesCache(userId: string | null, loading: boolean) {
     if (!cacheValid) {
       (async () => {
         try {
+          // Detect current environment
+          const hostname = window.location.hostname;
+          const isPreview = hostname.includes('git-dev') || 
+                           hostname.includes('doublenhans-projects.vercel.app') ||
+                           hostname.includes('localhost');
+          const currentEnv = isPreview ? 'dev' : 'production';
+          
+          console.log('[useMemoriesCache] Environment:', currentEnv);
+          
           // Fetch memories directly from Firestore
           const firebaseMemories = await fetchMemories({ userId: userId || undefined });
           
@@ -150,6 +159,15 @@ export function useMemoriesCache(userId: string | null, loading: boolean) {
               tags: m.tags || [],
               folder: rawData.cloudinaryFolder || `journey-diary/${m.userId}/memories`,
             };
+          })
+          // Filter memories by environment
+          .filter(memory => {
+            const hasMatchingImages = memory.images.some(img => {
+              const publicId = img.public_id || '';
+              const url = img.secure_url || '';
+              return publicId.startsWith(`${currentEnv}/`) || url.includes(`/${currentEnv}/`);
+            });
+            return memory.images.length === 0 || hasMatchingImages;
           });
           
           localStorage.setItem(cacheKey, JSON.stringify({ memories, timestamp: Date.now() }));
