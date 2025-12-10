@@ -163,12 +163,10 @@ export const deleteFromCloudinary = async (
   try {
     console.log('🗑️ Deleting image from Cloudinary:', publicId);
     
-    // Import Firebase Functions and Auth dynamically
-    const { getFunctions, httpsCallable } = await import('firebase/functions');
+    // Get Firebase Auth to get current user token
     const { getAuth } = await import('firebase/auth');
     const { default: app } = await import('../firebase/firebaseConfig');
     
-    // Check if user is authenticated
     const auth = getAuth(app);
     const currentUser = auth.currentUser;
     
@@ -179,32 +177,36 @@ export const deleteFromCloudinary = async (
     
     console.log('👤 Current user:', currentUser.uid);
     
-    // Get Firebase Functions instance with correct region
-    const functions = getFunctions(app, 'us-central1');
-    const deleteImage = httpsCallable(functions, 'deleteCloudinaryImage');
+    // Get ID token
+    const idToken = await currentUser.getIdToken();
     
-    console.log('📡 Calling Firebase Function deleteCloudinaryImage...');
-    const result = await deleteImage({ publicId });
-    const data = result.data as any;
+    // Call Firebase Function via HTTP
+    const functionUrl = 'https://us-central1-love-journal-2025.cloudfunctions.net/deleteCloudinaryImage';
     
-    console.log('✅ Image deleted successfully:', data);
-    
-    return { result: data.result || 'ok' };
-  } catch (error: any) {
-    console.error('❌ Error deleting from Cloudinary:', error);
-    console.error('Error details:', {
-      code: error.code,
-      message: error.message,
-      details: error.details
+    console.log('📡 Calling Firebase Function...');
+    const response = await fetch(functionUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({
+        data: { publicId }
+      }),
     });
     
-    // Handle Firebase Functions specific errors
-    if (error.code === 'functions/unauthenticated') {
-      throw new Error('You must be logged in to delete images');
-    } else if (error.code === 'functions/invalid-argument') {
-      throw new Error('Invalid image ID');
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));
+      console.error('❌ Function error:', errorData);
+      throw new Error(errorData.error?.message || `HTTP ${response.status}`);
     }
     
+    const result = await response.json();
+    console.log('✅ Image deleted successfully:', result);
+    
+    return { result: result.result?.result || 'ok' };
+  } catch (error: any) {
+    console.error('❌ Error deleting from Cloudinary:', error);
     throw error;
   }
 };
