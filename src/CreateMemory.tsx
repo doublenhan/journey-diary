@@ -46,6 +46,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
   const [validationAttempted, setValidationAttempted] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgressItem[]>([]);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
   
   // OpenStreetMap Nominatim Autocomplete (FREE!)
   const locationInputRef = useRef<HTMLInputElement>(null);
@@ -147,6 +148,23 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
         maximumAge: 0
       }
     );
+  };
+
+  // Check if there are unsaved changes
+  const hasChanges = () => {
+    return title.trim() !== '' ||
+           memoryText.trim() !== '' ||
+           location.trim() !== '' ||
+           uploadedImages.length > 0;
+  };
+
+  // Handle back with unsaved changes check
+  const handleBack = () => {
+    if (hasChanges()) {
+      setShowUnsavedConfirm(true);
+    } else {
+      onBack?.();
+    }
   };
 
   // Compress image before upload
@@ -530,7 +548,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
         <div className="create-memory-header-container">
           <div className="create-memory-header-content">
             <button 
-              onClick={onBack}
+              onClick={handleBack}
               className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-pink-200 hover:bg-pink-50 hover:border-pink-300 transition-all duration-300 shadow-sm hover:shadow-md active:scale-90 active:shadow-inner"
               title={t('common.back')}
             >
@@ -916,6 +934,33 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
           </ul>
         </div>
       </main>
+
+      {/* Unsaved Changes Confirmation Modal */}
+      {showUnsavedConfirm && (
+        <div className="delete-confirm-overlay">
+          <div className="delete-confirm-box">
+            <h3>Unsaved Changes</h3>
+            <p>You have unsaved changes. Are you sure you want to leave without saving?</p>
+            <div className="confirm-buttons">
+              <button
+                className="cancel-button"
+                onClick={() => setShowUnsavedConfirm(false)}
+              >
+                Continue Creating
+              </button>
+              <button
+                className="confirm-delete-button"
+                onClick={() => {
+                  setShowUnsavedConfirm(false);
+                  onBack?.();
+                }}
+              >
+                Discard Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
