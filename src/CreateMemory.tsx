@@ -27,6 +27,12 @@ interface CreateMemoryProps {
 }
 
 function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
+  // DEBUG: Log environment variables immediately when component mounts
+  console.log('🔍 [CreateMemory Component Loaded]');
+  console.log('VITE_CLOUDINARY_FOLDER:', import.meta.env.VITE_CLOUDINARY_FOLDER);
+  console.log('VITE_ENV_PREFIX:', import.meta.env.VITE_ENV_PREFIX);
+  console.log('All env vars:', import.meta.env);
+  
   const { userId, loading } = useCurrentUserId();
   useMemoriesCache(userId, loading);
   const { syncStatus, lastSyncTime, errorMessage, startSync, syncSuccess, syncError } = useSyncStatus();
@@ -340,9 +346,17 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
             const now = new Date();
             const year = now.getFullYear();
             const month = now.toLocaleString('en-US', { month: 'long' }).toLowerCase();
-            const envPrefix = import.meta.env.VITE_CLOUDINARY_FOLDER || '';
-            console.log('[DEBUG] VITE_CLOUDINARY_FOLDER:', import.meta.env.VITE_CLOUDINARY_FOLDER);
-            console.log('[DEBUG] envPrefix:', envPrefix);
+            
+            // TEMPORARY FIX: Force 'dev' for git-dev preview deployments
+            const hostname = window.location.hostname;
+            const isDev = hostname.includes('git-dev') || hostname.includes('localhost');
+            const envPrefix = isDev ? 'dev' : (import.meta.env.VITE_CLOUDINARY_FOLDER || 'production');
+            
+            console.log('[DEBUG] hostname:', hostname);
+            console.log('[DEBUG] isDev:', isDev);
+            console.log('[DEBUG] VITE_CLOUDINARY_FOLDER from env:', import.meta.env.VITE_CLOUDINARY_FOLDER);
+            console.log('[DEBUG] Final envPrefix:', envPrefix);
+            
             const baseFolder = envPrefix ? `${envPrefix}/love-journal` : 'love-journal';
             const folder = `${baseFolder}/users/${userId}/${year}/${month}/memories`;
             console.log('[DEBUG] Final folder path:', folder);
