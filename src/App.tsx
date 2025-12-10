@@ -9,6 +9,7 @@ import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { useLanguage } from './hooks/useLanguage';
 import { fetchMemories } from './services/firebaseMemoriesService';
 import { MoodTheme, themes, isValidTheme } from './config/themes';
+import { getUserTheme } from './apis/userThemeApi';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { PageTransition } from './components/PageTransition';
 import { LazyImage } from './components/LazyImage';
@@ -182,6 +183,23 @@ function App() {
     const stored = localStorage.getItem('currentTheme');
     return (stored && isValidTheme(stored)) ? stored : 'romantic';
   });
+
+  // Fetch theme from Firebase when user logs in
+  useEffect(() => {
+    if (loading || !userId) return;
+    
+    (async () => {
+      try {
+        const fetchedTheme = await getUserTheme(userId);
+        if (fetchedTheme && isValidTheme(fetchedTheme)) {
+          setCurrentThemeState(fetchedTheme);
+          localStorage.setItem('currentTheme', fetchedTheme);
+        }
+      } catch (error) {
+        console.error('Failed to fetch user theme:', error);
+      }
+    })();
+  }, [userId, loading]);
 
   // Listen for theme changes from other components (like SettingPage)
   useEffect(() => {
