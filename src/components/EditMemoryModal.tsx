@@ -32,8 +32,8 @@ interface Memory {
   location?: string | null;
   images: MemoryImage[];
   coordinates?: {
-    latitude: number;
-    longitude: number;
+    lat: number;
+    lng: number;
   };
 }
 
@@ -49,7 +49,7 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
   const [text, setText] = useState(memory.text);
   const [location, setLocation] = useState(memory.location || '');
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(
-    memory.coordinates ? { lat: memory.coordinates.latitude, lng: memory.coordinates.longitude } : null
+    memory.coordinates ? { lat: memory.coordinates.lat, lng: memory.coordinates.lng } : null
   );
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [date, setDate] = useState(memory.date);
