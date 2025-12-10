@@ -165,9 +165,14 @@ export const deleteFromCloudinary = async (
     
     // Import Firebase Functions dynamically to avoid circular dependency
     const { getFunctions, httpsCallable } = await import('firebase/functions');
-    const functions = getFunctions();
+    const { getApp } = await import('firebase/app');
+    
+    // Get Firebase app and create functions instance with correct region
+    const app = getApp();
+    const functions = getFunctions(app, 'us-central1');
     const deleteImage = httpsCallable(functions, 'deleteCloudinaryImage');
     
+    console.log('📡 Calling Firebase Function deleteCloudinaryImage...');
     const result = await deleteImage({ publicId });
     const data = result.data as any;
     
@@ -176,6 +181,11 @@ export const deleteFromCloudinary = async (
     return { result: data.result || 'ok' };
   } catch (error: any) {
     console.error('❌ Error deleting from Cloudinary:', error);
+    console.error('Error details:', {
+      code: error.code,
+      message: error.message,
+      details: error.details
+    });
     
     // Handle Firebase Functions specific errors
     if (error.code === 'functions/unauthenticated') {
