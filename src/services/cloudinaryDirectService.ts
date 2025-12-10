@@ -155,7 +155,7 @@ export const uploadToCloudinary = async (
 };
 
 /**
- * Xóa ảnh từ Cloudinary via Vercel API endpoint
+ * Xóa ảnh từ Cloudinary via Firebase Cloud Function
  */
 export const deleteFromCloudinary = async (
   publicId: string
@@ -163,25 +163,27 @@ export const deleteFromCloudinary = async (
   try {
     console.log('🗑️ Deleting image from Cloudinary:', publicId);
     
-    const response = await fetch('/api/cloudinary-delete', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ publicId }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to delete image');
-    }
-
-    const result = await response.json();
-    console.log('✅ Image deleted successfully:', result);
+    // Import Firebase Functions dynamically to avoid circular dependency
+    const { getFunctions, httpsCallable } = await import('firebase/functions');
+    const functions = getFunctions();
+    const deleteImage = httpsCallable(functions, 'deleteCloudinaryImage');
     
-    return { result: result.result || 'ok' };
-  } catch (error) {
+    const result = await deleteImage({ publicId });
+    const data = result.data as any;
+    
+    console.log('✅ Image deleted successfully:', data);
+    
+    return { result: data.result || 'ok' };
+  } catch (error: any) {
     console.error('❌ Error deleting from Cloudinary:', error);
+    
+    // Handle Firebase Functions specific errors
+    if (error.code === 'functions/unauthenticated') {
+      throw new Error('You must be logged in to delete images');
+    } else if (error.code === 'functions/invalid-argument') {
+      throw new Error('Invalid image ID');
+    }
+    
     throw error;
   }
 };
