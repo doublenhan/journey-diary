@@ -40,6 +40,7 @@ export interface Memory {
   location?: {
     city?: string;
     country?: string;
+    address?: string;
     coordinates?: {
       lat: number;
       lng: number;
@@ -48,6 +49,7 @@ export interface Memory {
   tags?: string[];
   createdAt: Date;
   updatedAt: Date;
+  date?: string; // For old data compatibility (YYYY-MM-DD format)
 }
 
 export interface CreateMemoryInput {
@@ -56,6 +58,7 @@ export interface CreateMemoryInput {
   description: string;
   mood: Memory['mood'];
   photos: string[];
+  date: string; // YYYY-MM-DD format
   location?: Memory['location'];
   tags?: string[];
 }
@@ -84,18 +87,29 @@ export interface FetchMemoriesOptions {
  */
 const docToMemory = (doc: QueryDocumentSnapshot): Memory => {
   const data = doc.data();
+  
+  // Handle both old format (cloudinaryPublicIds) and new format (photos)
+  let photos: string[] = [];
+  if (data.photos && Array.isArray(data.photos)) {
+    photos = data.photos;
+  } else if (data.cloudinaryPublicIds && Array.isArray(data.cloudinaryPublicIds)) {
+    // Old format: cloudinaryPublicIds array
+    photos = data.cloudinaryPublicIds;
+  }
+  
   return {
     id: doc.id,
     userId: data.userId,
-    title: data.title,
-    description: data.description,
+    title: data.title || data.text || '', // Handle old 'text' field
+    description: data.description || data.text || '',
     mood: data.mood,
-    photos: data.photos || [],
+    photos,
     location: data.location,
     tags: data.tags || [],
     createdAt: data.createdAt?.toDate() || new Date(),
     updatedAt: data.updatedAt?.toDate() || new Date(),
-  };
+    date: data.date, // Preserve date field for old data
+  } as Memory;
 };
 
 /**

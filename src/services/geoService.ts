@@ -82,7 +82,8 @@ export async function searchLocations(
     const response = await fetch(url.toString(), {
       headers: {
         'Accept': 'application/json',
-        'User-Agent': USER_AGENT
+        // Note: User-Agent header cannot be set from browser JavaScript
+        // Browser will send its default User-Agent automatically
       }
     });
 
@@ -94,7 +95,7 @@ export async function searchLocations(
     return data;
   } catch (error) {
     console.error('Location search error:', error);
-    throw error;
+    return []; // Return empty array instead of throwing
   }
 }
 
@@ -118,7 +119,7 @@ export async function reverseGeocode(
     const response = await fetch(url.toString(), {
       headers: {
         'Accept': 'application/json',
-        'User-Agent': USER_AGENT
+        // User-Agent cannot be set from browser, browser sends default automatically
       }
     });
 

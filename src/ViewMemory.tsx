@@ -100,6 +100,11 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
 
 
   const formatDate = (dateString: string) => {
+    // Safety check: return as-is if dateString is invalid
+    if (!dateString || typeof dateString !== 'string') {
+      return dateString || '';
+    }
+    
     // Parse date string directly to avoid timezone offset
     const [year, month, day] = dateString.split('-');
     if (!year || !month || !day) return dateString;
@@ -197,7 +202,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
           if (!(titleMatch || textMatch || locationMatch || dateMatch)) return false;
         }
 
-        // Date range filter
+        // Date range filter (inclusive)
         if (dateRange.start && m.date < dateRange.start) return false;
         if (dateRange.end && m.date > dateRange.end) return false;
 

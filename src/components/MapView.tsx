@@ -39,7 +39,7 @@ function HeatMapLayer({ memories }: { memories: MemoryFirestore[] }) {
   useEffect(() => {
     const heatData = memories
       .filter(m => m.coordinates)
-      .map(m => [m.coordinates!.latitude, m.coordinates!.longitude, 0.8] as [number, number, number]);
+      .map(m => [m.coordinates!.lat, m.coordinates!.lng, 0.8] as [number, number, number]);
     
     if (heatData.length > 0 && (L as any).heatLayer) {
       const heatLayer = (L as any).heatLayer(heatData, {
@@ -127,7 +127,7 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
       // Build coordinates array for OSRM [longitude, latitude]
       const coordinates: [number, number][] = memories
         .filter(m => m.coordinates)
-        .map(m => [m.coordinates!.longitude, m.coordinates!.latitude]);
+        .map(m => [m.coordinates!.lng, m.coordinates!.lat]);
       
       if (coordinates.length < 2) return;
       
@@ -147,7 +147,7 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
         // Fallback to straight lines if routing fails
         const straightLine: [number, number][] = memories
           .filter(m => m.coordinates)
-          .map(m => [m.coordinates!.latitude, m.coordinates!.longitude]);
+          .map(m => [m.coordinates!.lat, m.coordinates!.lng]);
         setRouteGeometry(straightLine);
       }
     };
@@ -159,7 +159,7 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
   const groupedByLocation = memories.reduce((acc, memory) => {
     if (!memory.coordinates) return acc;
     
-    const key = `${memory.coordinates.latitude},${memory.coordinates.longitude}`;
+    const key = `${memory.coordinates.lat},${memory.coordinates.lng}`;
     if (!acc[key]) {
       acc[key] = [];
     }
@@ -169,12 +169,12 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
 
   const coordinates = memories
     .filter(m => m.coordinates)
-    .map(m => ({ lat: m.coordinates!.latitude, lng: m.coordinates!.longitude }));
+    .map(m => ({ lat: m.coordinates!.lat, lng: m.coordinates!.lng }));
 
   // Route line coordinates (chronological order)
   const routeCoordinates: [number, number][] = memories
     .filter(m => m.coordinates)
-    .map(m => [m.coordinates!.latitude, m.coordinates!.longitude]);
+    .map(m => [m.coordinates!.lat, m.coordinates!.lng]);
 
   const defaultCenter: [number, number] = coordinates.length > 0
     ? [coordinates[0].lat, coordinates[0].lng]
@@ -283,7 +283,7 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
                   return (
                     <Marker
                       key={key}
-                      position={[memory.coordinates.latitude, memory.coordinates.longitude]}
+                      position={[memory.coordinates.lat, memory.coordinates.lng]}
                       eventHandlers={{
                         click: () => setSelectedMemory(memory)
                       }}
@@ -312,6 +312,29 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
                   );
                 })}
               </MapContainer>
+              
+              {/* Selected Memory Detail - Inside map container */}
+              {selectedMemory && (
+                <div className="map-memory-detail">
+                  <div className="memory-detail-header">
+                    <h3>{selectedMemory.title}</h3>
+                    <button onClick={() => setSelectedMemory(null)}>×</button>
+                  </div>
+                  <div className="memory-detail-content">
+                    <div className="memory-detail-meta">
+                      <Calendar className="w-4 h-4" />
+                      <span>{new Date(selectedMemory.date).toLocaleDateString('vi-VN')}</span>
+                    </div>
+                    {selectedMemory.location && (
+                      <div className="memory-detail-meta">
+                        <MapPin className="w-4 h-4" />
+                        <span>{selectedMemory.location}</span>
+                      </div>
+                    )}
+                    <p className="memory-detail-text">{selectedMemory.text.slice(0, 150)}...</p>
+                  </div>
+                </div>
+              )}
               </div>
 
               {/* Location List */}
@@ -336,29 +359,6 @@ export const MapView: React.FC<MapViewProps> = ({ userId, onClose }) => {
             </>
           )}
         </div>
-
-        {/* Selected Memory Detail */}
-        {selectedMemory && (
-          <div className="map-memory-detail">
-            <div className="memory-detail-header">
-              <h3>{selectedMemory.title}</h3>
-              <button onClick={() => setSelectedMemory(null)}>×</button>
-            </div>
-            <div className="memory-detail-content">
-              <div className="memory-detail-meta">
-                <Calendar className="w-4 h-4" />
-                <span>{new Date(selectedMemory.date).toLocaleDateString('vi-VN')}</span>
-              </div>
-              {selectedMemory.location && (
-                <div className="memory-detail-meta">
-                  <MapPin className="w-4 h-4" />
-                  <span>{selectedMemory.location}</span>
-                </div>
-              )}
-              <p className="memory-detail-text">{selectedMemory.text.slice(0, 150)}...</p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

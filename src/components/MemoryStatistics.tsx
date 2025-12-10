@@ -32,8 +32,10 @@ export function MemoryStatistics({ memories, theme }: MemoryStatisticsProps) {
     // Memories by month
     const byMonth: { [key: string]: number } = {};
     memories.forEach(m => {
-      const month = m.date.substring(0, 7); // YYYY-MM
-      byMonth[month] = (byMonth[month] || 0) + 1;
+      if (m.date && typeof m.date === 'string') {
+        const month = m.date.substring(0, 7); // YYYY-MM
+        byMonth[month] = (byMonth[month] || 0) + 1;
+      }
     });
     
     // Memories by location
@@ -47,8 +49,10 @@ export function MemoryStatistics({ memories, theme }: MemoryStatisticsProps) {
     // Memories by year
     const byYear: { [key: string]: number } = {};
     memories.forEach(m => {
-      const year = m.date.substring(0, 4);
-      byYear[year] = (byYear[year] || 0) + 1;
+      if (m.date && typeof m.date === 'string') {
+        const year = m.date.substring(0, 4);
+        byYear[year] = (byYear[year] || 0) + 1;
+      }
     });
     
     // Most active month

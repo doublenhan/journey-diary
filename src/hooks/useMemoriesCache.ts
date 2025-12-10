@@ -13,6 +13,10 @@ export interface Memory {
   date: string;
   text: string;
   location?: string | null;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
   images: MemoryImage[];
   created_at?: string;
   tags?: string[];
@@ -38,7 +42,6 @@ export function useMemoriesCache(userId: string | null, loading: boolean) {
       
       // Trigger refresh if the event is for this user or no specific user
       if (!eventUserId || eventUserId === userId) {
-        console.log('[DEBUG] Memory cache invalidated event received, triggering refresh');
         setRefreshTrigger(t => t + 1);
       }
     };
@@ -80,27 +83,74 @@ export function useMemoriesCache(userId: string | null, loading: boolean) {
           const firebaseMemories = await fetchMemories({ userId: userId || undefined });
           
           // Transform Firebase memories to app format
-          const memories: Memory[] = firebaseMemories.map((m: FirebaseMemory) => ({
-            id: m.id,
-            title: m.title,
-            date: m.date,
-            text: m.text,
-            location: m.location?.address || null,
-            images: m.photos.map(photo => ({
-              public_id: photo.publicId,
-              secure_url: photo.url,
-              url: photo.url,
-              width: photo.width || 0,
-              height: photo.height || 0,
-              format: photo.format || 'jpg',
-              resource_type: 'image' as const,
-              created_at: m.createdAt,
-              bytes: 0,
-            })),
-            created_at: m.createdAt,
-            tags: m.tags || [],
-            folder: `journey-diary/${m.userId}/memories`,
-          }));
+          const memories: Memory[] = firebaseMemories.map((m: FirebaseMemory) => {
+            // Handle both old format (cloudinaryPublicIds) and new format (photos)
+            const rawData = m as any;
+            let images = [];
+            
+            if (m.photos && Array.isArray(m.photos)) {
+              images = m.photos.map(photo => {
+                if (typeof photo === 'string') {
+                  // Check if it's a URL or publicId
+                  if (photo.startsWith('http://') || photo.startsWith('https://')) {
+                    // Already a URL
+                    return {
+                      public_id: photo,
+                      secure_url: photo,
+                      url: photo,
+                      width: 0,
+                      height: 0,
+                      format: 'jpg',
+                      resource_type: 'image' as const,
+                      created_at: m.createdAt instanceof Date ? m.createdAt.toISOString() : m.createdAt,
+                      bytes: 0,
+                    };
+                  } else {
+                    // It's a publicId, build Cloudinary URL
+                    return {
+                      public_id: photo,
+                      secure_url: `https://res.cloudinary.com/dhelefhv1/image/upload/${photo}`,
+                      url: `https://res.cloudinary.com/dhelefhv1/image/upload/${photo}`,
+                      width: 0,
+                      height: 0,
+                      format: 'jpg',
+                      resource_type: 'image' as const,
+                      created_at: m.createdAt instanceof Date ? m.createdAt.toISOString() : m.createdAt,
+                      bytes: 0,
+                    };
+                  }
+                } else {
+                  return {
+                    public_id: photo.publicId || photo.public_id,
+                    secure_url: photo.url || photo.secure_url,
+                    url: photo.url,
+                    width: photo.width || 0,
+                    height: photo.height || 0,
+                    format: photo.format || 'jpg',
+                    resource_type: 'image' as const,
+                    created_at: m.createdAt instanceof Date ? m.createdAt.toISOString() : m.createdAt,
+                    bytes: 0,
+                  };
+                }
+              });
+            }
+            
+            return {
+              id: m.id,
+              title: m.title,
+              date: m.date instanceof Date ? m.date.toISOString().split('T')[0] : (rawData.date || ''),
+              text: m.description || rawData.text || '',
+              location: m.location?.city || m.location?.address || rawData.location || null,
+              coordinates: m.location?.coordinates ? {
+                lat: m.location.coordinates.lat,
+                lng: m.location.coordinates.lng,
+              } : undefined,
+              images,
+              created_at: m.createdAt instanceof Date ? m.createdAt.toISOString() : m.createdAt,
+              tags: m.tags || [],
+              folder: rawData.cloudinaryFolder || `journey-diary/${m.userId}/memories`,
+            };
+          });
           
           localStorage.setItem(cacheKey, JSON.stringify({ memories, timestamp: Date.now() }));
           

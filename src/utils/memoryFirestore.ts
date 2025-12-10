@@ -21,7 +21,10 @@ export interface MemoryFirestore {
   text: string;
   date: string;
   location?: string;
-  coordinates?: GeoPoint;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
   cloudinaryPublicIds: string[];
   cloudinaryFolder: string;
   createdAt: Timestamp;
@@ -117,7 +120,42 @@ export async function getMemoriesWithCoordinates(userId: string): Promise<Memory
   
   // Filter and sort in memory (client-side)
   return querySnapshot.docs
-    .map(doc => doc.data() as MemoryFirestore)
+    .map(doc => {
+      const data = doc.data();
+      
+      // Transform Firestore data to app format
+      let coordinates: { lat: number; lng: number } | undefined;
+      
+      // Check if coordinates exist in location.coordinates format (new V3 format)
+      if (data.location?.coordinates) {
+        coordinates = {
+          lat: data.location.coordinates.lat,
+          lng: data.location.coordinates.lng,
+        };
+      }
+      // Fallback: old GeoPoint format (if any exists)
+      else if (data.coordinates && typeof data.coordinates.latitude === 'number') {
+        coordinates = {
+          lat: data.coordinates.latitude,
+          lng: data.coordinates.longitude,
+        };
+      }
+      
+      return {
+        id: doc.id,
+        userId: data.userId,
+        title: data.title,
+        text: data.text || data.description || '',
+        date: data.date,
+        location: data.location?.city || data.location?.address || data.location || undefined,
+        coordinates,
+        cloudinaryPublicIds: data.photos || data.cloudinaryPublicIds || [],
+        cloudinaryFolder: data.cloudinaryFolder || '',
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+        tags: data.tags || [],
+      } as MemoryFirestore;
+    })
     .filter(memory => memory.coordinates != null)
     .sort((a, b) => b.date.localeCompare(a.date));
 }
