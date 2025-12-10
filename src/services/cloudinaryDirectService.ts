@@ -163,12 +163,23 @@ export const deleteFromCloudinary = async (
   try {
     console.log('🗑️ Deleting image from Cloudinary:', publicId);
     
-    // Import Firebase Functions dynamically to avoid circular dependency
+    // Import Firebase Functions and Auth dynamically
     const { getFunctions, httpsCallable } = await import('firebase/functions');
-    const { getApp } = await import('firebase/app');
+    const { getAuth } = await import('firebase/auth');
+    const { default: app } = await import('../firebase/firebaseConfig');
     
-    // Get Firebase app and create functions instance with correct region
-    const app = getApp();
+    // Check if user is authenticated
+    const auth = getAuth(app);
+    const currentUser = auth.currentUser;
+    
+    if (!currentUser) {
+      console.error('❌ User not authenticated');
+      throw new Error('You must be logged in to delete images');
+    }
+    
+    console.log('👤 Current user:', currentUser.uid);
+    
+    // Get Firebase Functions instance with correct region
     const functions = getFunctions(app, 'us-central1');
     const deleteImage = httpsCallable(functions, 'deleteCloudinaryImage');
     
