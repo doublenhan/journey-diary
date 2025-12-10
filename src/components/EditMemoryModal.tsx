@@ -294,8 +294,15 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
     try {
       const uploadedImages: MemoryImage[] = [];
       
+      // Environment detection for Vercel deployments
+      const hostname = window.location.hostname;
+      const isPreview = hostname.includes('git-dev') || 
+                       hostname.includes('doublenhans-projects.vercel.app') ||
+                       hostname.includes('localhost');
+      const envPrefix = isPreview ? 'dev' : 'production';
+      
       // Generate folder path matching CreateMemory logic
-      // Structure: love-journal/users/{userId}/{year}/{month}/memories
+      // Structure: {env}/love-journal/users/{userId}/{year}/{month}/memories
       const memoryDate = parseLocalDate(date);
       const year = memoryDate.getFullYear();
       const monthNames = [
@@ -303,7 +310,7 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
         'july', 'august', 'september', 'october', 'november', 'december'
       ];
       const month = monthNames[memoryDate.getMonth()];
-      const folder = `love-journal/users/${userId}/${year}/${month}/memories`;
+      const folder = `${envPrefix}/love-journal/users/${userId}/${year}/${month}/memories`;
       
       for (let i = 0; i < validFiles.length; i++) {
         const file = validFiles[i];
