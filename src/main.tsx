@@ -9,13 +9,23 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import { initPerformanceMonitoring } from './utils/performance';
 import { initPWA } from './utils/serviceWorker';
 
-// Initialize performance monitoring
+// Initialize performance monitoring and PWA only in production
 if (process.env.NODE_ENV === 'production') {
   initPerformanceMonitoring();
+  // Initialize PWA (service worker + install prompt)
+  initPWA().catch(console.error);
+} else {
+  console.log('🔧 Development mode - Service Worker disabled');
+  // Unregister any existing service workers in dev
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      registrations.forEach((registration) => {
+        registration.unregister();
+        console.log('🗑️  Unregistered service worker for dev mode');
+      });
+    });
+  }
 }
-
-// Initialize PWA (service worker + install prompt)
-initPWA().catch(console.error);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
