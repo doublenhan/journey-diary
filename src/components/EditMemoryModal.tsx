@@ -157,6 +157,12 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
       return;
     }
 
+    // Check if offline before attempting save
+    if (!navigator.onLine) {
+      setError('📡 Không có kết nối internet. Vui lòng kết nối và thử lại.');
+      return;
+    }
+
     setIsSaving(true);
     setError(null);
 
