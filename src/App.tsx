@@ -14,9 +14,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { PageTransition } from './components/PageTransition';
 import { LazyImage } from './components/LazyImage';
 import { GallerySkeleton } from './components/GallerySkeleton';
-import { OfflineDetector } from './components/OfflineDetector';
-import { OfflineQueueIndicator } from './components/OfflineQueueIndicator';
-import { setupAutoSync } from './utils/offlineQueue';
+
 import './styles/App.css';
 import './styles/PageLoader.css';
 import './styles/transitions.css';
@@ -147,11 +145,6 @@ function App() {
   const navigate = useNavigate();
   const { userId, loading } = useCurrentUserId();
   const { t } = useLanguage();
-
-  // Setup offline queue auto-sync
-  useEffect(() => {
-    setupAutoSync();
-  }, []);
 
   useEffect(() => {
     if (loading) return;
@@ -346,9 +339,6 @@ function App() {
   }, [galleryImages, imagesPerPage]);
 
   return (
-    <>
-    <OfflineDetector />
-    <OfflineQueueIndicator />
     <ErrorBoundary>
     <Suspense fallback={<PageLoader />}>
     <PageTransition>
@@ -593,7 +583,6 @@ function App() {
     </PageTransition>
     </Suspense>
     </ErrorBoundary>
-    </>
   );
 }
 

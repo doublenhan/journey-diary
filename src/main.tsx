@@ -8,30 +8,31 @@ import { BrowserRouter } from 'react-router-dom';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { initPerformanceMonitoring } from './utils/performance';
 import { initPWA } from './utils/serviceWorker';
+import { OfflineDetector } from './components/OfflineDetector';
 
-// Initialize performance monitoring and PWA only in production
+// Initialize performance monitoring in production
 if (process.env.NODE_ENV === 'production') {
   initPerformanceMonitoring();
-  // Initialize PWA (service worker + install prompt)
-  initPWA().catch(console.error);
-} else {
-  console.log('🔧 Development mode - Service Worker disabled');
-  // Unregister any existing service workers in dev
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then((registrations) => {
-      registrations.forEach((registration) => {
-        registration.unregister();
-        console.log('🗑️  Unregistered service worker for dev mode');
-      });
-    });
-  }
 }
+
+// Initialize PWA (service worker + install prompt) - works in both dev and production
+// Firebase offline persistence handles data sync, SW only caches static assets
+initPWA().catch(console.error);
+
+const Root = () => {
+  return (
+    <>
+      <OfflineDetector />
+      <App />
+    </>
+  );
+};
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <LanguageProvider>
       <BrowserRouter>
-        <App />
+        <Root />
       </BrowserRouter>
     </LanguageProvider>
   </StrictMode>

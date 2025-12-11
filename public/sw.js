@@ -79,6 +79,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip Firebase requests - Firebase handles offline persistence natively
+  if (url.hostname.includes('firebaseio.com') || 
+      url.hostname.includes('googleapis.com') ||
+      url.hostname.includes('firebase.com')) {
+    return; // Let Firebase SDK handle it with its offline persistence
+  }
+
   // Strategy 1: Cloudinary Images - Cache First with fallback
   if (url.hostname.includes('cloudinary.com')) {
     event.respondWith(
@@ -88,7 +95,7 @@ self.addEventListener('fetch', (event) => {
             return cached;
           }
           
-          return fetch(request, { timeout: 5000 }).then((response) => {
+          return fetch(request).then((response) => {
             // Only cache successful responses
             if (response.ok) {
               const responseClone = response.clone();
@@ -98,52 +105,21 @@ self.addEventListener('fetch', (event) => {
             }
             
             return response;
-          }).catch((error) => {
-            console.log('[SW] Cloudinary fetch failed:', error.message);
-            // Return placeholder on error
-            return new Response(
-              '<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect fill="#f3f4f6" width="400" height="300"/><text x="50%" y="50%" text-anchor="middle" fill="#9ca3af" font-size="16">📷 Offline</text></svg>',
-              { headers: { 'Content-Type': 'image/svg+xml' } }
-            );
+          }).catch(() => {
+            // Silently fail, return cached version if available
+            return caches.match(request);
           });
         })
     );
     return;
   }
 
-  // Strategy 2: Firebase/Firestore - Network First
+  // Strategy 2: Firebase/Firestore - SKIP, let Firebase SDK handle offline persistence
   if (url.hostname.includes('firebaseio.com') || 
       url.hostname.includes('firestore.googleapis.com') ||
-      url.hostname.includes('googleapis.com')) {
-    event.respondWith(
-      fetch(request, { timeout: 5000 })
-        .then((response) => {
-          // Cache successful responses
-          if (response.status === 200) {
-            const responseClone = response.clone();
-            caches.open(API_CACHE).then((cache) => {
-              cache.put(request, responseClone);
-            });
-          }
-          return response;
-        })
-        .catch((error) => {
-          console.log('[SW] Firebase request failed, using cache:', error.message);
-          // Fallback to cache on network error
-          return caches.match(request)
-            .then((cached) => {
-              if (cached) {
-                console.log('[SW] Serving from cache');
-                return cached;
-              }
-              
-              // Don't return error response, let it fail naturally
-              // This allows app-level offline detection to handle it
-              console.log('[SW] No cache available, passing through error');
-              return Promise.reject(error);
-            });
-        })
-    );
+      url.hostname.includes('googleapis.com') ||
+      url.hostname.includes('firebase.com')) {
+    // Don't intercept Firebase requests - Firebase SDK has built-in offline persistence
     return;
   }
 
@@ -156,7 +132,7 @@ self.addEventListener('fetch', (event) => {
             return cached;
           }
           
-          return fetch(request, { timeout: 5000 }).then((response) => {
+          return fetch(request).then((response) => {
             if (response.ok) {
               const responseClone = response.clone();
               caches.open(STATIC_CACHE).then((cache) => {
@@ -164,50 +140,27 @@ self.addEventListener('fetch', (event) => {
               });
             }
             return response;
-          }).catch((error) => {
-            console.log('[SW] Static asset fetch failed:', url.pathname);
-            // Let it fail naturally, browser will show error
-            return Promise.reject(error);
           });
         })
     );
     return;
   }
 
-  // Strategy 4: HTML Pages - Network First with offline fallback
+  // Strategy 4: HTML Pages - Cache First (SPA)
   if (request.headers.get('accept')?.includes('text/html')) {
     event.respondWith(
-      fetch(request, { timeout: 5000 })
-        .then((response) => {
-          // Cache successful HTML responses
-          if (response.ok) {
-            const responseClone = response.clone();
-            caches.open(STATIC_CACHE).then((cache) => {
-              cache.put(request, responseClone);
-            });
-          }
-          return response;
-        })
-        .catch((error) => {
-          console.log('[SW] HTML fetch failed, using cache:', error.message);
-          // Try cache first
-          return caches.match(request)
-            .then((cached) => {
-              if (cached) {
-                console.log('[SW] Serving cached HTML');
-                return cached;
-              }
-              
-              // Fallback to offline page
-              console.log('[SW] No cache, serving offline page');
-              return caches.match('/offline.html')
-                .then((offlinePage) => {
-                  return offlinePage || new Response(
-                    '<h1>📡 Bạn đang offline</h1><p>Vui lòng kiểm tra kết nối internet</p>',
-                    { headers: { 'Content-Type': 'text/html' } }
-                  );
-                });
-            });
+      caches.match(request)
+        .then((cached) => {
+          // Return cached HTML immediately for instant load
+          return cached || fetch(request).then((response) => {
+            if (response.ok) {
+              const responseClone = response.clone();
+              caches.open(STATIC_CACHE).then((cache) => {
+                cache.put(request, responseClone);
+              });
+            }
+            return response;
+          });
         })
     );
     return;
