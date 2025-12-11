@@ -169,11 +169,9 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
     try {
       // Delete removed images from Cloudinary
       if (deletedImageIds.length > 0) {
-        console.log('Deleting images from Cloudinary:', deletedImageIds);
         for (const publicId of deletedImageIds) {
           try {
             await deleteFromCloudinary(publicId);
-            console.log('✓ Deleted image:', publicId);
           } catch (error) {
             console.warn('Failed to delete image:', publicId, error);
             // Continue even if deletion fails
@@ -198,8 +196,6 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
         photos: images.map(img => img.secure_url),
         location: locationData,
       });
-
-      console.log('✓ Memory updated in Firestore:', memory.id);
 
       // Invalidate cache to force refresh
       window.dispatchEvent(new CustomEvent('memoryCacheInvalidated', { detail: { userId } }));
@@ -322,8 +318,6 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
         const file = validFiles[i];
         
         try {
-          console.log(`Uploading image ${i + 1}/${validFiles.length}...`);
-          
           const result = await uploadToCloudinary(
             file,
             {
@@ -348,8 +342,6 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
             width: result.width,
             height: result.height,
           });
-
-          console.log(`✓ Image ${i + 1}/${validFiles.length} uploaded:`, result.public_id);
         } catch (err) {
           console.error(`Failed to upload ${file.name}:`, err);
           throw new Error(`Failed to upload ${file.name}`);
@@ -357,7 +349,6 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
       }
 
       setImages(prev => [...prev, ...uploadedImages]);
-      console.log('✓ All images uploaded successfully');
     } catch (err) {
       console.error('Failed to upload images:', err);
       setError(err instanceof Error ? err.message : 'Failed to upload images. Please try again.');

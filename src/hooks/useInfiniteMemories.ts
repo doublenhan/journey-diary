@@ -23,7 +23,6 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
       const eventUserId = customEvent.detail?.userId;
       
       if (!eventUserId || eventUserId === userId) {
-        console.log('[DEBUG] Memory cache invalidated, triggering refresh');
         // Clear cache to force fresh fetch
         const cacheKey = `memoriesCache_${userId}`;
         localStorage.removeItem(cacheKey);
@@ -67,7 +66,6 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
         try {
           // Check if offline before attempting fetch
           if (!navigator.onLine) {
-            console.log('📡 Offline mode - using cached data only');
             setIsLoading(false);
             // Try to use expired cache if available
             if (cache) {
@@ -99,11 +97,6 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
                            hostname.includes('doublenhans-projects.vercel.app') ||
                            hostname.includes('localhost');
           const currentEnv = isPreview ? 'dev' : 'production';
-          
-          console.log('[useInfiniteMemories] Environment detection:');
-          console.log('  hostname:', hostname);
-          console.log('  isPreview:', isPreview);
-          console.log('  currentEnv:', currentEnv);
           
           // Transform Firebase memories to app format
           const transformedMemories = firebaseMemories.map((m: FirebaseMemory) => {
@@ -201,17 +194,10 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
           localStorage.setItem(cacheKey, JSON.stringify({ memories, timestamp: Date.now() }));
           
           processMemories(memories, true);
-          
-          if (memories.length === 0) {
-            console.log('No memories found for user');
-          } else {
-            console.log(`✅ Loaded ${memories.length} memories`);
-          }
         } catch (e) {
           console.error('Memories fetch error:', e);
           // On error, try to use any cached data (even expired)
           if (!navigator.onLine && cache) {
-            console.log('📡 Network error while offline - using cached data');
             try {
               const { memories } = JSON.parse(cache);
               if (memories && Array.isArray(memories)) {
