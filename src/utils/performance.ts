@@ -1,4 +1,4 @@
-import { getCLS, getFID, getFCP, getLCP, getTTFB, Metric } from 'web-vitals';
+import { onCLS, onINP, onFCP, onLCP, onTTFB, type Metric } from 'web-vitals';
 
 /**
  * Performance Monitoring Utilities
@@ -30,7 +30,7 @@ interface ResourceAnalysis {
 // Core Web Vitals thresholds
 const THRESHOLDS = {
   LCP: { good: 2500, poor: 4000 },
-  FID: { good: 100, poor: 300 },
+  INP: { good: 200, poor: 500 }, // INP replaced FID
   CLS: { good: 0.1, poor: 0.25 },
   FCP: { good: 1800, poor: 3000 },
   TTFB: { good: 800, poor: 1800 },
@@ -99,11 +99,11 @@ export const initPerformanceMonitoring = () => {
   };
 
   // Track Core Web Vitals
-  getCLS(handleMetric);
-  getFID(handleMetric);
-  getFCP(handleMetric);
-  getLCP(handleMetric);
-  getTTFB(handleMetric);
+  onCLS(handleMetric);
+  onINP(handleMetric); // INP replaced FID in web-vitals v4
+  onFCP(handleMetric);
+  onLCP(handleMetric);
+  onTTFB(handleMetric);
 
   // Log initialization
   console.log('📊 Performance monitoring initialized');
