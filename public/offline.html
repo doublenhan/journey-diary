@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline - Love Journal</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
+      background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .offline-container {
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(236, 72, 153, 0.2);
+      padding: 48px 32px;
+      max-width: 500px;
+      text-align: center;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .offline-icon {
+      font-size: 80px;
+      margin-bottom: 24px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.1);
+      }
+    }
+
+    h1 {
+      font-size: 28px;
+      color: #ec4899;
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+
+    p {
+      font-size: 16px;
+      color: #6b7280;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    button {
+      padding: 14px 28px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .primary-button {
+      background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+    }
+
+    .primary-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(236, 72, 153, 0.4);
+    }
+
+    .secondary-button {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .secondary-button:hover {
+      background: #e5e7eb;
+    }
+
+    .status {
+      margin-top: 24px;
+      padding: 12px;
+      background: #fef2f2;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #991b1b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .status.online {
+      background: #f0fdf4;
+      color: #166534;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #dc2626;
+      animation: blink 2s infinite;
+    }
+
+    .status.online .status-dot {
+      background: #16a34a;
+      animation: none;
+    }
+
+    @keyframes blink {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.3;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .offline-container {
+        padding: 32px 24px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .offline-icon {
+        font-size: 64px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="offline-container">
+    <div class="offline-icon">📡</div>
+    <h1>Bạn đang offline</h1>
+    <p>
+      Không thể kết nối đến Love Journal. Vui lòng kiểm tra kết nối internet 
+      và thử lại.
+    </p>
+
+    <div class="button-group">
+      <button class="primary-button" onclick="window.location.reload()">
+        🔄 Thử lại
+      </button>
+      <button class="secondary-button" onclick="window.history.back()">
+        ← Quay lại
+      </button>
+    </div>
+
+    <div class="status" id="status">
+      <span class="status-dot"></span>
+      <span id="status-text">Đang kiểm tra kết nối...</span>
+    </div>
+  </div>
+
+  <script>
+    // Check online status
+    function updateOnlineStatus() {
+      const status = document.getElementById('status');
+      const statusText = document.getElementById('status-text');
+      
+      if (navigator.onLine) {
+        status.classList.add('online');
+        statusText.textContent = 'Đã kết nối! Trang sẽ tải lại...';
+        
+        // Auto reload when back online
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        status.classList.remove('online');
+        statusText.textContent = 'Không có kết nối internet';
+      }
+    }
+
+    // Listen for online/offline events
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+
+    // Initial check
+    updateOnlineStatus();
+
+    // Periodic check
+    setInterval(updateOnlineStatus, 5000);
+  </script>
+</body>
+</html>

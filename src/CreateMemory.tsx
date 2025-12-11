@@ -20,6 +20,7 @@ import { createMemory } from './services/firebaseMemoriesService';
 import { uploadToCloudinary, uploadMultipleImages } from './services/cloudinaryDirectService';
 import { reverseGeocode } from './services/geoService';
 import './styles/CreateMemory.css';
+import './styles/components.css';
 
 interface CreateMemoryProps {
   onBack?: () => void;
@@ -626,25 +627,8 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
                     type="button"
                     onClick={getCurrentLocation}
                     disabled={isGettingLocation}
-                    className="location-btn"
+                    className={`location-btn ${coordinates ? 'has-coordinates' : ''}`}
                     title="Sử dụng vị trí hiện tại (GPS)"
-                    style={{
-                      padding: '0.75rem 1rem',
-                      borderRadius: '12px',
-                      border: '2px solid #ec4899',
-                      background: coordinates ? '#ec4899' : 'white',
-                      color: coordinates ? 'white' : '#ec4899',
-                      cursor: isGettingLocation ? 'wait' : 'pointer',
-                      transition: 'all 0.3s ease',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      fontWeight: '600',
-                      whiteSpace: 'nowrap',
-                      opacity: isGettingLocation ? 0.6 : 1,
-                      minWidth: '110px',
-                      justifyContent: 'center'
-                    }}
                   >
                     <Navigation className="w-5 h-5" style={{ 
                       animation: isGettingLocation ? 'spin 1s linear infinite' : 'none' 

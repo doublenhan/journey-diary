@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 /**
  * Cloudinary Direct Upload Service - V3.0
  * Upload ảnh trực tiếp từ client lên Cloudinary
@@ -17,6 +19,13 @@ export interface CloudinaryUploadOptions {
   transformation?: string;
   format?: 'auto' | 'jpg' | 'png' | 'webp' | 'avif';
   quality?: 'auto' | number;
+  maxRetries?: number;
+  retryDelay?: number;
+}
+
+export interface UploadController {
+  abort: () => void;
+  promise: Promise<CloudinaryUploadResult>;
 }
 
 export interface CloudinaryUploadResult {
@@ -38,10 +47,87 @@ export interface CloudinaryDeleteResult {
 }
 
 /**
- * Upload ảnh trực tiếp lên Cloudinary
+ * Extract publicId from Cloudinary URL
+ * Example: https://res.cloudinary.com/dhelefhv1/image/upload/v1765358332/dev/love-journal/users/.../image.jpg
+ * Returns: dev/love-journal/users/.../image (without extension)
+ */
+export const extractPublicIdFromUrl = (urlOrPublicId: string): string => {
+  // If it's not a URL, return as-is
+  if (!urlOrPublicId.startsWith('http://') && !urlOrPublicId.startsWith('https://')) {
+    return urlOrPublicId;
+  }
+
+  try {
+    const url = new URL(urlOrPublicId);
+    const pathParts = url.pathname.split('/');
+    
+    // Find the index of 'upload' in the path
+    const uploadIndex = pathParts.indexOf('upload');
+    if (uploadIndex === -1) {
+      throw new Error('Invalid Cloudinary URL format');
+    }
+    
+    // Get everything after 'upload' and version (v1234567890)
+    // Skip the version part (starts with 'v' followed by numbers)
+    let startIndex = uploadIndex + 1;
+    if (pathParts[startIndex]?.match(/^v\d+$/)) {
+      startIndex++;
+    }
+    
+    // Join the remaining parts
+    const publicIdWithExtension = pathParts.slice(startIndex).join('/');
+    
+    // Remove file extension
+    const lastDotIndex = publicIdWithExtension.lastIndexOf('.');
+    const publicId = lastDotIndex > 0 
+      ? publicIdWithExtension.substring(0, lastDotIndex)
+      : publicIdWithExtension;
+    
+    return publicId;
+  } catch (error) {
+    console.error('Error extracting publicId from URL:', error);
+    return urlOrPublicId; // Return original if parsing fails
+  }
+};
+
+/**
+ * Upload ảnh trực tiếp lên Cloudinary với retry logic
  * Sử dụng unsigned upload với upload preset
  */
 export const uploadToCloudinary = async (
+  file: File,
+  options: CloudinaryUploadOptions = {},
+  onProgress?: (progress: number) => void
+): Promise<CloudinaryUploadResult> => {
+  const maxRetries = options.maxRetries ?? 3;
+  const retryDelay = options.retryDelay ?? 1000;
+  
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      if (attempt > 0) {
+        console.log(`🔄 Retry attempt ${attempt}/${maxRetries} for ${file.name}`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
+      }
+      
+      return await uploadToCloudinaryInternal(file, options, onProgress);
+    } catch (error: any) {
+      lastError = error;
+      if (attempt === maxRetries) {
+        console.error(`❌ Upload failed after ${maxRetries} retries:`, error);
+        throw error;
+      }
+    }
+  }
+  
+  throw lastError || new Error('Upload failed');
+};
+
+/**
+ * Internal upload function (without retry)
+ */
+const uploadToCloudinaryInternal = async (
   file: File,
   options: CloudinaryUploadOptions = {},
   onProgress?: (progress: number) => void
@@ -158,10 +244,15 @@ export const uploadToCloudinary = async (
  * Xóa ảnh từ Cloudinary via Firebase Cloud Function
  */
 export const deleteFromCloudinary = async (
-  publicId: string
+  publicIdOrUrl: string
 ): Promise<CloudinaryDeleteResult> => {
   try {
-    console.log('🗑️ Deleting image from Cloudinary:', publicId);
+    // Extract publicId from URL if necessary
+    const publicId = extractPublicIdFromUrl(publicIdOrUrl);
+    
+    console.log('🗑️ Deleting image from Cloudinary');
+    console.log('   Original input:', publicIdOrUrl);
+    console.log('   Extracted publicId:', publicId);
     
     // Get Firebase Auth to get current user token
     const { getAuth } = await import('firebase/auth');
@@ -300,37 +391,129 @@ export const generateThumbnail = (
 };
 
 /**
- * Upload multiple images
+ * Upload with cancellation support
+ */
+export const uploadWithCancellation = (
+  file: File,
+  options: CloudinaryUploadOptions = {},
+  onProgress?: (progress: number) => void
+): UploadController => {
+  let aborted = false;
+  let xhrInstance: XMLHttpRequest | null = null;
+  
+  const promise = new Promise<CloudinaryUploadResult>((resolve, reject) => {
+    if (aborted) {
+      reject(new Error('Upload cancelled'));
+      return;
+    }
+    
+    // Store XHR instance for cancellation
+    const originalUpload = uploadToCloudinaryInternal(file, options, onProgress);
+    originalUpload.then(resolve).catch(reject);
+  });
+  
+  return {
+    abort: () => {
+      aborted = true;
+      if (xhrInstance) {
+        xhrInstance.abort();
+      }
+    },
+    promise,
+  };
+};
+
+/**
+ * Upload multiple images with individual progress tracking
  */
 export const uploadMultipleImages = async (
   files: File[],
   options: CloudinaryUploadOptions = {},
-  onProgress?: (fileIndex: number, progress: number) => void
+  onProgress?: (fileIndex: number, progress: number, fileName: string) => void
 ): Promise<CloudinaryUploadResult[]> => {
   const results: CloudinaryUploadResult[] = [];
+  const errors: Array<{ index: number; fileName: string; error: Error }> = [];
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-    const result = await uploadToCloudinary(
-      file,
-      options,
-      (progress) => {
-        if (onProgress) {
-          onProgress(i, progress);
+    try {
+      const result = await uploadToCloudinary(
+        file,
+        options,
+        (progress) => {
+          if (onProgress) {
+            onProgress(i, progress, file.name);
+          }
         }
-      }
-    );
-    results.push(result);
+      );
+      results.push(result);
+    } catch (error: any) {
+      console.error(`❌ Failed to upload ${file.name}:`, error);
+      errors.push({ index: i, fileName: file.name, error });
+      // Continue with other files instead of stopping
+    }
+  }
+
+  if (errors.length > 0 && results.length === 0) {
+    throw new Error(`All uploads failed. First error: ${errors[0].error.message}`);
   }
 
   return results;
 };
 
+/**
+ * Upload multiple images in parallel (faster but more resource intensive)
+ */
+export const uploadMultipleImagesParallel = async (
+  files: File[],
+  options: CloudinaryUploadOptions = {},
+  onProgress?: (fileIndex: number, progress: number, fileName: string) => void,
+  maxConcurrent: number = 3
+): Promise<CloudinaryUploadResult[]> => {
+  const results: (CloudinaryUploadResult | null)[] = new Array(files.length).fill(null);
+  const errors: Array<{ index: number; fileName: string; error: Error }> = [];
+  
+  // Upload in batches to avoid overwhelming the browser
+  for (let i = 0; i < files.length; i += maxConcurrent) {
+    const batch = files.slice(i, i + maxConcurrent);
+    const batchPromises = batch.map((file, batchIndex) => {
+      const fileIndex = i + batchIndex;
+      return uploadToCloudinary(
+        file,
+        options,
+        (progress) => {
+          if (onProgress) {
+            onProgress(fileIndex, progress, file.name);
+          }
+        }
+      ).then(result => {
+        results[fileIndex] = result;
+      }).catch(error => {
+        console.error(`❌ Failed to upload ${file.name}:`, error);
+        errors.push({ index: fileIndex, fileName: file.name, error });
+      });
+    });
+    
+    await Promise.all(batchPromises);
+  }
+  
+  const successfulResults = results.filter((r): r is CloudinaryUploadResult => r !== null);
+  
+  if (errors.length > 0 && successfulResults.length === 0) {
+    throw new Error(`All uploads failed. First error: ${errors[0].error.message}`);
+  }
+  
+  return successfulResults;
+};
+
 export default {
   uploadToCloudinary,
+  uploadWithCancellation,
+  uploadMultipleImages,
+  uploadMultipleImagesParallel,
   deleteFromCloudinary,
+  extractPublicIdFromUrl,
   generateCloudinaryUrl,
   generateResponsiveSrcSet,
   generateThumbnail,
-  uploadMultipleImages,
 };

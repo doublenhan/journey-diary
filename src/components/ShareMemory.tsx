@@ -1,7 +1,15 @@
 import { useState, useRef } from 'react';
-import html2canvas from 'html2canvas';
 import { Share2, Download, X, Loader, Image as ImageIcon, Heart, Calendar, MapPin } from 'lucide-react';
 import '../styles/ShareMemory.css';
+
+// Lazy load html2canvas (197 KB vendor chunk)
+let html2canvasModule: any = null;
+const loadHtml2Canvas = async () => {
+  if (!html2canvasModule) {
+    html2canvasModule = await import('html2canvas');
+  }
+  return html2canvasModule.default;
+};
 
 interface Memory {
   id: string;
@@ -50,6 +58,9 @@ export function ShareMemory({ memory, onClose, theme }: ShareMemoryProps) {
     try {
       // Wait a bit for any animations to complete
       await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Lazy load html2canvas
+      const html2canvas = await loadHtml2Canvas();
 
       // Use optimized settings for high-quality download
       const canvas = await html2canvas(cardRef.current, {
@@ -109,6 +120,9 @@ export function ShareMemory({ memory, onClose, theme }: ShareMemoryProps) {
     setError(null);
 
     try {
+      // Lazy load html2canvas
+      const html2canvas = await loadHtml2Canvas();
+      
       const canvas = await html2canvas(cardRef.current, {
         backgroundColor: '#ffffff',
         scale: 2,

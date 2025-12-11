@@ -6,7 +6,17 @@ import 'leaflet/dist/leaflet.css';
 import './styles/datepicker.css';
 import { BrowserRouter } from 'react-router-dom';
 import { LanguageProvider } from './contexts/LanguageContext';
-//import './styles/SettingPage.css';
+import { initPerformanceMonitoring } from './utils/performance';
+import { initPWA } from './utils/serviceWorker';
+
+// Initialize performance monitoring
+if (process.env.NODE_ENV === 'production') {
+  initPerformanceMonitoring();
+}
+
+// Initialize PWA (service worker + install prompt)
+initPWA().catch(console.error);
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <LanguageProvider>

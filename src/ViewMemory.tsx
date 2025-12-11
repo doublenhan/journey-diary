@@ -15,7 +15,7 @@ import { LazyImage } from './components/LazyImage';
 import { InfiniteScrollTrigger } from './components/InfiniteScrollTrigger';
 import { EnhancedSearchFilter } from './components/EnhancedSearchFilter';
 import { ResponsiveGallery } from './components/ResponsiveGallery';
-import { MapView } from './components/MapView';
+import MapView from './components/MapView.lazy';
 import { EditMemoryModal } from './components/EditMemoryModal';
 import { ShareMemory } from './components/ShareMemory';
 import { MemoryStatistics } from './components/MemoryStatistics';
