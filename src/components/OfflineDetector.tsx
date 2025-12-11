@@ -13,6 +13,7 @@ export const OfflineDetector = () => {
 
   useEffect(() => {
     const handleOnline = () => {
+      console.log('🟢 Online event triggered');
       setIsOnline(true);
       
       // Show "Back online" message briefly
@@ -23,18 +24,34 @@ export const OfflineDetector = () => {
     };
 
     const handleOffline = () => {
+      console.log('🔴 Offline event triggered');
       setIsOnline(false);
       setShowBanner(true);
     };
+
+    // Poll navigator.onLine every second to catch changes
+    // This is needed because DevTools offline mode doesn't trigger events
+    const pollInterval = setInterval(() => {
+      const currentOnline = navigator.onLine;
+      if (currentOnline !== isOnline) {
+        console.log('📡 Connection status changed:', currentOnline ? 'online' : 'offline');
+        if (currentOnline) {
+          handleOnline();
+        } else {
+          handleOffline();
+        }
+      }
+    }, 1000);
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
     return () => {
+      clearInterval(pollInterval);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+  }, [isOnline]);
 
   if (!showBanner) return null;
 
