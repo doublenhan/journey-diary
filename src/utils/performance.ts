@@ -74,7 +74,8 @@ const logMetric = (metric: PerformanceMetric) => {
 // Send metric to analytics (can be extended for GA, Firebase, etc.)
 const sendToAnalytics = (metric: PerformanceMetric) => {
   // Example: Send to Firebase Performance Monitoring
-  if (window.gtag) {
+  // @ts-ignore - gtag is loaded externally if GA is configured
+  if (typeof window !== 'undefined' && window.gtag) {
     window.gtag('event', metric.name, {
       event_category: 'Web Vitals',
       event_label: metric.rating,
@@ -83,11 +84,12 @@ const sendToAnalytics = (metric: PerformanceMetric) => {
     });
   }
   
-  // Example: Send to custom endpoint
-  if (navigator.sendBeacon && process.env.NODE_ENV === 'production') {
-    const data = JSON.stringify(metric);
-    navigator.sendBeacon('/api/analytics', data);
-  }
+  // Example: Send to custom endpoint (disabled - no analytics endpoint)
+  // Uncomment when analytics endpoint is available
+  // if (navigator.sendBeacon && process.env.NODE_ENV === 'production') {
+  //   const data = JSON.stringify(metric);
+  //   navigator.sendBeacon('/api/analytics', data);
+  // }
 };
 
 // Initialize Core Web Vitals monitoring

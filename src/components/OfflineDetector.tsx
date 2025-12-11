@@ -13,7 +13,6 @@ export const OfflineDetector = () => {
 
   useEffect(() => {
     const handleOnline = () => {
-      console.log('🟢 Online event triggered');
       setIsOnline(true);
       
       // Show "Back online" message briefly
@@ -24,7 +23,6 @@ export const OfflineDetector = () => {
     };
 
     const handleOffline = () => {
-      console.log('🔴 Offline event triggered');
       setIsOnline(false);
       setShowBanner(true);
     };
@@ -34,7 +32,6 @@ export const OfflineDetector = () => {
     const pollInterval = setInterval(() => {
       const currentOnline = navigator.onLine;
       if (currentOnline !== isOnline) {
-        console.log('📡 Connection status changed:', currentOnline ? 'online' : 'offline');
         if (currentOnline) {
           handleOnline();
         } else {

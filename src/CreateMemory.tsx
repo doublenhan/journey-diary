@@ -362,8 +362,6 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
           throw new Error('📡 Không có kết nối internet. Vui lòng kết nối và thử lại.');
         }
         
-        console.log(`Uploading ${uploadedImages.length} images to Cloudinary...`);
-        
         for (let i = 0; i < uploadedImages.length; i++) {
           const file = uploadedImages[i];
           const currentIndex = i;
@@ -383,14 +381,8 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
                              hostname.includes('localhost');
             const envPrefix = isPreview ? 'dev' : 'production';
             
-            console.log('[CreateMemory Upload]');
-            console.log('  hostname:', hostname);
-            console.log('  isPreview:', isPreview);
-            console.log('  envPrefix:', envPrefix);
-            
             const baseFolder = `${envPrefix}/love-journal`;
             const folder = `${baseFolder}/users/${userId}/${year}/${month}/memories`;
-            console.log('[DEBUG] Final folder path:', folder);
             
             // Double-check online status before each upload
             if (!navigator.onLine) {
@@ -430,8 +422,6 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
               }
               return item;
             }));
-            
-            console.log(`✓ Image ${i + 1}/${uploadedImages.length} uploaded:`, result.public_id);
           } catch (error) {
             console.error(`Failed to upload image ${i + 1}:`, error);
             // Mark as error and throw to stop the process
@@ -481,8 +471,6 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
         } : undefined,
         tags: ['memory', 'love-journal'],
       });
-      
-      console.log('✓ Memory saved to Firestore:', newMemory.id);
       
       // Success! Clear form and update cache
       setTimeout(() => {
