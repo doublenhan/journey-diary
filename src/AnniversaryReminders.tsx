@@ -123,6 +123,25 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
     }
     
     // No cache or cache expired, fetch from Firebase
+    // Check if offline before attempting fetch
+    if (!navigator.onLine) {
+      console.log('📡 Offline mode - using expired cache or empty state');
+      // Try to use expired cache if available
+      if (cached) {
+        try {
+          const { anniversaries: cachedData } = JSON.parse(cached);
+          setAnniversaries(processAnniversaries(cachedData));
+          syncError('Đang offline - hiển thị dữ liệu đã lưu');
+        } catch (e) {
+          console.error('Failed to parse expired cache:', e);
+          syncError('Không có kết nối internet');
+        }
+      } else {
+        syncError('Không có kết nối internet');
+      }
+      return;
+    }
+
     setLoading(true);
     startSync();
     
@@ -136,7 +155,18 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       })
       .catch((error) => {
         console.error('Error fetching anniversaries:', error);
-        syncError(error.message || 'Không thể tải dữ liệu');
+        // On network error, try to use any cached data
+        if (!navigator.onLine && cached) {
+          try {
+            const { anniversaries: cachedData } = JSON.parse(cached);
+            setAnniversaries(processAnniversaries(cachedData));
+            syncError('Đang offline - hiển thị dữ liệu đã lưu');
+          } catch (e) {
+            syncError(error.message || 'Không thể tải dữ liệu');
+          }
+        } else {
+          syncError(error.message || 'Không thể tải dữ liệu');
+        }
       })
       .finally(() => setLoading(false));
   }, [userId, startSync, syncSuccess, syncError]);

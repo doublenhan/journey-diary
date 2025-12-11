@@ -65,6 +65,25 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
     if (!cacheValid) {
       (async () => {
         try {
+          // Check if offline before attempting fetch
+          if (!navigator.onLine) {
+            console.log('📡 Offline mode - using cached data only');
+            // Try to use expired cache if available
+            if (cache) {
+              try {
+                const { memories } = JSON.parse(cache);
+                if (memories && Array.isArray(memories)) {
+                  processMemories(memories, true);
+                  return;
+                }
+              } catch (e) {
+                console.debug('Failed to parse expired cache:', e);
+              }
+            }
+            // No cache available
+            throw new Error('No internet connection. Please go online to load memories.');
+          }
+
           // Fetch memories directly from Firestore
           const firebaseMemories = await fetchMemories({ userId: userId || '' });
           
