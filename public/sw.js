@@ -88,23 +88,24 @@ self.addEventListener('fetch', (event) => {
             return cached;
           }
           
-          return fetch(request).then((response) => {
-            // Clone response before caching
-            const responseClone = response.clone();
-            
-            caches.open(IMAGE_CACHE).then((cache) => {
-              cache.put(request, responseClone);
-            });
+          return fetch(request, { timeout: 5000 }).then((response) => {
+            // Only cache successful responses
+            if (response.ok) {
+              const responseClone = response.clone();
+              caches.open(IMAGE_CACHE).then((cache) => {
+                cache.put(request, responseClone);
+              });
+            }
             
             return response;
+          }).catch((error) => {
+            console.log('[SW] Cloudinary fetch failed:', error.message);
+            // Return placeholder on error
+            return new Response(
+              '<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect fill="#f3f4f6" width="400" height="300"/><text x="50%" y="50%" text-anchor="middle" fill="#9ca3af" font-size="16">📷 Offline</text></svg>',
+              { headers: { 'Content-Type': 'image/svg+xml' } }
+            );
           });
-        })
-        .catch(() => {
-          // Return placeholder on error
-          return new Response(
-            '<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect fill="#f3f4f6" width="400" height="300"/><text x="50%" y="50%" text-anchor="middle" fill="#9ca3af" font-size="16">📷 Offline</text></svg>',
-            { headers: { 'Content-Type': 'image/svg+xml' } }
-          );
         })
     );
     return;
@@ -115,7 +116,7 @@ self.addEventListener('fetch', (event) => {
       url.hostname.includes('firestore.googleapis.com') ||
       url.hostname.includes('googleapis.com')) {
     event.respondWith(
-      fetch(request)
+      fetch(request, { timeout: 5000 })
         .then((response) => {
           // Cache successful responses
           if (response.status === 200) {
@@ -126,22 +127,20 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => {
+        .catch((error) => {
+          console.log('[SW] Firebase request failed, using cache:', error.message);
           // Fallback to cache on network error
           return caches.match(request)
             .then((cached) => {
               if (cached) {
+                console.log('[SW] Serving from cache');
                 return cached;
               }
               
-              // Return offline response
-              return new Response(
-                JSON.stringify({ 
-                  error: 'offline',
-                  message: 'You are offline. Please check your connection.' 
-                }),
-                { headers: { 'Content-Type': 'application/json' } }
-              );
+              // Don't return error response, let it fail naturally
+              // This allows app-level offline detection to handle it
+              console.log('[SW] No cache available, passing through error');
+              return Promise.reject(error);
             });
         })
     );
@@ -157,12 +156,18 @@ self.addEventListener('fetch', (event) => {
             return cached;
           }
           
-          return fetch(request).then((response) => {
-            const responseClone = response.clone();
-            caches.open(STATIC_CACHE).then((cache) => {
-              cache.put(request, responseClone);
-            });
+          return fetch(request, { timeout: 5000 }).then((response) => {
+            if (response.ok) {
+              const responseClone = response.clone();
+              caches.open(STATIC_CACHE).then((cache) => {
+                cache.put(request, responseClone);
+              });
+            }
             return response;
+          }).catch((error) => {
+            console.log('[SW] Static asset fetch failed:', url.pathname);
+            // Let it fail naturally, browser will show error
+            return Promise.reject(error);
           });
         })
     );
@@ -172,24 +177,29 @@ self.addEventListener('fetch', (event) => {
   // Strategy 4: HTML Pages - Network First with offline fallback
   if (request.headers.get('accept')?.includes('text/html')) {
     event.respondWith(
-      fetch(request)
+      fetch(request, { timeout: 5000 })
         .then((response) => {
           // Cache successful HTML responses
-          const responseClone = response.clone();
-          caches.open(STATIC_CACHE).then((cache) => {
-            cache.put(request, responseClone);
-          });
+          if (response.ok) {
+            const responseClone = response.clone();
+            caches.open(STATIC_CACHE).then((cache) => {
+              cache.put(request, responseClone);
+            });
+          }
           return response;
         })
-        .catch(() => {
+        .catch((error) => {
+          console.log('[SW] HTML fetch failed, using cache:', error.message);
           // Try cache first
           return caches.match(request)
             .then((cached) => {
               if (cached) {
+                console.log('[SW] Serving cached HTML');
                 return cached;
               }
               
               // Fallback to offline page
+              console.log('[SW] No cache, serving offline page');
               return caches.match('/offline.html')
                 .then((offlinePage) => {
                   return offlinePage || new Response(
