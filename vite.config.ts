@@ -78,16 +78,34 @@ export default defineConfig({
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true, // Remove console.logs in production
-        drop_debugger: true, // Remove debugger statements
-        pure_funcs: ['console.log', 'console.info', 'console.debug'], // Remove specific console methods
-        passes: 2 // Multiple compression passes
+        drop_console: true,
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug'],
+        passes: 3, // Increased passes for better compression
+        unsafe: true, // More aggressive optimizations
+        unsafe_comps: true,
+        unsafe_math: true,
+        unsafe_proto: true,
+        unsafe_regexp: true,
+        unsafe_undefined: true,
+        dead_code: true,
+        toplevel: true,
+        keep_infinity: true,
+        reduce_funcs: true,
+        reduce_vars: true,
+        collapse_vars: true,
+        inline: 2
       },
       mangle: {
-        safari10: true // Fix Safari 10+ issues
+        safari10: true,
+        toplevel: true, // Mangle top-level names
+        properties: {
+          regex: /^_/ // Mangle properties starting with underscore
+        }
       },
       format: {
-        comments: false // Remove comments
+        comments: false,
+        ecma: 2020 // Target modern JavaScript
       }
     },
     // Enable source maps for production debugging (optional)
@@ -105,15 +123,22 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    exclude: ['lucide-react'],
+    exclude: ['lucide-react'], // Tree-shakable library
     include: [
       'react',
       'react-dom',
       'react-router-dom',
       'firebase/app',
       'firebase/auth',
-      'firebase/firestore'
-    ]
+      'firebase/firestore',
+      'firebase/storage',
+      'dompurify'
+    ],
+    esbuildOptions: {
+      target: 'es2020',
+      // Optimize with modern JS features
+      treeShaking: true
+    }
   },
   // Improve build performance
   esbuild: {

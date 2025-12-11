@@ -3,6 +3,14 @@
   "private": true,
   "version": "2.0.0",
   "type": "module",
+  "sideEffects": [
+    "*.css",
+    "*.scss",
+    "*.sass",
+    "*.less",
+    "src/main.tsx",
+    "src/firebase/firebaseConfig.ts"
+  ],
   "scripts": {
     "dev": "vite --host --open",
     "start": "vercel dev",
