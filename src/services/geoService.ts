@@ -72,6 +72,12 @@ export async function searchLocations(
     return [];
   }
 
+  // Check online status before making API call
+  if (!navigator.onLine) {
+    console.log('Offline: skipping location search');
+    return [];
+  }
+
   try {
     const url = new URL(`${NOMINATIM_BASE_URL}/search`);
     url.searchParams.set('format', 'json');
@@ -109,6 +115,11 @@ export async function reverseGeocode(
   lat: number,
   lon: number
 ): Promise<NominatimReverseResult> {
+  // Check online status before making API call
+  if (!navigator.onLine) {
+    throw new Error('No internet connection for reverse geocoding');
+  }
+
   try {
     const url = new URL(`${NOMINATIM_BASE_URL}/reverse`);
     url.searchParams.set('format', 'json');
@@ -145,6 +156,11 @@ export async function calculateRoute(
 ): Promise<OSRMRoute> {
   if (coordinates.length < 2) {
     throw new Error('At least 2 coordinates are required for routing');
+  }
+
+  // Check online status before making API call
+  if (!navigator.onLine) {
+    throw new Error('No internet connection for route calculation');
   }
 
   try {

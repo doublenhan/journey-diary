@@ -110,6 +110,17 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
         
         // Reverse geocode using direct Nominatim API (V3.0: no proxy)
         try {
+          // Check online status before making API call
+          if (!navigator.onLine) {
+            setIsGettingLocation(false);
+            setSaveMessage({
+              type: 'success',
+              text: `✓ Đã lấy GPS (${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}). Offline - nhập địa chỉ thủ công.`
+            });
+            setTimeout(() => setSaveMessage(null), 4000);
+            return;
+          }
+
           const data = await reverseGeocode(coords.lat, coords.lng);
           
           setLocation(data.display_name);
@@ -346,6 +357,11 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
       const uploadedUrls: string[] = [];
       
       if (uploadedImages.length > 0) {
+        // Check online status before attempting upload
+        if (!navigator.onLine) {
+          throw new Error('📡 Không có kết nối internet. Vui lòng kết nối và thử lại.');
+        }
+        
         console.log(`Uploading ${uploadedImages.length} images to Cloudinary...`);
         
         for (let i = 0; i < uploadedImages.length; i++) {
@@ -376,6 +392,11 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
             const folder = `${baseFolder}/users/${userId}/${year}/${month}/memories`;
             console.log('[DEBUG] Final folder path:', folder);
             
+            // Double-check online status before each upload
+            if (!navigator.onLine) {
+              throw new Error('Connection lost during upload');
+            }
+
             const result = await uploadToCloudinary(
               file,
               {
@@ -392,7 +413,13 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
                   return item;
                 }));
               }
-            );
+            ).catch((err) => {
+              // Suppress console errors for network failures
+              if (!navigator.onLine) {
+                throw new Error('Lost connection during upload');
+              }
+              throw err;
+            });
             
             uploadedUrls.push(result.secure_url);
             

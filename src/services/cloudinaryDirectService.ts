@@ -133,6 +133,11 @@ const uploadToCloudinaryInternal = async (
   onProgress?: (progress: number) => void
 ): Promise<CloudinaryUploadResult> => {
   try {
+    // Check online status first
+    if (!navigator.onLine) {
+      throw new Error('No internet connection. Please check your network and try again.');
+    }
+
     // Validate cloud name và upload preset
     if (!CLOUDINARY_CLOUD_NAME) {
       throw new Error('Cloudinary cloud name not configured');
