@@ -269,16 +269,6 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
     setValidationAttempted(true);
     if (!isFormValid) return;
 
-    // Check if offline before attempting save
-    if (!navigator.onLine) {
-      setSaveMessage({
-        type: 'error',
-        text: '📡 Không có kết nối internet. Vui lòng kết nối và thử lại.'
-      });
-      syncError('Không có kết nối internet');
-      return;
-    }
-
     setIsLoading(true);
     setSaveMessage(null);
     startSync(); // Start sync animation
