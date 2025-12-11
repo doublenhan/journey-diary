@@ -68,12 +68,14 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
           // Check if offline before attempting fetch
           if (!navigator.onLine) {
             console.log('📡 Offline mode - using cached data only');
+            setIsLoading(false);
             // Try to use expired cache if available
             if (cache) {
               try {
                 const { memories } = JSON.parse(cache);
                 if (memories && Array.isArray(memories)) {
                   processMemories(memories, true);
+                  setError('Đang offline - hiển thị dữ liệu đã lưu');
                   return;
                 }
               } catch (e) {
@@ -81,7 +83,11 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
               }
             }
             // No cache available
-            throw new Error('No internet connection. Please go online to load memories.');
+            setError('Không có kết nối internet. Vui lòng kết nối để tải dữ liệu.');
+            setMemoriesByYear({});
+            setAllYears([]);
+            setVisibleYears([]);
+            return;
           }
 
           // Fetch memories directly from Firestore
@@ -203,6 +209,20 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
           }
         } catch (e) {
           console.error('Memories fetch error:', e);
+          // On error, try to use any cached data (even expired)
+          if (!navigator.onLine && cache) {
+            console.log('📡 Network error while offline - using cached data');
+            try {
+              const { memories } = JSON.parse(cache);
+              if (memories && Array.isArray(memories)) {
+                processMemories(memories, true);
+                setError('Đang offline - hiển thị dữ liệu đã lưu');
+                return;
+              }
+            } catch (parseError) {
+              console.debug('Failed to parse cache on error:', parseError);
+            }
+          }
           setError('Failed to load memories. Please try again.');
           setMemoriesByYear({});
           setAllYears([]);
