@@ -19,11 +19,11 @@ export const useSyncStatus = (): UseSyncStatusReturn => {
   // Check online/offline status
   const checkOnlineStatus = useCallback(() => {
     if (!navigator.onLine) {
-      setSyncStatus('offline');
-    } else if (syncStatus === 'offline') {
-      setSyncStatus('idle');
+      setSyncStatus((current) => current === 'offline' ? current : 'offline');
+    } else {
+      setSyncStatus((current) => current === 'offline' ? 'idle' : current);
     }
-  }, [syncStatus]);
+  }, []); // Remove syncStatus dependency
 
   // Start syncing
   const startSync = useCallback(() => {
@@ -57,9 +57,7 @@ export const useSyncStatus = (): UseSyncStatusReturn => {
   // Listen to online/offline events
   useEffect(() => {
     const handleOnline = () => {
-      if (syncStatus === 'offline') {
-        setSyncStatus('idle');
-      }
+      setSyncStatus((current) => current === 'offline' ? 'idle' : current);
     };
 
     const handleOffline = () => {
@@ -76,7 +74,7 @@ export const useSyncStatus = (): UseSyncStatusReturn => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [checkOnlineStatus, syncStatus]);
+  }, [checkOnlineStatus]); // Remove syncStatus dependency
 
   return {
     syncStatus,
