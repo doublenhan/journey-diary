@@ -3,18 +3,19 @@
   top: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  background: linear-gradient(135deg, #ef4444, #dc2626);
   color: white;
   padding: 0.75rem 1rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   justify-content: center;
-  z-index: 9999; /* Above everything */
+  z-index: 10000; /* Above header */
   font-size: 0.875rem;
   font-weight: 500;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   animation: slideDown 0.3s ease-out;
+  height: 44px; /* Fixed height */
 }
 
 @keyframes slideDown {
@@ -26,6 +27,15 @@
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+/* Push content down when offline banner is visible */
+body:has(.offline-banner) .header {
+  top: 44px;
+}
+
+body:has(.offline-banner) .landing-page {
+  padding-top: 44px;
 }
 
 .offline-icon {

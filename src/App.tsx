@@ -535,7 +535,7 @@ function App() {
                               key={idx}
                             >
                               <LazyImage
-                                src={img}
+                                src={img || "https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=400"}
                                 alt="Memory"
                                 className="gallery-image"
                                 transformations="f_auto,q_auto,w_600"
