@@ -10,7 +10,7 @@ export function OfflineBanner() {
   return (
     <div className="offline-banner">
       <WifiOff className="offline-icon" />
-      <span>Bạn đang offline. Xem dữ liệu đã lưu.</span>
+      <span>Bạn đang offline. Hãy check lại kết nối.</span>
     </div>
   );
 }
