@@ -193,7 +193,7 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
         }
       })();
     }
-  }, [userId, loading, refreshTrigger]);
+  }, [userId, loading, refreshTrigger]); // Dependencies OK - refreshTrigger controlled
 
   // Process memories and set up pagination
   const processMemories = useCallback((memories: Memory[], initial: boolean) => {
