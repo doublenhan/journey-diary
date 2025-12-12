@@ -30,11 +30,11 @@
 }
 
 /* Push content down when offline banner is visible */
-body:has(.offline-banner) .header {
-  top: 44px;
+body.has-offline-banner .header {
+  top: 44px !important;
 }
 
-body:has(.offline-banner) .landing-page {
+body.has-offline-banner .landing-page {
   padding-top: 44px;
 }
 
