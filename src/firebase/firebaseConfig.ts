@@ -2,7 +2,7 @@
 // Firebase config and initialization
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 // TODO: Replace with your own Firebase project config
@@ -23,6 +23,19 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+
+// Enable offline persistence
+enableIndexedDbPersistence(db, {
+  forceOwnership: false // Allow multiple tabs
+}).catch((err) => {
+  if (err.code === 'failed-precondition') {
+    // Multiple tabs open, persistence can only be enabled in one tab at a time
+    console.warn('Offline persistence: Multiple tabs open');
+  } else if (err.code === 'unimplemented') {
+    // Browser doesn't support persistence
+    console.warn('Offline persistence not available in this browser');
+  }
+});
 
 // Environment prefix for collections (empty for production, 'dev_' for development)
 export const ENV_PREFIX = import.meta.env.VITE_ENV_PREFIX || '';
