@@ -21,7 +21,17 @@ export function OfflineBanner() {
   if (isOnline) return null;
 
   return (
-    <div className="offline-banner">
+    <div 
+      className="offline-banner"
+      style={{
+        background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 10000
+      }}
+    >
       <WifiOff className="offline-icon" />
       <span>Bạn đang offline. Hãy check lại kết nối.</span>
     </div>
