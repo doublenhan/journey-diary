@@ -30,11 +30,18 @@
 }
 
 /* Push content down when offline banner is visible */
+body.has-offline-banner .landing-page {
+  margin-top: 44px;
+}
+
 body.has-offline-banner .header {
   top: 44px !important;
 }
 
-body.has-offline-banner .landing-page {
+/* For all pages, not just landing */
+body.has-offline-banner .create-memory-page,
+body.has-offline-banner .view-memory-page,
+body.has-offline-banner .setting-page {
   padding-top: 44px;
 }
 
