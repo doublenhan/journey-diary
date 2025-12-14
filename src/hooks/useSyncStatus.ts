@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { SyncStatusType } from '../components/SyncStatus';
 
 interface UseSyncStatusReturn {
@@ -8,22 +8,12 @@ interface UseSyncStatusReturn {
   startSync: () => void;
   syncSuccess: () => void;
   syncError: (message: string) => void;
-  checkOnlineStatus: () => void;
 }
 
 export const useSyncStatus = (): UseSyncStatusReturn => {
   const [syncStatus, setSyncStatus] = useState<SyncStatusType>('idle');
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  // Check online/offline status
-  const checkOnlineStatus = useCallback(() => {
-    if (!navigator.onLine) {
-      setSyncStatus((current) => current === 'offline' ? current : 'offline');
-    } else {
-      setSyncStatus((current) => current === 'offline' ? 'idle' : current);
-    }
-  }, []); // Remove syncStatus dependency
 
   // Start syncing
   const startSync = useCallback(() => {
@@ -54,28 +44,6 @@ export const useSyncStatus = (): UseSyncStatusReturn => {
     }, 5000);
   }, []);
 
-  // Listen to online/offline events
-  useEffect(() => {
-    const handleOnline = () => {
-      setSyncStatus((current) => current === 'offline' ? 'idle' : current);
-    };
-
-    const handleOffline = () => {
-      setSyncStatus('offline');
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    // Initial check
-    checkOnlineStatus();
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, [checkOnlineStatus]); // Remove syncStatus dependency
-
   return {
     syncStatus,
     lastSyncTime,
@@ -83,6 +51,5 @@ export const useSyncStatus = (): UseSyncStatusReturn => {
     startSync,
     syncSuccess,
     syncError,
-    checkOnlineStatus,
   };
 };

@@ -14,7 +14,6 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { PageTransition } from './components/PageTransition';
 import { LazyImage } from './components/LazyImage';
 import { GallerySkeleton } from './components/GallerySkeleton';
-import { OfflineBanner } from './components/OfflineBanner';
 import './styles/App.css';
 import './styles/PageLoader.css';
 import './styles/transitions.css';
@@ -340,7 +339,6 @@ function App() {
 
   return (
     <>
-    <OfflineBanner />
     <ErrorBoundary>
     <Suspense fallback={<PageLoader />}>
     <PageTransition>

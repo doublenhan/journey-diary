@@ -3,7 +3,6 @@ import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { useSyncStatus } from './hooks/useSyncStatus';
 import { useLanguage } from './hooks/useLanguage';
-import { useOfflineStatus } from './hooks/useOfflineStatus';
 import { Heart, Camera, Calendar, Save, ArrowLeft, X, Upload, MapPin, Type, CheckCircle, AlertCircle, Navigation } from 'lucide-react';
 import type { MemoryData } from './apis/cloudinaryGalleryApi';
 import { MoodTheme, themes } from './config/themes';
@@ -20,8 +19,6 @@ import { sanitizePlainText, sanitizeRichText } from './utils/sanitize';
 import { createMemory } from './services/firebaseMemoriesService';
 import { uploadToCloudinary, uploadMultipleImages } from './services/cloudinaryDirectService';
 import { reverseGeocode } from './services/geoService';
-import { OfflineQueue } from './utils/offlineQueue';
-import { OfflineQueueStatus } from './components/OfflineQueueStatus';
 import './styles/CreateMemory.css';
 
 interface CreateMemoryProps {
@@ -34,7 +31,6 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
   useMemoriesCache(userId, loading);
   const { syncStatus, lastSyncTime, errorMessage, startSync, syncSuccess, syncError } = useSyncStatus();
   const { t } = useLanguage();
-  const isOnline = useOfflineStatus();
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
@@ -71,18 +67,6 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
 
   // Get current location using browser Geolocation API + Nominatim reverse geocoding
   const getCurrentLocation = () => {
-    // If offline, use default location
-    if (!isOnline) {
-      setLocation('Chợ Bến Thành, Quận 1, Hồ Chí Minh');
-      setCoordinates({ lat: 10.7725, lng: 106.6980 });
-      setSaveMessage({
-        type: 'info',
-        text: 'Offline: Sử dụng vị trí mặc định. Bạn có thể cập nhật sau.'
-      });
-      setTimeout(() => setSaveMessage(null), 4000);
-      return;
-    }
-    
     if (!navigator.geolocation) {
       setSaveMessage({
         type: 'error',
@@ -287,60 +271,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
     setSaveMessage(null);
     startSync(); // Start sync animation
     
-    // OFFLINE HANDLING: Queue memory for later sync
-    if (!isOnline) {
-      try {
-        // Convert images to base64 for offline storage
-        const base64Images: string[] = await Promise.all(
-          uploadedImages.map(file => new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.readAsDataURL(file);
-          }))
-        );
-        
-        // Add to offline queue
-        const queueId = OfflineQueue.addToQueue({
-          title: title.trim(),
-          text: memoryText.trim(),
-          date: `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`,
-          location: location.trim() || 'Chợ Bến Thành, Quận 1, Hồ Chí Minh',
-          images: base64Images,
-          mood: currentTheme,
-          userId: userId || ''
-        });
-        
-        setIsLoading(false);
-        setSaveMessage({
-          type: 'info',
-          text: '📱 Offline: Memory đã lưu. Sẽ đồng bộ khi online!'
-        });
-        
-        // Reset form after 2 seconds
-        setTimeout(() => {
-          setTitle('');
-          setMemoryText('');
-          setLocation('');
-          setUploadedImages([]);
-          setImagePreviews([]);
-          setSaveMessage(null);
-          if (onBack) onBack();
-        }, 2000);
-        
-        return;
-      } catch (error) {
-        console.error('Error saving offline:', error);
-        setIsLoading(false);
-        setSaveMessage({
-          type: 'error',
-          text: 'Lỗi khi lưu offline. Vui lòng thử lại.'
-        });
-        syncError('Lỗi lưu offline');
-        return;
-      }
-    }
-    
-    // ONLINE HANDLING: Normal upload flow
+    // Upload flow
     // Initialize upload progress for each image
     const progressItems: UploadProgressItem[] = uploadedImages.map((file, index) => ({
       id: `upload-${index}-${Date.now()}`,
@@ -612,9 +543,6 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
         lastSyncTime={lastSyncTime}
         errorMessage={errorMessage || undefined}
       />
-      
-      {/* Offline Queue Status */}
-      <OfflineQueueStatus />
       
       {/* Header */}
       <header className="create-memory-header">

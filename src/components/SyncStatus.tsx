@@ -1,8 +1,8 @@
 import React from 'react';
-import { Cloud, CheckCircle, AlertCircle, Loader, WifiOff } from 'lucide-react';
+import { Cloud, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 import '../styles/SyncStatus.css';
 
-export type SyncStatusType = 'idle' | 'syncing' | 'synced' | 'error' | 'offline';
+export type SyncStatusType = 'idle' | 'syncing' | 'synced' | 'error';
 
 interface SyncStatusProps {
   status: SyncStatusType;
@@ -66,17 +66,6 @@ const SyncStatus: React.FC<SyncStatusProps> = ({
           ),
           text: errorMessage || 'Lỗi đồng bộ',
           className: 'error'
-        };
-      
-      case 'offline':
-        return {
-          icon: (
-            <div className="sync-icon-wrapper offline">
-              <WifiOff className="sync-wifi-off" />
-            </div>
-          ),
-          text: 'Không có kết nối',
-          className: 'offline'
         };
       
       default:
