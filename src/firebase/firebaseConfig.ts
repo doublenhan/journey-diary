@@ -21,10 +21,27 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // Build timestamp for cache busting: 2025-12-15T09:00:00Z
-const BUILD_VERSION = '2025-12-15-v2';
+const BUILD_VERSION = '2025-12-15-v3-clear-indexeddb';
 console.log(`🔥 Firebase initialized - NO PERSISTENCE (build: ${BUILD_VERSION})`);
 console.log('⚠️ If you see INTERNAL_ASSERTION_FAILED errors, clear browser cache completely');
 console.log('✅ Offline persistence: DISABLED (prevents state corruption)');
+
+// Clear old IndexedDB data to prevent INTERNAL_ASSERTION_FAILED errors
+// This runs once on app init and removes stale persistence data
+(async () => {
+  try {
+    const dbs = await indexedDB.databases();
+    for (const dbInfo of dbs) {
+      if (dbInfo.name && (dbInfo.name.includes('firebaseLocalStorageDb') || dbInfo.name.includes('firestore'))) {
+        console.log(`🧹 Clearing old IndexedDB: ${dbInfo.name}`);
+        indexedDB.deleteDatabase(dbInfo.name);
+      }
+    }
+    console.log('✅ Old IndexedDB databases cleared');
+  } catch (error) {
+    console.debug('IndexedDB cleanup skipped (not critical):', error);
+  }
+})();
 
 // Export Firebase services
 export const auth = getAuth(app);
