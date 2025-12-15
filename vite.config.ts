@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+// Build: 2025-12-15 - Firebase persistence fix deployment
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],

@@ -20,7 +20,11 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-console.log('🔥 Firebase initialized - NO PERSISTENCE (build: 2025-12-15)');
+// Build timestamp for cache busting: 2025-12-15T09:00:00Z
+const BUILD_VERSION = '2025-12-15-v2';
+console.log(`🔥 Firebase initialized - NO PERSISTENCE (build: ${BUILD_VERSION})`);
+console.log('⚠️ If you see INTERNAL_ASSERTION_FAILED errors, clear browser cache completely');
+console.log('✅ Offline persistence: DISABLED (prevents state corruption)');
 
 // Export Firebase services
 export const auth = getAuth(app);
