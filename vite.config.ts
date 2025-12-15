@@ -1,6 +1,19 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+// Auto-detect environment based on branch/domain
+const getEnvironmentMode = () => {
+  // Check Vercel environment variables
+  if (process.env.VERCEL_ENV === 'production' || process.env.VERCEL_GIT_COMMIT_REF === 'main') {
+    return 'production';
+  }
+  
+  // Default to development for all other cases (preview, dev branch, local)
+  return 'development';
+};
+
+const envMode = getEnvironmentMode();
+
 // Build: 2025-12-15-CACHE-BUST - Force clear Firebase SDK bundle cache
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -144,5 +157,10 @@ export default defineConfig({
   // Improve build performance
   esbuild: {
     logOverride: { 'this-is-undefined-in-esm': 'silent' }
+  },
+  // Auto-load correct env file based on detected environment
+  envPrefix: 'VITE_',
+  define: {
+    'import.meta.env.MODE': JSON.stringify(envMode)
   }
 });

@@ -20,9 +20,13 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Build timestamp for cache busting: 2025-12-15T16:30:00Z
-const BUILD_VERSION = '2025-12-15-v4-bundle-cache-bust';
+// Build timestamp for cache busting: 2025-12-15T16:35:00Z
+const BUILD_VERSION = '2025-12-15-v5-env-auto-detect';
+const ENV_PREFIX = import.meta.env.VITE_ENV_PREFIX || '';
+const BUILD_MODE = import.meta.env.MODE;
+
 console.log(`🔥 Firebase initialized - NO PERSISTENCE (build: ${BUILD_VERSION})`);
+console.log(`📦 Environment: ${BUILD_MODE} | Prefix: "${ENV_PREFIX}" | Collections: ${ENV_PREFIX ? ENV_PREFIX + '*' : 'production'}`);
 console.log('⚠️ Bundle version bumped to force Vercel CDN cache invalidation');
 console.log('✅ Offline persistence: DISABLED (prevents state corruption)');
 

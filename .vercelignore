@@ -1,0 +1,12 @@
+# Don't ignore env files - they're needed for Vercel to auto-detect environment
+# .env.* files will be used by Vercel based on branch/environment
+
+# Standard ignores
+node_modules
+.git
+.gitignore
+README.md
+Documentation
+scripts
+.bolt
+.github
