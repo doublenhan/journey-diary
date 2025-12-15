@@ -2,7 +2,7 @@
 // Firebase config and initialization
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 // TODO: Replace with your own Firebase project config
@@ -24,28 +24,9 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
-// Enable offline persistence with proper error handling
-let persistenceEnabled = false;
-try {
-  enableIndexedDbPersistence(db)
-    .then(() => {
-      persistenceEnabled = true;
-      console.log('✅ Offline persistence enabled');
-    })
-    .catch((err) => {
-      if (err.code === 'failed-precondition') {
-        // Multiple tabs open, persistence can only be enabled in one tab
-        console.warn('⚠️ Multiple tabs open - persistence disabled');
-      } else if (err.code === 'unimplemented') {
-        // Browser doesn't support persistence
-        console.warn('⚠️ Browser does not support offline persistence');
-      } else {
-        console.error('❌ Persistence error:', err);
-      }
-    });
-} catch (err) {
-  console.error('❌ Failed to enable persistence:', err);
-}
+// NOTE: Offline persistence DISABLED to prevent INTERNAL_ASSERTION_FAILED errors
+// Firebase Firestore will still cache queries in memory
+// If you need offline persistence, enable it carefully in a useEffect after app mount
 
 // Environment prefix for collections (empty for production, 'dev_' for development)
 export const ENV_PREFIX = import.meta.env.VITE_ENV_PREFIX || '';
