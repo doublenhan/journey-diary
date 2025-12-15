@@ -1,5 +1,6 @@
 // src/firebase/firebaseConfig.ts
 // Firebase config and initialization
+// Build version: 2025-12-15-fix-persistence
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
@@ -18,6 +19,8 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
+console.log('🔥 Firebase initialized - NO PERSISTENCE (build: 2025-12-15)');
 
 // Export Firebase services
 export const auth = getAuth(app);
