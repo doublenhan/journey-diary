@@ -24,6 +24,8 @@ import {
   QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from '../firebase/firebaseConfig';
+import { queryMonitor } from '../utils/queryMonitor';
+import { optimizeMemoryDocument, parseOptimizedMemory } from '../utils/documentOptimizer';
 
 // Determine collection name based on environment
 const COLLECTION_NAME = import.meta.env.VITE_FIREBASE_ENV === 'production' 
@@ -116,13 +118,17 @@ const docToMemory = (doc: QueryDocumentSnapshot): Memory => {
  * Tạo memory mới trong Firestore
  */
 export const createMemory = async (input: CreateMemoryInput): Promise<Memory> => {
+  const endMonitor = queryMonitor.startQuery('createMemory', COLLECTION_NAME);
+  
   try {
     const now = Timestamp.now();
-    const memoryData = {
+    
+    // Optimize document structure before saving
+    const memoryData = optimizeMemoryDocument({
       ...input,
       createdAt: now,
       updatedAt: now,
-    };
+    });
 
     const docRef = await addDoc(collection(db, COLLECTION_NAME), memoryData);
     
@@ -134,8 +140,10 @@ export const createMemory = async (input: CreateMemoryInput): Promise<Memory> =>
       throw new Error('Memory created but not found');
     }
     
+    endMonitor(1, false);
     return docToMemory(docSnap as QueryDocumentSnapshot);
   } catch (error) {
+    endMonitor(0, false);
     console.error('❌ Error creating memory:', error);
     throw error;
   }
@@ -145,17 +153,23 @@ export const createMemory = async (input: CreateMemoryInput): Promise<Memory> =>
  * Lấy một memory theo ID
  */
 export const getMemoryById = async (memoryId: string): Promise<Memory | null> => {
+  const endMonitor = queryMonitor.startQuery('getMemoryById', COLLECTION_NAME);
+  
   try {
     const docRef = doc(db, COLLECTION_NAME, memoryId);
     const docSnap = await getDoc(docRef);
     
     if (!docSnap.exists()) {
       console.warn('Memory not found:', memoryId);
+      endMonitor(0, false);
       return null;
     }
     
+    const fromCache = docSnap.metadata.fromCache;
+    endMonitor(1, fromCache);
     return docToMemory(docSnap as QueryDocumentSnapshot);
   } catch (error) {
+    endMonitor(0, false);
     console.error('❌ Error getting memory:', error);
     throw error;
   }
@@ -165,17 +179,23 @@ export const getMemoryById = async (memoryId: string): Promise<Memory | null> =>
  * Lấy danh sách memories với filters và pagination
  */
 export const fetchMemories = async (options: FetchMemoriesOptions): Promise<Memory[]> => {
-  try {
-    const {
-      userId,
-      limit: limitCount = 20,
-      orderByField = 'createdAt',
-      orderDirection = 'desc',
-      startAfterDoc,
-      filterByMood,
-      filterByCity,
-    } = options;
+  const {
+    userId,
+    limit: limitCount = 20,
+    orderByField = 'createdAt',
+    orderDirection = 'desc',
+    startAfterDoc,
+    filterByMood,
+    filterByCity,
+  } = options;
+  
+  const endMonitor = queryMonitor.startQuery('fetchMemories', COLLECTION_NAME, {
+    filters: { userId, mood: filterByMood, city: filterByCity },
+    orderBy: `${orderByField} ${orderDirection}`,
+    limit: limitCount,
+  });
 
+  try {
     // Build query constraints
     const constraints: QueryConstraint[] = [
       where('userId', '==', userId),
@@ -186,9 +206,9 @@ export const fetchMemories = async (options: FetchMemoriesOptions): Promise<Memo
       constraints.push(where('mood', '==', filterByMood));
     }
 
-    // Add city filter if specified
+    // Add city filter if specified (use flattened field for better performance)
     if (filterByCity) {
-      constraints.push(where('location.city', '==', filterByCity));
+      constraints.push(where('locationCity', '==', filterByCity));
     }
 
     // Add ordering
@@ -205,12 +225,15 @@ export const fetchMemories = async (options: FetchMemoriesOptions): Promise<Memo
     const q = query(collection(db, COLLECTION_NAME), ...constraints);
     const querySnapshot = await getDocs(q);
 
+    const fromCache = querySnapshot.metadata.fromCache;
     const memories = querySnapshot.docs.map(docToMemory);
     
+    endMonitor(memories.length, fromCache);
     console.log(`✅ Fetched ${memories.length} memories for user ${userId}`);
     
     return memories;
   } catch (error) {
+    endMonitor(0, false);
     console.error('❌ Error fetching memories:', error);
     throw error;
   }
@@ -281,16 +304,23 @@ export const updateMemory = async (
   memoryId: string,
   updates: UpdateMemoryInput
 ): Promise<void> => {
+  const endMonitor = queryMonitor.startQuery('updateMemory', COLLECTION_NAME);
+  
   try {
     const docRef = doc(db, COLLECTION_NAME, memoryId);
     
-    await updateDoc(docRef, {
+    // Optimize updates before saving
+    const optimizedUpdates = optimizeMemoryDocument({
       ...updates,
       updatedAt: Timestamp.now(),
     });
     
+    await updateDoc(docRef, optimizedUpdates);
+    
+    endMonitor(1, false);
     console.log('✅ Memory updated successfully:', memoryId);
   } catch (error) {
+    endMonitor(0, false);
     console.error('❌ Error updating memory:', error);
     throw error;
   }
@@ -300,12 +330,16 @@ export const updateMemory = async (
  * Xóa memory
  */
 export const deleteMemory = async (memoryId: string): Promise<void> => {
+  const endMonitor = queryMonitor.startQuery('deleteMemory', COLLECTION_NAME);
+  
   try {
     const docRef = doc(db, COLLECTION_NAME, memoryId);
     await deleteDoc(docRef);
     
+    endMonitor(1, false);
     console.log('✅ Memory deleted successfully:', memoryId);
   } catch (error) {
+    endMonitor(0, false);
     console.error('❌ Error deleting memory:', error);
     throw error;
   }
@@ -315,6 +349,8 @@ export const deleteMemory = async (memoryId: string): Promise<void> => {
  * Đếm số lượng memories của user
  */
 export const countUserMemories = async (userId: string): Promise<number> => {
+  const endMonitor = queryMonitor.startQuery('countUserMemories', COLLECTION_NAME);
+  
   try {
     const q = query(
       collection(db, COLLECTION_NAME),
@@ -322,8 +358,12 @@ export const countUserMemories = async (userId: string): Promise<number> => {
     );
     
     const querySnapshot = await getDocs(q);
-    return querySnapshot.size;
+    const count = querySnapshot.size;
+    
+    endMonitor(count, querySnapshot.metadata.fromCache);
+    return count;
   } catch (error) {
+    endMonitor(0, false);
     console.error('❌ Error counting memories:', error);
     throw error;
   }
