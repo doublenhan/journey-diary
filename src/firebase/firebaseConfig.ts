@@ -24,18 +24,28 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
-// Enable offline persistence
-enableIndexedDbPersistence(db, {
-  forceOwnership: false // Allow multiple tabs
-}).catch((err) => {
-  if (err.code === 'failed-precondition') {
-    // Multiple tabs open, persistence can only be enabled in one tab at a time
-    console.warn('Offline persistence: Multiple tabs open');
-  } else if (err.code === 'unimplemented') {
-    // Browser doesn't support persistence
-    console.warn('Offline persistence not available in this browser');
-  }
-});
+// Enable offline persistence with proper error handling
+let persistenceEnabled = false;
+try {
+  enableIndexedDbPersistence(db)
+    .then(() => {
+      persistenceEnabled = true;
+      console.log('✅ Offline persistence enabled');
+    })
+    .catch((err) => {
+      if (err.code === 'failed-precondition') {
+        // Multiple tabs open, persistence can only be enabled in one tab
+        console.warn('⚠️ Multiple tabs open - persistence disabled');
+      } else if (err.code === 'unimplemented') {
+        // Browser doesn't support persistence
+        console.warn('⚠️ Browser does not support offline persistence');
+      } else {
+        console.error('❌ Persistence error:', err);
+      }
+    });
+} catch (err) {
+  console.error('❌ Failed to enable persistence:', err);
+}
 
 // Environment prefix for collections (empty for production, 'dev_' for development)
 export const ENV_PREFIX = import.meta.env.VITE_ENV_PREFIX || '';
