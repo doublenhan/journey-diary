@@ -20,10 +20,10 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Build timestamp for cache busting: 2025-12-15T09:00:00Z
-const BUILD_VERSION = '2025-12-15-v3-clear-indexeddb';
+// Build timestamp for cache busting: 2025-12-15T16:30:00Z
+const BUILD_VERSION = '2025-12-15-v4-bundle-cache-bust';
 console.log(`🔥 Firebase initialized - NO PERSISTENCE (build: ${BUILD_VERSION})`);
-console.log('⚠️ If you see INTERNAL_ASSERTION_FAILED errors, clear browser cache completely');
+console.log('⚠️ Bundle version bumped to force Vercel CDN cache invalidation');
 console.log('✅ Offline persistence: DISABLED (prevents state corruption)');
 
 // Clear old IndexedDB data to prevent INTERNAL_ASSERTION_FAILED errors

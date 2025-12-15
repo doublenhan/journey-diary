@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// Build: 2025-12-15 - Firebase persistence fix deployment
+// Build: 2025-12-15-CACHE-BUST - Force clear Firebase SDK bundle cache
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
