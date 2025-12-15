@@ -14,6 +14,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { PageTransition } from './components/PageTransition';
 import { LazyImage } from './components/LazyImage';
 import { GallerySkeleton } from './components/GallerySkeleton';
+import { autoMigrate } from './utils/runDocumentMigration';
 import './styles/App.css';
 import './styles/PageLoader.css';
 import './styles/transitions.css';
@@ -278,6 +279,16 @@ function App() {
   const { memoriesByYear, years, isLoading: heroLoading, error: heroError } = useMemoriesCache(userId, loading);
   const heroImages = years.flatMap((y: string) => (memoriesByYear[y] || []).flatMap((mem: any) =>
     Array.isArray(mem.images) ? mem.images.map((img: any) => img.secure_url) : []));
+
+  // Auto-migrate user documents when logged in
+  useEffect(() => {
+    if (userId && !loading) {
+      // Run migration in background (non-blocking)
+      autoMigrate(userId).catch(error => {
+        console.warn('Auto-migration failed (non-critical):', error);
+      });
+    }
+  }, [userId, loading]);
 
   useEffect(() => {
     if (!heroImages.length) return;
