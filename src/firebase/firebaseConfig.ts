@@ -22,8 +22,10 @@ const app = initializeApp(firebaseConfig);
 
 // Build timestamp for cache busting: 2025-12-15T16:35:00Z
 const BUILD_VERSION = '2025-12-15-v5-env-auto-detect';
-const ENV_PREFIX = import.meta.env.VITE_ENV_PREFIX || '';
 const BUILD_MODE = import.meta.env.MODE;
+
+// Environment prefix for collections (empty for production, 'dev_' for development)
+export const ENV_PREFIX = import.meta.env.VITE_ENV_PREFIX || '';
 
 console.log(`🔥 Firebase initialized - NO PERSISTENCE (build: ${BUILD_VERSION})`);
 console.log(`📦 Environment: ${BUILD_MODE} | Prefix: "${ENV_PREFIX}" | Collections: ${ENV_PREFIX ? ENV_PREFIX + '*' : 'production'}`);
@@ -55,9 +57,6 @@ export const storage = getStorage(app);
 // NOTE: Offline persistence DISABLED to prevent INTERNAL_ASSERTION_FAILED errors
 // Firebase Firestore will still cache queries in memory
 // If you need offline persistence, enable it carefully in a useEffect after app mount
-
-// Environment prefix for collections (empty for production, 'dev_' for development)
-export const ENV_PREFIX = import.meta.env.VITE_ENV_PREFIX || '';
 
 // Helper function to get collection name with environment prefix
 export const getCollectionName = (collectionName: string): string => {
