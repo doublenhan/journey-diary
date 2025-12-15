@@ -20,17 +20,14 @@ import {
   onSnapshot,
   Timestamp,
   QueryConstraint,
-  DocumentSnapshot,
   QueryDocumentSnapshot,
 } from 'firebase/firestore';
-import { db } from '../firebase/firebaseConfig';
+import { db, getCollectionName } from '../firebase/firebaseConfig';
 import { queryMonitor } from '../utils/queryMonitor';
 import { optimizeMemoryDocument, parseOptimizedMemory } from '../utils/documentOptimizer';
 
 // Determine collection name based on environment
-const COLLECTION_NAME = import.meta.env.VITE_FIREBASE_ENV === 'production' 
-  ? 'memories' 
-  : 'dev_memories';
+const COLLECTION_NAME = getCollectionName('memories');
 
 export interface Memory {
   id: string;

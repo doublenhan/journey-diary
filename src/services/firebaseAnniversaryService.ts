@@ -21,12 +21,10 @@ import {
   QueryConstraint,
   QueryDocumentSnapshot,
 } from 'firebase/firestore';
-import { db } from '../firebase/firebaseConfig';
+import { db, getCollectionName } from '../firebase/firebaseConfig';
 
 // Determine collection name based on environment
-const COLLECTION_NAME = import.meta.env.VITE_FIREBASE_ENV === 'production'
-  ? 'AnniversaryEvent'
-  : 'dev_AnniversaryEvent';
+const COLLECTION_NAME = getCollectionName('AnniversaryEvent');
 
 export interface AnniversaryEvent {
   id: string;

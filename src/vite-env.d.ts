@@ -17,7 +17,6 @@ interface ImportMetaEnv {
   
   // Environment prefix for DEV/PROD separation
   readonly VITE_ENV_PREFIX?: string;
-  readonly VITE_FIREBASE_ENV?: 'development' | 'production';
 }
 
 interface ImportMeta {
