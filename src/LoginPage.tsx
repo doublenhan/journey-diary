@@ -9,11 +9,6 @@ import { logSecurityEvent } from './utils/securityMonitoring';
 import { useLanguage } from './hooks/useLanguage';
 import './styles/LoginPage.css';
 
-declare global {
-  interface Window {
-    recaptchaVerifier: any;
-  }
-}
 
 
 const loveQuotes = [
