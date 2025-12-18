@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useInfiniteMemories } from './hooks/useInfiniteMemories';
 import { useDebouncedValue } from './hooks/useDebouncedValue';
 import { useLanguage } from './hooks/useLanguage';
+import { useToast } from './hooks/useToast';
 import { Heart, Calendar, ArrowLeft, ChevronLeft, ChevronRight, Loader, Map, Share2, Edit, Trash2, Image, Clock, BarChart3, X } from 'lucide-react';
 // import { cloudinaryApi, type SavedMemory } from './apis/cloudinaryGalleryApi';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
@@ -57,6 +58,7 @@ interface ViewMemoryProps {
 
 function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
   // All hooks must come first
+  const { toasts: _, removeToast: __, success, error } = useToast();
   const { userId, loading } = useCurrentUserId();
   const { memoriesByYear, years, allYears, isLoading, isLoadingMore, error, hasMore, loadMore } = useInfiniteMemories(userId, loading);
   const { syncStatus, lastSyncTime, errorMessage, startSync, syncSuccess, syncError } = useSyncStatus();
@@ -83,6 +85,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
     } else if (!isLoading && !loading) {
       if (error) {
         syncError(error);
+        error(error);
       } else {
         // Always call syncSuccess when loading completes, even with no data
         syncSuccess();

@@ -7,6 +7,7 @@ import {
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { useLanguage } from './hooks/useLanguage';
+import { useToast } from './hooks/useToast';
 import { fetchMemories } from './services/firebaseMemoriesService';
 import { MoodTheme, themes, isValidTheme } from './config/themes';
 import { getUserTheme } from './apis/userThemeApi';
@@ -14,9 +15,11 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { PageTransition } from './components/PageTransition';
 import { LazyImage } from './components/LazyImage';
 import { GallerySkeleton } from './components/GallerySkeleton';
+import { ToastContainer } from './components/Toast';
 import './styles/App.css';
 import './styles/PageLoader.css';
 import './styles/transitions.css';
+import './styles/Toast.css';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 
 // Lazy load heavy components with prefetch hints
@@ -144,6 +147,7 @@ function App() {
   const navigate = useNavigate();
   const { userId, loading } = useCurrentUserId();
   const { t } = useLanguage();
+  const { toasts, removeToast, success, error } = useToast();
 
   useEffect(() => {
     if (loading) return;
@@ -320,6 +324,7 @@ function App() {
         setGalleryImages(allPhotos.slice(0, 6));
       } catch (e) {
         console.error('Failed to fetch gallery images:', e);
+        error('Failed to load gallery images');
         setGalleryImages([]);
       } finally {
         setGalleryLoading(false);
@@ -339,6 +344,7 @@ function App() {
 
   return (
     <>
+    <ToastContainer toasts={toasts} onRemove={removeToast} />
     <ErrorBoundary>
     <Suspense fallback={<PageLoader />}>
     <PageTransition>

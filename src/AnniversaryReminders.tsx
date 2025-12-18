@@ -4,6 +4,7 @@ import { anniversaryApi, Anniversary as ApiAnniversary } from './apis/anniversar
 import { auth } from './firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useLanguage } from './hooks/useLanguage';
+import { useToast } from './hooks/useToast';
 import { MoodTheme, themes } from './config/themes';
 import VisualEffects from './components/VisualEffects';
 import { useSyncStatus } from './hooks/useSyncStatus';
@@ -32,6 +33,7 @@ interface AnniversaryRemindersProps {
 function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProps) {
   const { syncStatus, lastSyncTime, errorMessage, startSync, syncSuccess, syncError } = useSyncStatus();
   const { t } = useLanguage();
+  const { success, error } = useToast();
   const [anniversaries, setAnniversaries] = useState<Anniversary[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -533,14 +535,16 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       });
       processed.sort((a, b) => (a.daysUntil || 0) - (b.daysUntil || 0));
       setAnniversaries(processed);
+      success('Anniversary deleted successfully');
     } catch (err) {
       // Rollback on error - restore deleted item
       const rolledBack = [...anniversaries, deletedAnniversary].sort(
         (a, b) => (a.daysUntil || 0) - (b.daysUntil || 0)
       );
       setAnniversaries(rolledBack);
-      syncError(err instanceof Error ? err.message : 'Lỗi xóa kỷ niệm');
-      alert('Failed to delete anniversary.');
+      const errorMsg = err instanceof Error ? err.message : 'Failed to delete anniversary';
+      syncError(errorMsg);
+      error(errorMsg);
     } finally {
       setLoading(false);
       setDeleteId(null);
