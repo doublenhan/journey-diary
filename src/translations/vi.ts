@@ -28,7 +28,7 @@ export const vi = {
     heroSubtitle: 'Lưu giữ từng khoảnh khắc đáng nhớ của bạn',
     getStarted: 'Bắt Đầu Ngay',
     learnMore: 'Tìm Hiểu Thêm',
-    featuresTitle: 'Những Tính Năng Đặc Biệt',
+    featuresTitle: 'Tính Năng Đặc Biệt',
     feature1Title: 'Nhật Ký Tình Yêu',
     feature1Desc: 'Ghi lại những kỷ niệm đáng nhớ của bạn',
     feature2Title: 'Bộ Sưu Tập Ảnh',

@@ -303,7 +303,7 @@ function App() {
         // Fetch recent memories with photos
         const memories = await fetchMemories({ 
           userId, 
-          limitCount: 20 // Get more memories to ensure we have 6+ photos
+          limit: 10 // Get more memories to ensure we have 6+ photos
         });
         
         // Extract all photo URLs from memories
@@ -457,7 +457,7 @@ function App() {
                     <div className="hero-grid">
                       <div className="hero-content">
                         <h1 className="hero-title">
-                          {t('landing.heroTitle')} <span className="hero-title-highlight">{t('landing.heroHighlight')}</span>
+                          {t('landing.heroTitle')} <br /> <span className="hero-title-highlight">{t('landing.heroHighlight')}</span>
                         </h1>
                         <p className="hero-description">
                           {t('landing.heroSubtitle')}
