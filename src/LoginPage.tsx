@@ -7,6 +7,7 @@ import { MoodTheme, themes } from './config/themes';
 import VisualEffects from './components/VisualEffects';
 import { logSecurityEvent } from './utils/securityMonitoring';
 import { useLanguage } from './hooks/useLanguage';
+import { SecureStorage } from './utils/secureStorage';
 import './styles/LoginPage.css';
 
 declare global {
@@ -66,9 +67,10 @@ interface LoginPageProps {
 function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const [email, setEmail] = useState(() => localStorage.getItem('rememberEmail') || '');
-  const [password, setPassword] = useState(() => localStorage.getItem('rememberPassword') || '');
-  const [rememberMe, setRememberMe] = useState(true);
+  // Lấy email từ secure storage, nhưng KHÔNG lấy password
+  const [email, setEmail] = useState(() => SecureStorage.getRememberedEmail() || '');
+  const [password, setPassword] = useState(''); // Always empty - never remember password!
+  const [rememberMe, setRememberMe] = useState(SecureStorage.hasRememberedEmail());
   const [phone, setPhone] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -217,12 +219,11 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
       const result = await loginWithFirebase(email, password);
       setIsLoading(false);
       if (result.success) {
+        // SECURITY: Only remember email, NEVER remember password
         if (rememberMe) {
-          localStorage.setItem('rememberEmail', email);
-          localStorage.setItem('rememberPassword', password);
+          SecureStorage.setRememberedEmail(email);
         } else {
-          localStorage.removeItem('rememberEmail');
-          localStorage.removeItem('rememberPassword');
+          SecureStorage.clearRemembered();
         }
         navigate('/landing');
       } else {

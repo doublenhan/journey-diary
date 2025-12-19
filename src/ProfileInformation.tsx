@@ -1,10 +1,12 @@
 
 import { useEffect, useState } from 'react';
-import { Pencil, User, Mail, Phone, Calendar } from 'lucide-react';
+import { Pencil, User, Mail, Phone, Calendar, LogOut } from 'lucide-react';
 import { auth, db, getCollectionName } from './firebase/firebaseConfig';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 import CustomDatePicker from './components/CustomDatePicker';
+import { SecureStorage } from './utils/secureStorage';
 import { useLanguage } from './hooks/useLanguage';
 
 interface ProfileInformationProps {
@@ -16,6 +18,7 @@ interface ProfileInformationProps {
 
 const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncStart, onSyncSuccess, onSyncError }) => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState({
     displayName: '',
@@ -28,6 +31,7 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -83,6 +87,30 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
       onSyncError?.(t('errors.saveProfile'));
       setError(t('errors.saveProfile'));
       console.error('Error saving profile:', error);
+    }
+  };
+
+  // 🔐 Security: Logout handler with cleanup
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      // Clear secure storage
+      SecureStorage.clearRemembered();
+      
+      // Clear other sensitive data
+      localStorage.removeItem('userIdSession');
+      localStorage.removeItem('currentTheme');
+      sessionStorage.clear();
+      
+      // Sign out from Firebase
+      await signOut(auth);
+      
+      // Redirect to login
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      setError(t('errors.logoutFailed'));
+      setIsLoggingOut(false);
     }
   };
 
@@ -256,6 +284,34 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
           </h3>
           <p className="text-sm" style={{ color: theme.colors.textSecondary }}>
             {t('profile.preferencesComingSoon')}
+          </p>
+        </div>
+
+        {/* 🔐 Logout Section */}
+        <div 
+          className="p-6 rounded-2xl border mt-6"
+          style={{ 
+            background: theme.colors.cardBg,
+            borderColor: theme.colors.border
+          }}
+        >
+          <h3 className="font-semibold mb-2 text-red-600" style={{ color: theme.colors.textPrimary }}>
+            {t('profile.security')}
+          </h3>
+          <p className="text-sm mb-4" style={{ color: theme.colors.textSecondary }}>
+            Đăng xuất khỏi tài khoản của bạn
+          </p>
+          <button
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="flex items-center gap-2 px-4 py-2 rounded-full text-white font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' }}
+          >
+            <LogOut className="w-4 h-4" />
+            {isLoggingOut ? 'Đang đăng xuất...' : 'Đăng Xuất'}
+          </button>
+          <p className="text-xs mt-2 text-gray-500">
+            Thông tin đã lưu sẽ được xóa từ trình duyệt này.
           </p>
         </div>
       </div>
