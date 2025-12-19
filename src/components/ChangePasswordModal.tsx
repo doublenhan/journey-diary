@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Lock, X, Eye, EyeOff } from 'lucide-react';
+import { Lock, X, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
 import { getAuth, reauthenticateWithCredential, EmailAuthProvider, updatePassword } from 'firebase/auth';
 import { useLanguage } from '../hooks/useLanguage';
+import { validatePassword, passwordsMatch } from '../utils/passwordValidation';
 import '../styles/ChangePasswordModal.css';
 
 interface ChangePasswordModalProps {
@@ -23,6 +24,11 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen, onClo
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  // Get password validation state
+  const passwordValidation = validatePassword(newPassword);
+  const passwordsMatched = passwordsMatch(newPassword, confirmPassword);
+  const isNewPasswordValid = passwordValidation.isValid && passwordsMatched;
+
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -41,12 +47,16 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen, onClo
       setError('Vui lòng xác nhận mật khẩu mới');
       return;
     }
-    if (newPassword !== confirmPassword) {
-      setError(t('profile.passwordsDoNotMatch'));
+
+    // Validate new password strength
+    if (!passwordValidation.isValid) {
+      setError(passwordValidation.errors.join('\n'));
       return;
     }
-    if (newPassword.length < 6) {
-      setError('Mật khẩu mới phải có ít nhất 6 ký tự');
+
+    // Check if passwords match
+    if (!passwordsMatched) {
+      setError(t('profile.passwordsDoNotMatch'));
       return;
     }
 
@@ -87,7 +97,7 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen, onClo
       if (err.code === 'auth/wrong-password') {
         setError(t('profile.currentPasswordIncorrect'));
       } else if (err.code === 'auth/weak-password') {
-        setError('Mật khẩu quá yếu. Vui lòng chọn mật khẩu mạnh hơn');
+        setError('Mật khẩu không đạt yêu cầu bảo mật. Vui lòng chọn mật khẩu mạnh hơn');
       } else {
         setError(err.message || 'Có lỗi xảy ra khi đổi mật khẩu');
       }
@@ -211,9 +221,94 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen, onClo
                   {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+
+              {/* Password Strength Requirements */}
+              {newPassword.length > 0 && (
+                <div className="mt-3 p-3 rounded-lg" style={{ background: 'rgba(0,0,0,0.05)' }}>
+                  <p className="text-xs font-semibold mb-2" style={{ color: theme.colors.textPrimary }}>
+                    Yêu cầu mật khẩu:
+                  </p>
+                  <div className="space-y-1 text-xs">
+                    {/* Length requirement */}
+                    <div className="flex items-center gap-2">
+                      {newPassword.length >= 8 ? (
+                        <CheckCircle className="w-4 h-4" style={{ color: '#22c55e' }} />
+                      ) : (
+                        <AlertCircle className="w-4 h-4" style={{ color: '#ef4444' }} />
+                      )}
+                      <span style={{ color: newPassword.length >= 8 ? '#22c55e' : theme.colors.textSecondary }}>
+                        Tối thiểu 8 ký tự ({newPassword.length})
+                      </span>
+                    </div>
+
+                    {/* Uppercase requirement */}
+                    <div className="flex items-center gap-2">
+                      {/[A-Z]/.test(newPassword) ? (
+                        <CheckCircle className="w-4 h-4" style={{ color: '#22c55e' }} />
+                      ) : (
+                        <AlertCircle className="w-4 h-4" style={{ color: '#ef4444' }} />
+                      )}
+                      <span style={{ color: /[A-Z]/.test(newPassword) ? '#22c55e' : theme.colors.textSecondary }}>
+                        Chữ in hoa (A-Z)
+                      </span>
+                    </div>
+
+                    {/* Lowercase requirement */}
+                    <div className="flex items-center gap-2">
+                      {/[a-z]/.test(newPassword) ? (
+                        <CheckCircle className="w-4 h-4" style={{ color: '#22c55e' }} />
+                      ) : (
+                        <AlertCircle className="w-4 h-4" style={{ color: '#ef4444' }} />
+                      )}
+                      <span style={{ color: /[a-z]/.test(newPassword) ? '#22c55e' : theme.colors.textSecondary }}>
+                        Chữ thường (a-z)
+                      </span>
+                    </div>
+
+                    {/* Number requirement */}
+                    <div className="flex items-center gap-2">
+                      {/[0-9]/.test(newPassword) ? (
+                        <CheckCircle className="w-4 h-4" style={{ color: '#22c55e' }} />
+                      ) : (
+                        <AlertCircle className="w-4 h-4" style={{ color: '#ef4444' }} />
+                      )}
+                      <span style={{ color: /[0-9]/.test(newPassword) ? '#22c55e' : theme.colors.textSecondary }}>
+                        Số (0-9)
+                      </span>
+                    </div>
+
+                    {/* Special character requirement */}
+                    <div className="flex items-center gap-2">
+                      {/[^A-Za-z0-9]/.test(newPassword) ? (
+                        <CheckCircle className="w-4 h-4" style={{ color: '#22c55e' }} />
+                      ) : (
+                        <AlertCircle className="w-4 h-4" style={{ color: '#ef4444' }} />
+                      )}
+                      <span style={{ color: /[^A-Za-z0-9]/.test(newPassword) ? '#22c55e' : theme.colors.textSecondary }}>
+                        Ký tự đặc biệt (!@#$%^&*)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Confirm New Password */}
+            {/* Confirm Match Status */}
+            {confirmPassword.length > 0 && (
+              <div className="flex items-center gap-2 text-sm">
+                {passwordsMatched ? (
+                  <>
+                    <CheckCircle className="w-4 h-4" style={{ color: '#22c55e' }} />
+                    <span style={{ color: '#22c55e' }}>Mật khẩu xác nhận khớp</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="w-4 h-4" style={{ color: '#ef4444' }} />
+                    <span style={{ color: '#ef4444' }}>Mật khẩu không khớp</span>
+                  </>
+                )}
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: theme.colors.textPrimary }}>
                 {t('profile.confirmNewPassword')}
@@ -273,7 +368,7 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen, onClo
               </button>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || !currentPassword || !isNewPasswordValid}
                 className="flex-1 px-4 py-2 rounded-lg text-white font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ background: theme.colors.buttonGradient }}
               >

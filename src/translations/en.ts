@@ -307,6 +307,7 @@ export const en = {
     newPassword: 'New Password',
     confirmNewPassword: 'Confirm New Password',
     changePasswordButton: 'Change Password',
+    changing: 'Changing...',
     passwordChanged: 'Password changed successfully!',
     currentPasswordIncorrect: 'Current password is incorrect',
     passwordsDoNotMatch: 'New passwords do not match',

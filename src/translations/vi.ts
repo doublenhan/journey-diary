@@ -306,6 +306,7 @@ export const vi = {
     newPassword: 'Mật Khẩu Mới',
     confirmNewPassword: 'Xác Nhận Mật Khẩu Mới',
     changePasswordButton: 'Đổi Mật Khẩu',
+    changing: 'Đang đổi...',
     passwordChanged: 'Đổi mật khẩu thành công!',
     currentPasswordIncorrect: 'Mật khẩu hiện tại không chính xác',
     passwordsDoNotMatch: 'Mật khẩu mới không khớp',
