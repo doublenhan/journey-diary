@@ -299,7 +299,7 @@ export const en = {
     preferencesComingSoon: 'Preferences will be added in the future.',
     accountSettings: 'Account Settings',
     accountSubtitle: 'Manage your profile and preferences.',
-    security: 'Security'
+    security: 'Security',
   },
   moodTracking: {
     title: 'Select Theme',
