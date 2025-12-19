@@ -1,11 +1,12 @@
 
 import { useEffect, useState } from 'react';
-import { Pencil, User, Mail, Phone, Calendar, LogOut } from 'lucide-react';
+import { Pencil, User, Mail, Phone, Calendar, LogOut, Lock } from 'lucide-react';
 import { auth, db, getCollectionName } from './firebase/firebaseConfig';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import CustomDatePicker from './components/CustomDatePicker';
+import ChangePasswordModal from './components/ChangePasswordModal';
 import { SecureStorage } from './utils/secureStorage';
 import { useLanguage } from './hooks/useLanguage';
 
@@ -32,6 +33,7 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
   const [error, setError] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -287,7 +289,7 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
           </p>
         </div>
 
-        {/* 🔐 Logout Section */}
+        {/* 🔐 Security Section */}
         <div 
           className="p-6 rounded-2xl border mt-6"
           style={{ 
@@ -295,25 +297,49 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
             borderColor: theme.colors.border
           }}
         >
-          <h3 className="font-semibold mb-2 text-red-600" style={{ color: theme.colors.textPrimary }}>
+          <h3 className="font-semibold mb-4" style={{ color: theme.colors.textPrimary }}>
             {t('profile.security')}
           </h3>
-          <p className="text-sm mb-4" style={{ color: theme.colors.textSecondary }}>
-            Đăng xuất khỏi tài khoản của bạn
-          </p>
-          <button
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-            className="flex items-center gap-2 px-4 py-2 rounded-full text-white font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' }}
-          >
-            <LogOut className="w-4 h-4" />
-            {isLoggingOut ? 'Đang đăng xuất...' : 'Đăng Xuất'}
-          </button>
-          <p className="text-xs mt-2 text-gray-500">
-            Thông tin đã lưu sẽ được xóa từ trình duyệt này.
-          </p>
+
+          {/* Change Password Button */}
+          <div className="mb-6">
+            <p className="text-sm mb-3" style={{ color: theme.colors.textSecondary }}>
+              {t('profile.changePasswordSubtitle')}
+            </p>
+            <button
+              onClick={() => setShowChangePasswordModal(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-full text-white font-semibold transition-all duration-300 hover:scale-105"
+              style={{ background: theme.colors.buttonGradient }}
+            >
+              <Lock className="w-4 h-4" />
+              {t('profile.changePassword')}
+            </button>
+          </div>
+
+          {/* Logout Button */}
+          <div className="border-t" style={{ borderColor: theme.colors.border }}>
+            <p className="text-sm mt-4 mb-3" style={{ color: theme.colors.textSecondary }}>
+              {t('profile.logoutInfo')}
+            </p>
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="flex items-center gap-2 px-4 py-2 rounded-full text-white font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' }}
+            >
+              <LogOut className="w-4 h-4" />
+              {isLoggingOut ? t('profile.loggingOut') : t('profile.logout')}
+            </button>
+          </div>
         </div>
+
+        {/* Change Password Modal */}
+        <ChangePasswordModal 
+          isOpen={showChangePasswordModal}
+          onClose={() => setShowChangePasswordModal(false)}
+          userEmail={profile.email}
+          theme={theme}
+        />
       </div>
 
     );
