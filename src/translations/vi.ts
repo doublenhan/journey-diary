@@ -298,6 +298,7 @@ export const vi = {
     preferencesComingSoon: 'Các tùy chọn sẽ được thêm vào trong tương lai.',
     accountSettings: 'Cài Đặt Tài Khoản',
     accountSubtitle: 'Quản lý thông tin cá nhân và tùy chọn của bạn.',
+    security: 'Bảo mật',
   },
   moodTracking: {
     title: 'Chọn Giao Diện',
