@@ -7,7 +7,7 @@ import {
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { useLanguage } from './hooks/useLanguage';
-import { useToast } from './hooks/useToast';
+import { useToastContext } from './contexts/ToastContext';
 import { fetchMemories } from './services/firebaseMemoriesService';
 import { MoodTheme, themes, isValidTheme } from './config/themes';
 import { getUserTheme } from './apis/userThemeApi';
@@ -147,7 +147,7 @@ function App() {
   const navigate = useNavigate();
   const { userId, loading } = useCurrentUserId();
   const { t } = useLanguage();
-  const { toasts, removeToast, success, error } = useToast();
+  const { toasts, removeToast } = useToastContext();
 
   useEffect(() => {
     if (loading) return;

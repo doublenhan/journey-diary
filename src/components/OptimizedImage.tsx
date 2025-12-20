@@ -218,7 +218,6 @@ export function OptimizedImage({
             onError={handleError}
             loading={priority ? 'eager' : 'lazy'}
             decoding="async"
-            {...(priority && { fetchPriority: 'high' as any })}
             style={imageStyle}
           />
         </picture>

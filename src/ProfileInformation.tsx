@@ -9,7 +9,7 @@ import CustomDatePicker from './components/CustomDatePicker';
 import ChangePasswordModal from './components/ChangePasswordModal';
 import { SecureStorage } from './utils/secureStorage';
 import { useLanguage } from './hooks/useLanguage';
-import { useToast } from './hooks/useToast';
+import { useToastContext } from './contexts/ToastContext';
 import { WebPImage } from './components/WebPImage';
 
 interface ProfileInformationProps {
@@ -21,7 +21,7 @@ interface ProfileInformationProps {
 
 const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncStart, onSyncSuccess, onSyncError }) => {
   const { t } = useLanguage();
-  const { success: showSuccess, error: showError } = useToast();
+  const { success: showSuccess, error: showError } = useToastContext();
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState({

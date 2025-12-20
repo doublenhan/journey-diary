@@ -9,7 +9,7 @@ import { updateMemory as updateMemoryFirestore } from '../services/firebaseMemor
 import { uploadToCloudinary, deleteFromCloudinary } from '../services/cloudinaryDirectService';
 import { reverseGeocode } from '../services/geoService';
 import { usePlacesAutocomplete } from '../hooks/usePlacesAutocomplete';
-import { useToast } from '../hooks/useToast';
+import { useToastContext } from '../contexts/ToastContext';
 import { WebPImage } from './WebPImage';
 import '../styles/components.css';
 
@@ -47,7 +47,7 @@ interface EditMemoryModalProps {
 }
 
 export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemoryModalProps) {
-  const { success: showSuccess, error: showError } = useToast();
+  const { success: showSuccess, error: showError } = useToastContext();
   const [title, setTitle] = useState(memory.title);
   const [text, setText] = useState(memory.text);
   const [location, setLocation] = useState(memory.location || '');

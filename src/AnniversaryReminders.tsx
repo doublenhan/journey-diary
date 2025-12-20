@@ -4,7 +4,7 @@ import { anniversaryApi, Anniversary as ApiAnniversary } from './apis/anniversar
 import { auth } from './firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useLanguage } from './hooks/useLanguage';
-import { useToast } from './hooks/useToast';
+import { useToastContext } from './contexts/ToastContext';
 import { MoodTheme, themes } from './config/themes';
 import VisualEffects from './components/VisualEffects';
 import { useSyncStatus } from './hooks/useSyncStatus';
@@ -33,7 +33,7 @@ interface AnniversaryRemindersProps {
 function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProps) {
   const { syncStatus, lastSyncTime, errorMessage, startSync, syncSuccess, syncError } = useSyncStatus();
   const { t, currentLanguage } = useLanguage();
-  const { success, error } = useToast();
+  const { success, error } = useToastContext();
   const [anniversaries, setAnniversaries] = useState<Anniversary[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
