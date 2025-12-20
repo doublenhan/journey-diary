@@ -9,6 +9,7 @@ import { updateMemory as updateMemoryFirestore } from '../services/firebaseMemor
 import { uploadToCloudinary, deleteFromCloudinary } from '../services/cloudinaryDirectService';
 import { reverseGeocode } from '../services/geoService';
 import { usePlacesAutocomplete } from '../hooks/usePlacesAutocomplete';
+import { useToast } from '../hooks/useToast';
 import { WebPImage } from './WebPImage';
 import '../styles/components.css';
 
@@ -46,6 +47,7 @@ interface EditMemoryModalProps {
 }
 
 export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemoryModalProps) {
+  const { success: showSuccess, error: showError } = useToast();
   const [title, setTitle] = useState(memory.title);
   const [text, setText] = useState(memory.text);
   const [location, setLocation] = useState(memory.location || '');
@@ -149,12 +151,16 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
 
   const handleSave = async () => {
     if (!title.trim() || !text.trim()) {
-      setError('Title and text are required');
+      const errorMsg = 'Title and text are required';
+      setError(errorMsg);
+      showError(errorMsg);
       return;
     }
 
     if (images.length === 0) {
-      setError('At least one image is required');
+      const errorMsg = 'At least one image is required';
+      setError(errorMsg);
+      showError(errorMsg);
       return;
     }
 
@@ -199,11 +205,14 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
       // Invalidate cache to force refresh
       window.dispatchEvent(new CustomEvent('memoryCacheInvalidated', { detail: { userId } }));
       
+      showSuccess('Memory updated successfully! 💕');
       onSuccess();
       onClose();
     } catch (err) {
       console.error('Failed to update memory:', err);
-      setError('Failed to update memory. Please try again.');
+      const errorMsg = 'Failed to update memory. Please try again.';
+      setError(errorMsg);
+      showError(errorMsg);
     } finally {
       setIsSaving(false);
     }
@@ -217,11 +226,14 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
       const publicIds = memory.images.map(img => img.public_id);
       await deleteMemory(memory.id, userId, publicIds);
       
+      showSuccess('Memory deleted successfully!');
       onSuccess();
       onClose();
     } catch (err) {
       console.error('Failed to delete memory:', err);
-      setError('Failed to delete memory. Please try again.');
+      const errorMsg = 'Failed to delete memory. Please try again.';
+      setError(errorMsg);
+      showError(errorMsg);
       setIsDeleting(false);
     }
   };
