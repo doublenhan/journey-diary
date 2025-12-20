@@ -9,6 +9,7 @@ import CustomDatePicker from './components/CustomDatePicker';
 import ChangePasswordModal from './components/ChangePasswordModal';
 import { SecureStorage } from './utils/secureStorage';
 import { useLanguage } from './hooks/useLanguage';
+import { useToast } from './hooks/useToast';
 import { WebPImage } from './components/WebPImage';
 
 interface ProfileInformationProps {
@@ -20,6 +21,7 @@ interface ProfileInformationProps {
 
 const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncStart, onSyncSuccess, onSyncError }) => {
   const { t } = useLanguage();
+  const { success: showSuccess, error: showError } = useToast();
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState({
@@ -71,7 +73,9 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
     if (!user) return;
     // Validate required fields
     if (!profile.displayName.trim() || !profile.email.trim() || !profile.phone.trim() || !profile.dob.trim()) {
-      setError('Input all the fields required');
+      const errorMsg = 'Input all the fields required';
+      setError(errorMsg);
+      showError(errorMsg);
       return;
     }
     setSaving(true);
@@ -85,12 +89,15 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
       setSaving(false);
       setSuccess(true);
       setEditMode(false);
+      showSuccess('Profile saved successfully! 💕');
       onSyncSuccess?.();
       setTimeout(() => setSuccess(false), 2000);
     } catch (error) {
       setSaving(false);
-      onSyncError?.(t('errors.saveProfile'));
-      setError(t('errors.saveProfile'));
+      const errorMsg = t('errors.saveProfile');
+      onSyncError?.(errorMsg);
+      setError(errorMsg);
+      showError(errorMsg);
       console.error('Error saving profile:', error);
     }
   };
