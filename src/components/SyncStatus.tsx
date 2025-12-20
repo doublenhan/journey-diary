@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Cloud, CheckCircle, AlertCircle, Loader, WifiOff } from 'lucide-react';
 import '../styles/SyncStatus.css';
 

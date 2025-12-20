@@ -1,4 +1,4 @@
-export interface CustomTheme {
+﻿export interface CustomTheme {
   id: string;
   name: string;
   colors: {

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Secure Storage Utility
  * Provides encrypted storage for sensitive data like passwords
  * Uses Web Crypto API for encryption/decryption

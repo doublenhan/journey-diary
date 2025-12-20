@@ -1,4 +1,4 @@
-// Image validation constants and utilities
+﻿// Image validation constants and utilities
 
 export const IMAGE_VALIDATION = {
   MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB in bytes

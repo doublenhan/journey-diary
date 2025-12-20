@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
 import { MapPin, Calendar, X, Loader, Flame, Route } from 'lucide-react';
 import { getMemoriesWithCoordinates, MemoryFirestore } from '../utils/memoryFirestore';

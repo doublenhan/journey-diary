@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+﻿import { useMemo } from 'react';
 import { Calendar, MapPin, Heart, TrendingUp, Image, Clock, Award } from 'lucide-react';
 import '../styles/MemoryStatistics.css';
 

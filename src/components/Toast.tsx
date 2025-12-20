@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import { X, Check, AlertCircle, Info } from 'lucide-react';
 import '../styles/Toast.css';
 

@@ -1,23 +1,184 @@
 [
-  { "years": 1, "title": "Paper Love", "meaning": "Fragile and tender like paper – needs care" },
-  { "years": 2, "title": "Cotton Love", "meaning": "Soft and warm – growing familiarity" },
-  { "years": 3, "title": "Leather Love", "meaning": "Stronger, more bonded" },
-  { "years": 4, "title": "Silk Love", "meaning": "Smooth and emotionally deep" },
-  { "years": 5, "title": "Wood Love", "meaning": "Firm foundation" },
-  { "years": 6, "title": "Iron Love", "meaning": "Strength to endure challenges" },
-  { "years": 7, "title": "Wool Love", "meaning": "Warm but sometimes tangled – requires understanding" },
-  { "years": 8, "title": "Bronze Love", "meaning": "Durable and valuable – needs regular care" },
-  { "years": 9, "title": "Ceramic Love", "meaning": "Delicate but soulful" },
-  { "years": 10, "title": "Tin Love", "meaning": "Flexible and long-lasting" },
-  { "years": 11, "title": "Steel Love", "meaning": "Resilient – overcome many trials" },
-  { "years": 12, "title": "Silk Thread Love", "meaning": "Deep and dreamy connection" },
-  { "years": 13, "title": "Lace Love", "meaning": "Complex but artistically beautiful" },
-  { "years": 14, "title": "Pearl Love", "meaning": "Precious and formed over time" },
-  { "years": 15, "title": "Crystal Love", "meaning": "Pure and clear – easily shattered" },
-  { "years": 20, "title": "Porcelain Love", "meaning": "Durable yet requires careful handling" },
-  { "years": 25, "title": "Silver Love", "meaning": "Elegant and noble" },
-  { "years": 30, "title": "Black Pearl Love", "meaning": "Rare and unique" },
-  { "years": 40, "title": "Ruby Love", "meaning": "Eternal flame of love" },
-  { "years": 50, "title": "Golden Love", "meaning": "Lifetime bond – precious like gold" },
-  { "years": 60, "title": "Diamond Love", "meaning": "Eternal, unbreakable love" }
+  {
+    "years": 0,
+    "title": "Our First Day",
+    "titleVi": "Ngày Đầu Tiên",
+    "meaning": "The beginning of our beautiful love story",
+    "meaningVi": "Khởi đầu của câu chuyện tình yêu tuyệt vời của chúng ta"
+  },
+  {
+    "years": 1,
+    "title": "Paper Love",
+    "titleVi": "Tình Yêu Giấy",
+    "meaning": "Fragile and tender like paper – needs care",
+    "meaningVi": "Mỏng manh và dễ tan như giấy – cần chăm sóc"
+  },
+  {
+    "years": 2,
+    "title": "Cotton Love",
+    "titleVi": "Tình Yêu Bông",
+    "meaning": "Soft and warm – growing familiarity",
+    "meaningVi": "Mềm mại và ấm áp – sự quen thuộc ngày càng tăng"
+  },
+  {
+    "years": 3,
+    "title": "Leather Love",
+    "titleVi": "Tình Yêu Da",
+    "meaning": "Stronger, more bonded",
+    "meaningVi": "Mạnh mẽ hơn, gắn bó hơn"
+  },
+  {
+    "years": 4,
+    "title": "Silk Love",
+    "titleVi": "Tình Yêu Lụa",
+    "meaning": "Smooth and emotionally deep",
+    "meaningVi": "Mịn màng và sâu sắc về cảm xúc"
+  },
+  {
+    "years": 5,
+    "title": "Wood Love",
+    "titleVi": "Tình Yêu Gỗ",
+    "meaning": "Firm foundation",
+    "meaningVi": "Nền tảng vững chắc"
+  },
+  {
+    "years": 6,
+    "title": "Iron Love",
+    "titleVi": "Tình Yêu Sắt",
+    "meaning": "Strength to endure challenges",
+    "meaningVi": "Sức mạnh để vượt qua thử thách"
+  },
+  {
+    "years": 7,
+    "title": "Wool Love",
+    "titleVi": "Tình Yêu Len",
+    "meaning": "Warm but sometimes tangled – requires understanding",
+    "meaningVi": "Ấm áp nhưng đôi khi rối – cần sự hiểu biết"
+  },
+  {
+    "years": 8,
+    "title": "Bronze Love",
+    "titleVi": "Tình Yêu Đồng",
+    "meaning": "Durable and valuable – needs regular care",
+    "meaningVi": "Bền vững và quý giá – cần chăm sóc thường xuyên"
+  },
+  {
+    "years": 9,
+    "title": "Ceramic Love",
+    "titleVi": "Tình Yêu Gốm",
+    "meaning": "Delicate but soulful",
+    "meaningVi": "Tinh tế nhưng sâu sắc"
+  },
+  {
+    "years": 10,
+    "title": "Tin Love",
+    "titleVi": "Tình Yêu Thiếc",
+    "meaning": "Flexible and long-lasting",
+    "meaningVi": "Linh hoạt và lâu bền"
+  },
+  {
+    "years": 11,
+    "title": "Steel Love",
+    "titleVi": "Tình Yêu Thép",
+    "meaning": "Resilient – overcome many trials",
+    "meaningVi": "Kiên cường – vượt qua nhiều thử thách"
+  },
+  {
+    "years": 12,
+    "title": "Silk Thread Love",
+    "titleVi": "Tình Yêu Sợi Lụa",
+    "meaning": "Deep and dreamy connection",
+    "meaningVi": "Kết nối sâu sắc và mơ mộng"
+  },
+  {
+    "years": 13,
+    "title": "Lace Love",
+    "titleVi": "Tình Yêu Ren",
+    "meaning": "Complex but artistically beautiful",
+    "meaningVi": "Phức tạp nhưng đẹp một cách nghệ thuật"
+  },
+  {
+    "years": 14,
+    "title": "Pearl Love",
+    "titleVi": "Tình Yêu Ngọc Trai",
+    "meaning": "Precious and formed over time",
+    "meaningVi": "Quý giá và hình thành qua thời gian"
+  },
+  {
+    "years": 15,
+    "title": "Crystal Love",
+    "titleVi": "Tình Yêu Pha Lê",
+    "meaning": "Pure and clear – easily shattered",
+    "meaningVi": "Trong sáng và rõ ràng – dễ vỡ"
+  },
+  {
+    "years": 16,
+    "title": "Sapphire Love",
+    "titleVi": "Tình Yêu Sapphire",
+    "meaning": "Deep wisdom and loyalty",
+    "meaningVi": "Trí tuệ sâu sắc và lòng trung thành"
+  },
+  {
+    "years": 17,
+    "title": "Amber Love",
+    "titleVi": "Tình Yêu Hổ Phách",
+    "meaning": "Preserved and timeless",
+    "meaningVi": "Bảo tồn và vô thời gian"
+  },
+  {
+    "years": 18,
+    "title": "Turquoise Love",
+    "titleVi": "Tình Yêu Ngọc Lam",
+    "meaning": "Protection and genuine care",
+    "meaningVi": "Bảo vệ và chăm sóc chân thành"
+  },
+  {
+    "years": 19,
+    "title": "Opal Love",
+    "titleVi": "Tình Yêu Opal",
+    "meaning": "Diverse and iridescent beauty",
+    "meaningVi": "Vẻ đẹp đa dạng và lấp lánh"
+  },
+  {
+    "years": 20,
+    "title": "Porcelain Love",
+    "titleVi": "Tình Yêu Sứ",
+    "meaning": "Durable yet requires careful handling",
+    "meaningVi": "Bền bỉ nhưng cần xử lý cẩn thận"
+  },
+  {
+    "years": 25,
+    "title": "Silver Love",
+    "titleVi": "Tình Yêu Bạc",
+    "meaning": "Elegant and noble",
+    "meaningVi": "Thanh lịch và cao quý"
+  },
+  {
+    "years": 30,
+    "title": "Black Pearl Love",
+    "titleVi": "Tình Yêu Ngọc Trai Đen",
+    "meaning": "Rare and unique",
+    "meaningVi": "Hiếm có và độc nhất"
+  },
+  {
+    "years": 40,
+    "title": "Ruby Love",
+    "titleVi": "Tình Yêu Ruby",
+    "meaning": "Eternal flame of love",
+    "meaningVi": "Ngọn lửa tình yêu vĩnh cửu"
+  },
+  {
+    "years": 50,
+    "title": "Golden Love",
+    "titleVi": "Tình Yêu Vàng",
+    "meaning": "Lifetime bond – precious like gold",
+    "meaningVi": "Liên kết cả đời – quý giá như vàng"
+  },
+  {
+    "years": 60,
+    "title": "Diamond Love",
+    "titleVi": "Tình Yêu Kim Cương",
+    "meaning": "Eternal, unbreakable love",
+    "meaningVi": "Tình yêu vĩnh cửu, không thể phá vỡ"
+  }
 ]

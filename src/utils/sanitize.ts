@@ -1,4 +1,4 @@
-// XSS Prevention Utility using DOMPurify
+﻿// XSS Prevention Utility using DOMPurify
 import DOMPurify from 'isomorphic-dompurify';
 
 // Configuration for different content types

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Lock, X, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
 import { getAuth, reauthenticateWithCredential, EmailAuthProvider, updatePassword } from 'firebase/auth';
 import { useLanguage } from '../hooks/useLanguage';

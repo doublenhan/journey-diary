@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import '../styles/FeaturesSkeleton.css';
 
 export const FeaturesSkeleton: React.FC = () => {

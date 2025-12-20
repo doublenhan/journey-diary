@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import '../styles/GallerySkeleton.css';
 
 export const GallerySkeleton: React.FC = () => {

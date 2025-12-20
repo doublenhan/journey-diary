@@ -1,9 +1,7 @@
-// src/api/anniversaryApi.ts
+﻿// src/api/anniversaryApi.ts
 import { db, getCollectionName } from '../firebase/firebaseConfig';
 import {
   collection,
-  query,
-  where,
   addDoc,
   getDocs,
   updateDoc,
@@ -34,11 +32,13 @@ export interface Anniversary {
 
 export const anniversaryApi = {
   async getAll(userId: string): Promise<Anniversary[]> {
+    // Read all documents and filter by userId on client
+    // This avoids needing index for where clause
     const anniversariesRef = collection(db, getCollectionName('AnniversaryEvent'));
-    // Remove orderBy to avoid composite index requirement, sort in FE instead
-    const q = query(anniversariesRef, where('userId', '==', userId));
-    const querySnapshot = await getDocs(q);
-    const results = querySnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }) as Anniversary);
+    const querySnapshot = await getDocs(anniversariesRef);
+    const results = querySnapshot.docs
+      .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }) as Anniversary)
+      .filter(anniversary => anniversary.userId === userId);
     // Sort by date in frontend
     return results.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   },

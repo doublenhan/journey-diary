@@ -1,4 +1,4 @@
-/* Card Components */
+﻿/* Card Components */
 .memory-card {
   @apply rounded-2xl border shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden transform hover:scale-105;
 }

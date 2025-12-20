@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Firebase Anniversary Service - V3.0
  * Thay thế API routes bằng Firebase Direct SDK
  * Sử dụng Firestore để lưu trữ và truy vấn anniversary events

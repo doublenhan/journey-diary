@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import '../styles/DashboardSkeleton.css';
 
 export const DashboardSkeleton: React.FC = () => {

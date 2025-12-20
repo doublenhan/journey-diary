@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Password Validation Utility
  * Validates password strength requirements
  */

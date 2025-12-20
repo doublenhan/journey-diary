@@ -1,4 +1,4 @@
-// src/firebase/firebaseConfig.ts
+﻿// src/firebase/firebaseConfig.ts
 // Firebase config and initialization
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';

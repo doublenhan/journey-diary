@@ -1,4 +1,4 @@
-export type LanguageCode = 'vi' | 'en';
+﻿export type LanguageCode = 'vi' | 'en';
 
 export interface Language {
   code: LanguageCode;
@@ -12,7 +12,7 @@ export const LANGUAGES: Record<LanguageCode, Language> = {
   vi: {
     code: 'vi',
     name: 'Vietnamese',
-    nativeName: 'Việt Nam',
+    nativeName: 'Tiếng Việt',
     flag: '🇻🇳',
     dateLocale: 'vi-VN'
   },

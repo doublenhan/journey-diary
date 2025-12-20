@@ -1,4 +1,4 @@
-export interface CloudinaryImage {
+﻿export interface CloudinaryImage {
   secure_url: string;
   public_id: string;
   width: number;

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Reusable Image Upload Component
  * Handles file selection, validation, and upload with progress indication
  */

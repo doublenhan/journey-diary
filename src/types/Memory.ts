@@ -1,4 +1,4 @@
-export interface MemoryImage {
+﻿export interface MemoryImage {
   url: string;
   public_id: string;
   created_at: string;

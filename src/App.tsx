@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, lazy, Suspense, useMemo } from 'react';
+﻿import { useState, useEffect, useRef, lazy, Suspense, useMemo } from 'react';
 import {
   Heart, BookOpen, Camera, Bell, Download as Download2,
   Menu, X, Instagram, Twitter, Facebook,

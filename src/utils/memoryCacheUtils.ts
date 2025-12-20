@@ -1,4 +1,4 @@
-import type { Memory } from '../hooks/useMemoriesCache';
+﻿import type { Memory } from '../hooks/useMemoriesCache';
 
 export interface CacheData {
   memories: Memory[];

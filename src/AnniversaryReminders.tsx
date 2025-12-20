@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Heart, Calendar, Bell, Plus, X, Edit3, Trash2, ArrowLeft, Gift, Sparkles, Clock, BellRing, Download } from 'lucide-react';
 import { anniversaryApi, Anniversary as ApiAnniversary } from './apis/anniversaryApi';
 import { auth } from './firebase/firebaseConfig';
@@ -32,7 +32,7 @@ interface AnniversaryRemindersProps {
 
 function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProps) {
   const { syncStatus, lastSyncTime, errorMessage, startSync, syncSuccess, syncError } = useSyncStatus();
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
   const { success, error } = useToast();
   const [anniversaries, setAnniversaries] = useState<Anniversary[]>([]);
   const [loading, setLoading] = useState(false);
@@ -94,7 +94,12 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         if (thisYearDate < today) thisYearDate.setFullYear(today.getFullYear() + 1);
         const daysUntil = Math.ceil((thisYearDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         const yearsSince = today.getFullYear() - anniversaryDate.getFullYear();
-        const milestone = anniversaryTimeline.find(t => t.years === yearsSince);
+        
+        // Find closest milestone (not exceeding yearsSince)
+        const milestone = anniversaryTimeline
+          .filter(t => t.years <= yearsSince)
+          .sort((a, b) => b.years - a.years)[0];
+        
         return {
           ...anniversary,
           yearsSince: yearsSince > 0 ? yearsSince : 0,
@@ -287,6 +292,38 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
     return `${monthNames[parseInt(month) - 1]} ${parseInt(day)}, ${year}`;
   };
 
+  // Get milestone title in current language
+  const getMilestoneTitle = (anniversary: Anniversary): string => {
+    if (!anniversary.milestoneTitle) return '';
+    
+    // Find closest milestone (not exceeding yearsSince)
+    const yearsSince = anniversary.yearsSince || 0;
+    const milestone = anniversaryTimeline
+      .filter(t => t.years <= yearsSince)
+      .sort((a, b) => b.years - a.years)[0];
+    
+    if (!milestone) return anniversary.milestoneTitle;
+    
+    // Return Vietnamese if language is 'vi', else English
+    return currentLanguage === 'vi' && milestone.titleVi ? milestone.titleVi : milestone.title;
+  };
+
+  // Get milestone meaning in current language
+  const getMilestoneMeaning = (anniversary: Anniversary): string => {
+    if (!anniversary.milestoneMeaning) return '';
+    
+    // Find closest milestone (not exceeding yearsSince)
+    const yearsSince = anniversary.yearsSince || 0;
+    const milestone = anniversaryTimeline
+      .filter(t => t.years <= yearsSince)
+      .sort((a, b) => b.years - a.years)[0];
+    
+    if (!milestone) return anniversary.milestoneMeaning;
+    
+    // Return Vietnamese if language is 'vi', else English
+    return currentLanguage === 'vi' && milestone.meaningVi ? milestone.meaningVi : milestone.meaning;
+  };
+
   const getDurationString = (fromDate: Date, toDate: Date) => {
     let years = toDate.getFullYear() - fromDate.getFullYear();
     let months = toDate.getMonth() - fromDate.getMonth();
@@ -372,14 +409,18 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       const safeType = type as AnniversaryType;
       const safeReminderDays = Number.isFinite(reminderDays) ? reminderDays : 1;
 
-      const payload = {
+      const payload: any = {
         title: title || '',
         date: formattedDate || '',
         type: safeType,
         reminderDays: safeReminderDays,
-        isNotificationEnabled: !!isNotificationEnabled,
-        customTypeName: safeType === 'custom' ? formData.customTypeName : undefined
+        isNotificationEnabled: !!isNotificationEnabled
       };
+
+      // Only include customTypeName if type is 'custom'
+      if (safeType === 'custom' && formData.customTypeName) {
+        payload.customTypeName = formData.customTypeName;
+      }
 
       await anniversaryApi.add(userId, payload);
       
@@ -395,7 +436,10 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         if (thisYearDate < now) thisYearDate.setFullYear(now.getFullYear() + 1);
         const daysUntil = Math.ceil((thisYearDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
         const yearsSince = now.getFullYear() - anniversaryDate.getFullYear();
-        const milestone = anniversaryTimeline.find(t => t.years === yearsSince);
+        // Find closest milestone (not exceeding yearsSince)
+        const milestone = anniversaryTimeline
+          .filter(t => t.years <= yearsSince)
+          .sort((a, b) => b.years - a.years)[0];
         return {
           ...anniversary,
           yearsSince: yearsSince > 0 ? yearsSince : 0,
@@ -437,10 +481,34 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
     setLoading(true);
     startSync(); // Start sync status
     try {
-      // Allow all types for update
+      // Format date to ensure YYYY-MM-DD format
+      let formattedDate = newAnniversary.date;
+      if (newAnniversary.date && newAnniversary.date.includes('-')) {
+        const [year, month, day] = newAnniversary.date.split('-');
+        if (year && month && day) {
+          const mm = String(month).padStart(2, '0');
+          const dd = String(day).padStart(2, '0');
+          formattedDate = `${year}-${mm}-${dd}`;
+        }
+      }
+
+      // Build payload to avoid undefined values
+      const updatePayload: any = {
+        title: newAnniversary.title,
+        date: formattedDate,
+        type: newAnniversary.type,
+        reminderDays: newAnniversary.reminderDays,
+        isNotificationEnabled: newAnniversary.isNotificationEnabled
+      };
+
+      // Only include customTypeName if type is 'custom' and has value
+      if (newAnniversary.type === 'custom' && newAnniversary.customTypeName) {
+        updatePayload.customTypeName = newAnniversary.customTypeName;
+      }
+
       await anniversaryApi.update(
         editingAnniversary.id,
-        newAnniversary as Partial<Omit<ApiAnniversary, 'id' | 'userId'>>
+        updatePayload
       );
       syncSuccess(); // Show sync success
       setEditingAnniversary(null);
@@ -462,7 +530,10 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         if (thisYearDate < today) thisYearDate.setFullYear(today.getFullYear() + 1);
         const daysUntil = Math.ceil((thisYearDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         const yearsSince = today.getFullYear() - anniversaryDate.getFullYear();
-        const milestone = anniversaryTimeline.find(t => t.years === yearsSince);
+        // Find closest milestone (not exceeding yearsSince)
+        const milestone = anniversaryTimeline
+          .filter(t => t.years <= yearsSince)
+          .sort((a, b) => b.years - a.years)[0];
         return {
           ...anniversary,
           yearsSince: yearsSince > 0 ? yearsSince : 0,
@@ -522,7 +593,10 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         if (thisYearDate < today) thisYearDate.setFullYear(today.getFullYear() + 1);
         const daysUntil = Math.ceil((thisYearDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         const yearsSince = today.getFullYear() - anniversaryDate.getFullYear();
-        const milestone = anniversaryTimeline.find(t => t.years === yearsSince);
+        // Find closest milestone (not exceeding yearsSince)
+        const milestone = anniversaryTimeline
+          .filter(t => t.years <= yearsSince)
+          .sort((a, b) => b.years - a.years)[0];
         return {
           ...anniversary,
           yearsSince: yearsSince > 0 ? yearsSince : 0,
@@ -773,10 +847,10 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                     {(anniversary.milestoneTitle || anniversary.milestoneMeaning) && (
                       <div className="milestone-info" style={{background:'#FEF9C3',borderRadius:8,padding:'8px 12px',marginTop:8,marginBottom:8}}>
                         {anniversary.milestoneTitle && (
-                          <span style={{fontWeight:600}}>{anniversary.milestoneTitle}</span>
+                          <span style={{fontWeight:600}}>{getMilestoneTitle(anniversary)}</span>
                         )}
                         {anniversary.milestoneMeaning && (
-                          <span style={{float:'right',fontWeight:400}}>{anniversary.milestoneMeaning}</span>
+                          <span style={{float:'right',fontWeight:400}}>{getMilestoneMeaning(anniversary)}</span>
                         )}
                       </div>
                     )}
@@ -905,10 +979,10 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                   {(anniversary.milestoneTitle || anniversary.milestoneMeaning) && (
                     <div className="milestone-info" style={{background:'#FEF9C3',borderRadius:8,padding:'8px 12px',marginTop:8,marginBottom:8}}>
                       {anniversary.milestoneTitle && (
-                        <span style={{fontWeight:600}}>{anniversary.milestoneTitle}</span>
+                        <span style={{fontWeight:600}}>{getMilestoneTitle(anniversary)}</span>
                       )}
                       {anniversary.milestoneMeaning && (
-                        <span style={{float:'right',fontWeight:400}}>{anniversary.milestoneMeaning}</span>
+                        <span style={{float:'right',fontWeight:400}}>{getMilestoneMeaning(anniversary)}</span>
                       )}
                     </div>
                   )}

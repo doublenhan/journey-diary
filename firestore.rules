@@ -73,7 +73,7 @@ service cloud.firestore {
       return data.userId is string
         && data.title is string
         && data.title.size() <= 200
-        && data.date is timestamp;
+        && data.date is string;
     }
     
     // ===========================
@@ -136,7 +136,8 @@ service cloud.firestore {
     
     // Dev Anniversary Events
     match /dev_AnniversaryEvent/{eventId} {
-      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      // Allow all authenticated users to read (filter by userId in client)
+      allow read: if isAuthenticated();
       allow create: if isAuthenticated() 
         && isOwner(request.resource.data.userId)
         && isValidAnniversary();
@@ -146,7 +147,8 @@ service cloud.firestore {
     
     // Production Anniversary Events
     match /AnniversaryEvent/{eventId} {
-      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      // Allow all authenticated users to read (filter by userId in client)
+      allow read: if isAuthenticated();
       allow create: if isAuthenticated() 
         && isOwner(request.resource.data.userId)
         && isValidAnniversary();

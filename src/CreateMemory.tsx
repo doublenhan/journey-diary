@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { useSyncStatus } from './hooks/useSyncStatus';
@@ -9,6 +9,7 @@ import { MoodTheme, themes } from './config/themes';
 import VisualEffects from './components/VisualEffects';
 import SyncStatus from './components/SyncStatus';
 import { UploadProgress, UploadProgressItem } from './components/UploadProgress';
+import LazyImage from './components/LazyImage';
 import { addMemoryToCache, updateCacheAndNotify, removeMemoryFromCache } from './utils/memoryCacheUtils';
 import type { Memory } from './hooks/useMemoriesCache';
 import { usePlacesAutocomplete } from './hooks/usePlacesAutocomplete';

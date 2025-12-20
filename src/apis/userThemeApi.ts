@@ -1,4 +1,4 @@
-import { db, getCollectionName } from '../firebase/firebaseConfig';
+﻿import { db, getCollectionName } from '../firebase/firebaseConfig';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 export const saveUserTheme = async (userId: string, theme: string) => {

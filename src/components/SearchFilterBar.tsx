@@ -1,4 +1,4 @@
-import { Search, Filter, X } from 'lucide-react';
+﻿import { Search, Filter, X } from 'lucide-react';
 import '../styles/SearchFilterBar.css';
 
 interface SearchFilterBarProps {

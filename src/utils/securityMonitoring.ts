@@ -1,4 +1,4 @@
-// Security monitoring and logging utility
+﻿// Security monitoring and logging utility
 // Tracks security events, failed logins, suspicious activities
 
 export interface SecurityEvent {

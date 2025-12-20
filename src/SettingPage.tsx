@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Sparkles, Palette, User, Menu, X, Heart, Globe, Check, Info } from 'lucide-react';
 import { auth } from './firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -62,6 +62,9 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
     if (!theme) return;
     document.body.style.background = theme.colors.background;
     document.body.style.fontFamily = theme.fontFamily;
+    if (theme.fontWeight) {
+      document.body.style.fontWeight = theme.fontWeight;
+    }
     // Optionally set other CSS variables for global use
     document.body.style.setProperty('--primary-color', theme.colors.primary);
     document.body.style.setProperty('--secondary-color', theme.colors.secondary);
@@ -399,7 +402,8 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
       className="min-h-screen transition-theme relative overflow-hidden"
       style={{ 
         background: theme.colors.background,
-        fontFamily: theme.fontFamily
+        fontFamily: theme.fontFamily,
+        fontWeight: theme.fontWeight
       }}
     >
       {/* Visual Effects */}

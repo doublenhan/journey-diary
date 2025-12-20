@@ -1,4 +1,4 @@
-// Security Dashboard Component
+﻿// Security Dashboard Component
 // Displays security monitoring statistics and recent events
 
 import { useState, useEffect } from 'react';

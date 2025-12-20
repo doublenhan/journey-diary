@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Sun, Moon, Heart, Zap, Cloud, Flame } from 'lucide-react';
 import { MoodTheme, themes as baseThemes } from './themes';
 
@@ -20,6 +20,7 @@ export interface SettingThemeConfig {
     hoverBg: string;
   };
   fontFamily: string;
+  fontWeight?: string;
 }
 
 // Extended theme config for SettingPage with additional metadata
@@ -41,7 +42,8 @@ export const settingThemes: Record<MoodTheme, SettingThemeConfig> = {
       buttonGradient: 'linear-gradient(135deg, rgb(251, 191, 36), rgb(245, 158, 11))',
       hoverBg: 'rgb(254, 249, 195)',
     },
-    fontFamily: 'ui-rounded, system-ui, sans-serif'
+    fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+    fontWeight: '600'
   },
   calm: {
     name: 'Calm',
@@ -60,7 +62,8 @@ export const settingThemes: Record<MoodTheme, SettingThemeConfig> = {
       buttonGradient: 'linear-gradient(135deg, rgb(99, 102, 241), rgb(79, 70, 229))',
       hoverBg: 'rgb(238, 242, 255)',
     },
-    fontFamily: 'ui-serif, Georgia, serif'
+    fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+    fontWeight: '600'
   },
   romantic: {
     name: 'Romantic',
@@ -79,7 +82,8 @@ export const settingThemes: Record<MoodTheme, SettingThemeConfig> = {
       buttonGradient: 'linear-gradient(135deg, rgb(236, 72, 153), rgb(219, 39, 119))',
       hoverBg: 'rgb(253, 242, 248)',
     },
-    fontFamily: 'ui-sans-serif, system-ui, sans-serif'
+    fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+    fontWeight: '600'
   },
   energetic: {
     name: 'Energetic',
@@ -98,7 +102,8 @@ export const settingThemes: Record<MoodTheme, SettingThemeConfig> = {
       buttonGradient: 'linear-gradient(135deg, rgb(249, 115, 22), rgb(234, 88, 12))',
       hoverBg: 'rgb(255, 237, 213)',
     },
-    fontFamily: 'ui-sans-serif, system-ui, sans-serif'
+    fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+    fontWeight: '600'
   },
   peaceful: {
     name: 'Peaceful',
@@ -117,7 +122,8 @@ export const settingThemes: Record<MoodTheme, SettingThemeConfig> = {
       buttonGradient: 'linear-gradient(135deg, rgb(16, 185, 129), rgb(5, 150, 105))',
       hoverBg: 'rgb(236, 253, 245)',
     },
-    fontFamily: 'ui-serif, Georgia, serif'
+    fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+    fontWeight: '600'
   },
   passionate: {
     name: 'Passionate',
@@ -136,6 +142,7 @@ export const settingThemes: Record<MoodTheme, SettingThemeConfig> = {
       buttonGradient: 'linear-gradient(135deg, rgb(239, 68, 68), rgb(220, 38, 38))',
       hoverBg: 'rgb(254, 242, 242)',
     },
-    fontFamily: 'ui-sans-serif, system-ui, sans-serif'
+    fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+    fontWeight: '600'
   }
 };

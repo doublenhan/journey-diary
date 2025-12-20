@@ -1,4 +1,4 @@
-export const vi = {
+﻿export const vi = {
   common: {
     back: 'Quay Lại',
     save: 'Lưu',
@@ -234,7 +234,7 @@ export const vi = {
       title: 'Cài Đặt Tài Khoản',
       profile: 'Thông Tin Cá Nhân',
       security: 'Bảo Mật',
-      logout: 'Đăng Xuât',
+      logout: 'Đăng Xuất',
     },
     footer: 'Được làm với ❤️ dành cho bạn',
   },
@@ -310,7 +310,7 @@ export const vi = {
     passwordChanged: 'Đổi mật khẩu thành công!',
     currentPasswordIncorrect: 'Mật khẩu hiện tại không chính xác',
     passwordsDoNotMatch: 'Mật khẩu mới không khớp',
-    logout: 'Đăng Xuất',
+    logout: 'Đăng xuất',
     loggingOut: 'Đang đăng xuất...',
     logoutInfo: 'Thông tin đã lưu sẽ được xóa từ trình duyệt này.',
   },

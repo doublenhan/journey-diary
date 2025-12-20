@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Calendar, Plus, Edit, Trash2, MapPin, Clock } from 'lucide-react';
 
 interface Event {

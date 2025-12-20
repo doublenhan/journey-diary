@@ -1,4 +1,4 @@
-
+﻿
 import { useEffect, useState } from 'react';
 import { Pencil, User, Mail, Phone, Calendar, LogOut, Lock } from 'lucide-react';
 import { auth, db, getCollectionName } from './firebase/firebaseConfig';
@@ -39,16 +39,16 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
-        setProfile((prev) => ({ ...prev, email: firebaseUser.email || '' }));
+        setProfile((prev) => ({ ...prev, email: (firebaseUser.email || '').normalize('NFC') }));
         // Fetch profile from Firestore
         const docRef = doc(db, getCollectionName('users'), firebaseUser.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
           setProfile({
-            displayName: data.displayName || '',
-            email: firebaseUser.email || '',
-            phone: data.phone || '',
+            displayName: (data.displayName || '').normalize('NFC'),
+            email: (firebaseUser.email || '').normalize('NFC'),
+            phone: (data.phone || '').normalize('NFC'),
             dob: data.dob || ''
           });
         }
@@ -60,7 +60,9 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setProfile((prev) => ({ ...prev, [name]: value }));
+    // Normalize to NFC to prevent Unicode decomposition
+    const normalizedValue = value.normalize('NFC');
+    setProfile((prev) => ({ ...prev, [name]: normalizedValue }));
   };
 
   const handleSave = async () => {
@@ -75,8 +77,8 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
     onSyncStart?.();
     try {
       await setDoc(doc(db, getCollectionName('users'), user.uid), {
-        displayName: profile.displayName,
-        phone: profile.phone,
+        displayName: profile.displayName.normalize('NFC'),
+        phone: profile.phone.normalize('NFC'),
         dob: profile.dob
       }, { merge: true });
       setSaving(false);

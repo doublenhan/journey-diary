@@ -1,4 +1,4 @@
-// src/hooks/usePlacesAutocomplete.ts
+﻿// src/hooks/usePlacesAutocomplete.ts
 // FREE OpenStreetMap Nominatim Autocomplete (no API key needed!)
 
 import { useState, useEffect, useRef } from 'react';

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+﻿import { useState, useCallback, useEffect } from 'react';
 import { SyncStatusType } from '../components/SyncStatus';
 
 interface UseSyncStatusReturn {

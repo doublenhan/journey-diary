@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Custom React hook for Cloudinary operations - V3.0
  * Updated to use Firebase Direct services instead of API routes
  */

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import '../styles/LazyImage.css';
 import '../styles/LazyImageEnhanced.css';
 

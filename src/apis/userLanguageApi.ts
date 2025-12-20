@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+﻿import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db, getCollectionName } from '../firebase/firebaseConfig';
 import { LanguageCode } from '../config/languages';
 

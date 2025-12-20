@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Cloudinary Direct Upload Service - V3.0
  * Upload ảnh trực tiếp từ client lên Cloudinary
  * Không cần API server trung gian

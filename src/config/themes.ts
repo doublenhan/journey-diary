@@ -1,4 +1,4 @@
-export type MoodTheme = 'happy' | 'calm' | 'romantic' | 'energetic' | 'peaceful' | 'passionate';
+﻿export type MoodTheme = 'happy' | 'calm' | 'romantic' | 'energetic' | 'peaceful' | 'passionate';
 
 export interface ThemeConfig {
   background: string;
