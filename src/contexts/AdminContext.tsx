@@ -5,7 +5,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, collection, query, where, getDocs, setDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase/firebaseConfig';
+import { db, getCollectionName } from '../firebase/firebaseConfig';
 import { UserRole } from '../config/roles';
 import { isValidRole } from '../utils/roleUtils';
 
@@ -26,15 +26,9 @@ interface AdminContextType {
   users: UserWithRole[];
   fetchUsers: () => Promise<void>;
   changeUserRole: (userId: string, newRole: UserRole) => Promise<void>;
-  getCollectionName: (name: string) => string;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
-
-const getCollectionName = (name: string): string => {
-  const prefix = process.env.REACT_APP_USE_V3 === 'true' ? 'v3_' : '';
-  return `${prefix}${name}`;
-};
 
 export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUserRole, setCurrentUserRole] = useState<UserRole | null>(null);

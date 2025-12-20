@@ -56,6 +56,11 @@ const AdminDashboard = lazy(() => import(
   './pages/AdminDashboard'
 ));
 
+const MigrationTool = lazy(() => import(
+  /* webpackChunkName: "migration" */
+  './pages/MigrationTool'
+));
+
 // Loading component with heart balloon and person
 const PageLoader = () => {
   return (
@@ -331,7 +336,7 @@ function App() {
         setGalleryImages(allPhotos.slice(0, 6));
       } catch (e) {
         console.error('Failed to fetch gallery images:', e);
-        error('Failed to load gallery images');
+        showError('Failed to load gallery images');
         setGalleryImages([]);
       } finally {
         setGalleryLoading(false);
@@ -597,6 +602,14 @@ function App() {
         element={
           <ProtectedRoute requiredRole="SysAdmin">
             <AdminDashboard onBack={() => window.history.back()} />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/migration" 
+        element={
+          <ProtectedRoute requiredRole="SysAdmin">
+            <MigrationTool onBack={() => window.history.back()} />
           </ProtectedRoute>
         } 
       />

@@ -4,14 +4,9 @@
  */
 
 import { doc, setDoc, updateDoc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase/firebaseConfig';
+import { db, getCollectionName } from '../firebase/firebaseConfig';
 import { UserRole } from '../config/roles';
 import { isValidRole } from '../utils/roleUtils';
-
-const getCollectionName = (name: string): string => {
-  const prefix = process.env.REACT_APP_USE_V3 === 'true' ? 'v3_' : '';
-  return `${prefix}${name}`;
-};
 
 /**
  * Create user with default role
