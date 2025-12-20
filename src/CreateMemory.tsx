@@ -10,6 +10,7 @@ import VisualEffects from './components/VisualEffects';
 import SyncStatus from './components/SyncStatus';
 import { UploadProgress, UploadProgressItem } from './components/UploadProgress';
 import LazyImage from './components/LazyImage';
+import { WebPImage } from './components/WebPImage';
 import { addMemoryToCache, updateCacheAndNotify, removeMemoryFromCache } from './utils/memoryCacheUtils';
 import type { Memory } from './hooks/useMemoriesCache';
 import { usePlacesAutocomplete } from './hooks/usePlacesAutocomplete';

@@ -140,10 +140,13 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         // Save to cache
         localStorage.setItem(cacheKey, JSON.stringify({ anniversaries: data, timestamp: Date.now() }));
         syncSuccess();
+        success('Dữ liệu kỷ niệm được tải thành công');
       })
       .catch((error) => {
         console.error('Error fetching anniversaries:', error);
-        syncError(error.message || 'Không thể tải dữ liệu');
+        const errorMsg = error.message || 'Không thể tải dữ liệu';
+        syncError(errorMsg);
+        error(errorMsg);
       })
       .finally(() => setLoading(false));
   }, [userId, startSync, syncSuccess, syncError]);
@@ -452,11 +455,14 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       });
       processed.sort((a, b) => (a.daysUntil || 0) - (b.daysUntil || 0));
       setAnniversaries(processed);
+      success('Kỷ niệm mới được thêm thành công');
     } catch (err) {
       // Rollback on error
       const rolledBack = anniversaries.filter(a => a.id !== optimisticId);
       setAnniversaries(rolledBack);
-      syncError(err instanceof Error ? err.message : 'Lỗi thêm kỷ niệm');
+      const errorMsg = err instanceof Error ? err.message : 'Lỗi thêm kỷ niệm';
+      syncError(errorMsg);
+      error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -546,9 +552,11 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       });
       processed.sort((a, b) => (a.daysUntil || 0) - (b.daysUntil || 0));
       setAnniversaries(processed);
+      success('Kỷ niệm được cập nhật thành công');
     } catch (err) {
-      syncError(err instanceof Error ? err.message : 'Lỗi cập nhật kỷ niệm');
-      alert('Failed to update anniversary.');
+      const errorMsg = err instanceof Error ? err.message : 'Lỗi cập nhật kỷ niệm';
+      syncError(errorMsg);
+      error(errorMsg);
     } finally {
       setLoading(false);
     }

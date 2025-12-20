@@ -174,7 +174,7 @@ export function LazyImage({
             onError={handleImageError}
             loading={priority ? 'eager' : 'lazy'}
             decoding="async"
-            fetchpriority={priority ? 'high' : 'auto'}
+            fetchPriority={priority ? 'high' : 'auto'}
           />
         </picture>
       ) : (

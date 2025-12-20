@@ -9,6 +9,7 @@ import { updateMemory as updateMemoryFirestore } from '../services/firebaseMemor
 import { uploadToCloudinary, deleteFromCloudinary } from '../services/cloudinaryDirectService';
 import { reverseGeocode } from '../services/geoService';
 import { usePlacesAutocomplete } from '../hooks/usePlacesAutocomplete';
+import { WebPImage } from './WebPImage';
 import '../styles/components.css';
 
 // Parse date string (YYYY-MM-DD) as local date to avoid timezone offset
@@ -588,7 +589,7 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
                   >
                     <GripVertical size={20} />
                   </button>
-                  <img src={img.secure_url} alt={`Image ${index + 1}`} />
+                  <WebPImage src={img.secure_url} alt={`Image ${index + 1}`} />
                   <button
                     className="delete-image-button"
                     onClick={() => handleDeleteImage(index)}

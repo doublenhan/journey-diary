@@ -13,6 +13,7 @@ import SyncStatus from './components/SyncStatus';
 import { EmptyState } from './components/EmptyState';
 import { YearSectionSkeleton, DashboardSkeleton } from './components/LoadingSkeleton';
 import { LazyImage } from './components/LazyImage';
+import { WebPImage } from './components/WebPImage';
 import { InfiniteScrollTrigger } from './components/InfiniteScrollTrigger';
 import { EnhancedSearchFilter } from './components/EnhancedSearchFilter';
 import { ResponsiveGallery } from './components/ResponsiveGallery';
@@ -588,10 +589,11 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
               {/* Main Image (medium size) */}
               <div className="lightbox-image-container">
                 <div className="lightbox-image-inner">
-                  <img
+                  <WebPImage
                     src={selectedPhoto}
                     alt="Memory"
                     className="animate-zoom-in lightbox-main-img"
+                    loading="eager"
                   />
                 </div>
               </div>
@@ -611,10 +613,11 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                         className={`lightbox-thumbnail ${selectedPhotoIndex === index ? 'active' : ''}`}
                         onClick={() => navigateToPhoto(index)}
                       >
-                        <img 
-                          src={photo} 
+                        <WebPImage
+                          src={photo}
                           alt={`Thumbnail ${index + 1}`}
                           className="thumbnail-img"
+                          loading="lazy"
                         />
                       </div>
                     ))}

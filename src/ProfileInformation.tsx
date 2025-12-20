@@ -9,6 +9,7 @@ import CustomDatePicker from './components/CustomDatePicker';
 import ChangePasswordModal from './components/ChangePasswordModal';
 import { SecureStorage } from './utils/secureStorage';
 import { useLanguage } from './hooks/useLanguage';
+import { WebPImage } from './components/WebPImage';
 
 interface ProfileInformationProps {
   theme: any;
@@ -157,12 +158,15 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
           <form className="space-y-4" onSubmit={e => { e.preventDefault(); handleSave(); }}>
             <div className="flex items-center space-x-4">
               {user?.photoURL ? (
-                <img
-                  src={user.photoURL}
-                  alt="Avatar"
-                  className="w-16 h-16 rounded-full object-cover"
-                  style={{ backgroundColor: theme.colors.gradient }}
-                />
+                <div className="w-16 h-16 rounded-full overflow-hidden" style={{ backgroundColor: theme.colors.gradient }}>
+                  <WebPImage
+                    src={user.photoURL}
+                    alt="Avatar"
+                    className="w-full h-full object-cover"
+                    width={64}
+                    height={64}
+                  />
+                </div>
               ) : (
                 <div 
                   className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-xl"

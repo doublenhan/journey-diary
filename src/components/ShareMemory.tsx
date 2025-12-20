@@ -1,6 +1,7 @@
 ﻿import { useState, useRef } from 'react';
 import html2canvas from 'html2canvas';
 import { Share2, Download, X, Loader, Image as ImageIcon, Heart, Calendar, MapPin } from 'lucide-react';
+import { WebPImage } from './WebPImage';
 import '../styles/ShareMemory.css';
 
 interface Memory {
@@ -208,10 +209,9 @@ export function ShareMemory({ memory, onClose, theme }: ShareMemoryProps) {
                 <div className={`memory-card-images ${memory.images.length === 1 ? 'single' : ''}`}>
                   {memory.images.slice(0, 4).map((img, idx) => (
                     <div key={idx} className="memory-card-image">
-                      <img 
-                        src={img.secure_url} 
+                      <WebPImage
+                        src={img.secure_url}
                         alt={`Memory ${idx + 1}`}
-                        crossOrigin="anonymous"
                       />
                       {memory.images.length > 4 && idx === 3 && (
                         <div className="image-overlay">
