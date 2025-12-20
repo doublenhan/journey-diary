@@ -153,7 +153,8 @@ function App() {
   const navigate = useNavigate();
   const { userId, loading } = useCurrentUserId();
   const { t } = useLanguage();
-  const { toasts, removeToast, error } = useToastContext();
+  const { toasts, removeToast } = useToastContext();
+  const { error: showError } = useToastContext();
 
   useEffect(() => {
     if (loading) return;
