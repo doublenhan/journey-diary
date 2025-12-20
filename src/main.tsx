@@ -7,14 +7,17 @@ import './styles/datepicker.css';
 import { BrowserRouter } from 'react-router-dom';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { AdminProvider } from './contexts/AdminContext';
 //import './styles/SettingPage.css';
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <LanguageProvider>
       <ToastProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        <AdminProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </AdminProvider>
       </ToastProvider>
     </LanguageProvider>
   </StrictMode>

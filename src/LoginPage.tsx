@@ -8,6 +8,7 @@ import VisualEffects from './components/VisualEffects';
 import { logSecurityEvent } from './utils/securityMonitoring';
 import { useLanguage } from './hooks/useLanguage';
 import { SecureStorage } from './utils/secureStorage';
+import { createUserWithRole } from './apis/userRoleApi';
 import './styles/LoginPage.css';
 
 declare global {
@@ -267,7 +268,14 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
     try {
       const { getAuth, createUserWithEmailAndPassword } = await import('firebase/auth');
       const auth = getAuth(app);
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      // Create user document with default 'User' role
+      await createUserWithRole(userCredential.user.uid, {
+        email,
+        displayName: ''
+      }, 'User');
+      
       return { success: true };
     } catch (err: any) {
       return { success: false, message: err.message };

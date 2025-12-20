@@ -1,6 +1,6 @@
 ﻿
 import { useEffect, useState } from 'react';
-import { Pencil, User, Mail, Phone, Calendar, LogOut, Lock } from 'lucide-react';
+import { Pencil, User, Mail, Phone, Calendar, LogOut, Lock, Shield } from 'lucide-react';
 import { auth, db, getCollectionName } from './firebase/firebaseConfig';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -10,6 +10,7 @@ import ChangePasswordModal from './components/ChangePasswordModal';
 import { SecureStorage } from './utils/secureStorage';
 import { useLanguage } from './hooks/useLanguage';
 import { useToastContext } from './contexts/ToastContext';
+import { useAdmin } from './contexts/AdminContext';
 import { WebPImage } from './components/WebPImage';
 
 interface ProfileInformationProps {
@@ -22,6 +23,7 @@ interface ProfileInformationProps {
 const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncStart, onSyncSuccess, onSyncError }) => {
   const { t } = useLanguage();
   const { success: showSuccess, error: showError } = useToastContext();
+  const { currentUserRole, isAdmin } = useAdmin();
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState({
@@ -313,6 +315,32 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
           <h3 className="font-semibold mb-4" style={{ color: theme.colors.textPrimary }}>
             {t('profile.security')}
           </h3>
+
+          {/* Admin Panel Button - Only show for SysAdmin */}
+          {isAdmin && (
+            <div className="mb-6">
+              <p className="text-sm mb-3" style={{ color: theme.colors.textSecondary }}>
+                🔐 Admin Access: You have administrator privileges
+              </p>
+              <button
+                onClick={() => navigate('/admin')}
+                className="flex items-center gap-2 px-4 py-2 rounded-full text-white font-semibold transition-all duration-300 hover:scale-105"
+                style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)' }}
+              >
+                <Shield className="w-4 h-4" />
+                Admin Dashboard
+              </button>
+            </div>
+          )}
+
+          {/* Current Role Display */}
+          <div className="mb-6 p-3 rounded-lg" style={{ background: 'rgba(236, 72, 153, 0.05)' }}>
+            <p className="text-sm font-medium" style={{ color: theme.colors.textPrimary }}>
+              👤 Current Role: <span style={{ color: '#ec4899', fontWeight: 'bold' }}>
+                {currentUserRole === 'SysAdmin' ? 'System Administrator' : 'User'}
+              </span>
+            </p>
+          </div>
 
           {/* Change Password Button */}
           <div className="mb-6">

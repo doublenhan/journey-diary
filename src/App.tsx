@@ -16,6 +16,7 @@ import { PageTransition } from './components/PageTransition';
 import { LazyImage } from './components/LazyImage';
 import { GallerySkeleton } from './components/GallerySkeleton';
 import { ToastContainer } from './components/Toast';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import './styles/App.css';
 import './styles/PageLoader.css';
 import './styles/transitions.css';
@@ -48,6 +49,11 @@ const SettingPage = lazy(() => import(
 const LoginPage = lazy(() => import(
   /* webpackChunkName: "login" */
   './LoginPage'
+));
+
+const AdminDashboard = lazy(() => import(
+  /* webpackChunkName: "admin" */
+  './pages/AdminDashboard'
 ));
 
 // Loading component with heart balloon and person
@@ -585,6 +591,14 @@ function App() {
       <Route path="/view-memory" element={<ViewMemory onBack={() => window.history.back()} currentTheme={currentTheme} />} />
       <Route path="/anniversary-reminders" element={<AnniversaryReminders onBack={() => window.history.back()} currentTheme={currentTheme} />} />
       <Route path="/setting-page" element={<SettingPage onBack={() => window.history.back()} currentTheme={currentTheme} setCurrentTheme={setCurrentTheme} />} />
+      <Route 
+        path="/admin" 
+        element={
+          <ProtectedRoute requiredRole="SysAdmin">
+            <AdminDashboard onBack={() => window.history.back()} />
+          </ProtectedRoute>
+        } 
+      />
     </Routes>
     </PageTransition>
     </Suspense>
