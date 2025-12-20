@@ -3,6 +3,7 @@ import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { useSyncStatus } from './hooks/useSyncStatus';
 import { useLanguage } from './hooks/useLanguage';
+import { useToast } from './hooks/useToast';
 import { Heart, Camera, Calendar, Save, ArrowLeft, X, Upload, MapPin, Type, CheckCircle, AlertCircle, Navigation } from 'lucide-react';
 import type { MemoryData } from './apis/cloudinaryGalleryApi';
 import { MoodTheme, themes } from './config/themes';
@@ -33,6 +34,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
   useMemoriesCache(userId, loading);
   const { syncStatus, lastSyncTime, errorMessage, startSync, syncSuccess, syncError } = useSyncStatus();
   const { t } = useLanguage();
+  const { success: showSuccess, error: showError } = useToast();
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
@@ -327,6 +329,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
       type: 'success',
       text: `Memory "${title}" saved successfully! 💕`
     });
+    showSuccess(`Memory "${title}" saved successfully! 💕`);
     syncSuccess(); // Show sync success animation
     
     try {
@@ -493,16 +496,20 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
       // Enhanced error reporting
       if (error instanceof Error) {
         syncError(error.message || t('errors.saveMemory'));
+        const errorMsg = error.message || 'Failed to save memory. Please try again.';
         setSaveMessage({
           type: 'error',
-          text: error.message || 'Failed to save memory. Please try again.'
+          text: errorMsg
         });
+        showError(errorMsg);
       } else {
         syncError(t('errors.saveMemoryRetry'));
+        const errorMsg = 'Failed to save memory. Network error or server unavailable.';
         setSaveMessage({
           type: 'error',
-          text: 'Failed to save memory. Network error or server unavailable.'
+          text: errorMsg
         });
+        showError(errorMsg);
       }
     } finally {
       setIsLoading(false);
