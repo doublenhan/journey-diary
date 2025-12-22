@@ -43,7 +43,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
       loadUsers(true); // true = initial load (no toast)
       setIsInitialLoad(false);
     }
-  }, [currentUserRole, isInitialLoad, loadUsers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUserRole, isInitialLoad]);
 
   const handleChangeRole = async (userId: string, newRole: 'User' | 'SysAdmin') => {
     try {
