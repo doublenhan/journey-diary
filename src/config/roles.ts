@@ -99,7 +99,7 @@ export const DEFAULT_USER_ROLE: UserRole = 'User';
  * Admin access code (should be environment variable in production)
  * Format: When user enters this code + admin email, they get SysAdmin role
  */
-export const ADMIN_ACCESS_CODE = process.env.REACT_APP_ADMIN_CODE || 'ADMIN_SECRET_2024';
+export const ADMIN_ACCESS_CODE = import.meta.env.VITE_ADMIN_CODE || 'ADMIN_SECRET_2024';
 
 export const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
   User: 'Regular user - Can create, read, update, delete personal memories and anniversaries',
