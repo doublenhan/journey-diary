@@ -78,7 +78,13 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const fetchUsers = useCallback(async () => {
     // Prevent concurrent fetch calls
     if (isFetchingRef.current) {
-      console.log('⚠️ Users already being fetched, skipping duplicate request');
+      console.debug('⏭️ Users fetch already in progress');
+      return;
+    }
+
+    // Only fetch if user is authenticated
+    if (!currentUserRole) {
+      console.debug('⏭️ User role not loaded yet, skipping fetch');
       return;
     }
 
@@ -115,7 +121,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setLoading(false);
       isFetchingRef.current = false;
     }
-  }, []);
+  }, [currentUserRole]);
 
   // Change user role (admin only)
   const changeUserRole = useCallback(async (userId: string, newRole: UserRole) => {

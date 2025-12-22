@@ -16,14 +16,9 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Kiểm tra user có phải SysAdmin không
+    // Kiểm tra user có phải SysAdmin không (via custom claims)
     function isAdmin() {
-      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SysAdmin';
-    }
-    
-    // Kiểm tra user có phải SysAdmin không (dev environment)
-    function isAdminDev() {
-      return isAuthenticated() && get(/databases/$(database)/documents/dev_users/$(request.auth.uid)).data.role == 'SysAdmin';
+      return isAuthenticated() && request.auth.token.role == 'SysAdmin';
     }
     
     // Validate mã ngôn ngữ
@@ -95,16 +90,18 @@ service cloud.firestore {
     // Dev Users - Development environment
     // Stores: displayName, email, phone, dob, language, role
     match /dev_users/{userId} {
-      // Users can read their own doc, admins can read all
-      allow read: if isOwner(userId) || isAdminDev();
+      // Users can read their own doc
+      // Authenticated users can read all users (for admin panel)
+      allow read: if isOwner(userId) || isAuthenticated();
       allow write: if isOwner(userId) && isValidLanguage();
     }
     
     // Production Users collection
     // Stores: displayName, email, phone, dob, language, role
     match /users/{userId} {
-      // Users can read their own doc, admins can read all
-      allow read: if isOwner(userId) || isAdmin();
+      // Users can read their own doc
+      // Authenticated users can read all users (for admin panel)
+      allow read: if isOwner(userId) || isAuthenticated();
       allow write: if isOwner(userId) && isValidLanguage();
     }
     
