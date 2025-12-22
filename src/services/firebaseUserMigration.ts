@@ -109,7 +109,12 @@ export const verifyUserMigration = async () => {
     const usersRef = collection(db, usersCollectionName);
     const querySnapshot = await getDocs(usersRef);
     
-    const stats = {
+    const stats: {
+      total: number;
+      withRole: number;
+      withoutRole: number;
+      users: Array<{uid: string; email: any; role: any; roleAssignedAt: any}>;
+    } = {
       total: 0,
       withRole: 0,
       withoutRole: 0,
