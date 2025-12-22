@@ -2,7 +2,7 @@
  * Admin Dashboard - System Administrator Panel
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAdmin } from '../contexts/AdminContext';
 import { useToastContext } from '../contexts/ToastContext';
 import { useLanguage } from '../hooks/useLanguage';
@@ -22,15 +22,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
   const [roleChangeInProgress, setRoleChangeInProgress] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  useEffect(() => {
-    // Only load users once when user becomes admin
-    if (currentUserRole === 'SysAdmin' && isInitialLoad) {
-      loadUsers(true); // true = initial load (no toast)
-      setIsInitialLoad(false);
-    }
-  }, [currentUserRole, isInitialLoad]);
-
-  const loadUsers = async (skipToast = false) => {
+  // Memoize loadUsers to prevent re-creation on every render
+  const loadUsers = useCallback(async (skipToast = false) => {
     try {
       setLoading(true);
       await fetchUsers();
@@ -42,7 +35,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchUsers, showSuccess, showError]);
+
+  useEffect(() => {
+    // Only load users once when user becomes admin
+    if (currentUserRole === 'SysAdmin' && isInitialLoad) {
+      loadUsers(true); // true = initial load (no toast)
+      setIsInitialLoad(false);
+    }
+  }, [currentUserRole, isInitialLoad, loadUsers]);
 
   const handleChangeRole = async (userId: string, newRole: 'User' | 'SysAdmin') => {
     try {
