@@ -41,8 +41,8 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        try {
+      try {
+        if (user) {
           const userDocRef = doc(db, getCollectionName('users'), user.uid);
           const userDocSnap = await getDoc(userDocRef);
 
@@ -56,17 +56,18 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             setCurrentUserRole('User');
             setIsAdmin(false);
           }
-        } catch (err) {
-          console.error('Error loading user role:', err);
-          setError('Failed to load user role');
-          setCurrentUserRole('User');
+        } else {
+          setCurrentUserRole(null);
           setIsAdmin(false);
         }
-      } else {
-        setCurrentUserRole(null);
+      } catch (err) {
+        console.error('Error loading user role:', err);
+        setError('Failed to load user role');
+        setCurrentUserRole('User');
         setIsAdmin(false);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
