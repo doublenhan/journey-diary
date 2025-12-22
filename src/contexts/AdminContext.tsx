@@ -145,8 +145,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     error,
     users,
     fetchUsers,
-    changeUserRole,
-    getCollectionName
+    changeUserRole
   };
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
