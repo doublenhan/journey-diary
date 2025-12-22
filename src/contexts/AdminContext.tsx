@@ -121,7 +121,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setLoading(false);
       isFetchingRef.current = false;
     }
-  }, [currentUserRole]);
+  }, []);
 
   // Change user role (admin only)
   const changeUserRole = useCallback(async (userId: string, newRole: UserRole) => {
@@ -150,7 +150,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       console.error('Error changing user role:', err);
       throw new Error('Failed to change user role');
     }
-  }, [isAdmin]);
+  }, []);
 
   const value: AdminContextType = {
     currentUserRole,
