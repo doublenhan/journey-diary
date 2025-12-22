@@ -2,7 +2,7 @@
  * Admin Context - Global state management for admin/role features
  */
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, collection, query, where, getDocs, setDoc, updateDoc } from 'firebase/firestore';
 import { db, getCollectionName } from '../firebase/firebaseConfig';
@@ -36,6 +36,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [users, setUsers] = useState<UserWithRole[]>([]);
+  const isFetchingRef = useRef(false);
 
   // Load current user's role
   useEffect(() => {
@@ -75,10 +76,18 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Fetch all users (admin only)
   const fetchUsers = useCallback(async () => {
+    // Prevent concurrent fetch calls
+    if (isFetchingRef.current) {
+      console.log('⚠️ Users already being fetched, skipping duplicate request');
+      return;
+    }
+
     if (!isAdmin) {
       setError('Only admins can view users');
       return;
     }
+
+    isFetchingRef.current = true;
 
     try {
       setLoading(true);
@@ -107,6 +116,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setError('Failed to fetch users');
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
   }, [isAdmin]);
 
