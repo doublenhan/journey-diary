@@ -20,16 +20,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
   const [loading, setLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [roleChangeInProgress, setRoleChangeInProgress] = useState<string | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
-    loadUsers();
+    loadUsers(true); // true = initial load (no toast)
+    setIsInitialLoad(false);
   }, []);
 
-  const loadUsers = async () => {
+  const loadUsers = async (skipToast = false) => {
     try {
       setLoading(true);
       await fetchUsers();
-      showSuccess('Users loaded successfully');
+      if (!skipToast) {
+        showSuccess('Users loaded successfully');
+      }
     } catch (err) {
       showError('Failed to load users: ' + (err instanceof Error ? err.message : 'Unknown error'));
     } finally {
@@ -115,7 +119,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
         <div className="users-section">
           <div className="section-header">
             <h2>User Management</h2>
-            <button onClick={loadUsers} disabled={loading} className="refresh-button">
+            <button onClick={() => loadUsers(false)} disabled={loading} className="refresh-button">
               🔄 Refresh
             </button>
           </div>
