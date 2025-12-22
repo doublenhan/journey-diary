@@ -15,6 +15,16 @@ service cloud.firestore {
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
+
+    // Kiểm tra user có phải SysAdmin không
+    function isAdmin() {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SysAdmin';
+    }
+    
+    // Kiểm tra user có phải SysAdmin không (dev environment)
+    function isAdminDev() {
+      return isAuthenticated() && get(/databases/$(database)/documents/dev_users/$(request.auth.uid)).data.role == 'SysAdmin';
+    }
     
     // Validate mã ngôn ngữ
     function isValidLanguage() {
@@ -82,15 +92,19 @@ service cloud.firestore {
     
     // Dev Users collection (development environment)
     // Stores: displayName, email, phone, dob, language
+    // Dev Users - Development environment
+    // Stores: displayName, email, phone, dob, language, role
     match /dev_users/{userId} {
-      allow read: if isOwner(userId);
+      // Users can read their own doc, admins can read all
+      allow read: if isOwner(userId) || isAdminDev();
       allow write: if isOwner(userId) && isValidLanguage();
     }
     
     // Production Users collection
-    // Stores: displayName, email, phone, dob, language
+    // Stores: displayName, email, phone, dob, language, role
     match /users/{userId} {
-      allow read: if isOwner(userId);
+      // Users can read their own doc, admins can read all
+      allow read: if isOwner(userId) || isAdmin();
       allow write: if isOwner(userId) && isValidLanguage();
     }
     

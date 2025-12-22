@@ -105,10 +105,12 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         });
       });
 
+      console.log(`✅ Successfully fetched ${usersList.length} users`);
       setUsers(usersList);
     } catch (err) {
-      console.error('Error fetching users:', err);
-      setError('Failed to fetch users');
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+      console.error('❌ Error fetching users:', errorMsg);
+      setError(`Failed to fetch users: ${errorMsg}`);
     } finally {
       setLoading(false);
       isFetchingRef.current = false;
