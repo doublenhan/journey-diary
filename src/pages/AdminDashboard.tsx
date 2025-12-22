@@ -23,9 +23,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
-    loadUsers(true); // true = initial load (no toast)
-    setIsInitialLoad(false);
-  }, []);
+    // Only load users once when user becomes admin
+    if (currentUserRole === 'SysAdmin' && isInitialLoad) {
+      loadUsers(true); // true = initial load (no toast)
+      setIsInitialLoad(false);
+    }
+  }, [currentUserRole, isInitialLoad]);
 
   const loadUsers = async (skipToast = false) => {
     try {

@@ -82,11 +82,6 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return;
     }
 
-    if (!isAdmin) {
-      setError('Only admins can view users');
-      return;
-    }
-
     isFetchingRef.current = true;
 
     try {
@@ -118,7 +113,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setLoading(false);
       isFetchingRef.current = false;
     }
-  }, [isAdmin]);
+  }, []);
 
   // Change user role (admin only)
   const changeUserRole = useCallback(async (userId: string, newRole: UserRole) => {
