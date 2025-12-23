@@ -175,6 +175,18 @@ service cloud.firestore {
     }
     
     // ===========================
+    // System Statistics Collection
+    // ===========================
+    
+    // System stats - Read-only for authenticated users, write by Cloud Functions
+    match /system_stats/{statId} {
+      // All authenticated users can read system stats
+      allow read: if isAuthenticated();
+      // Only allow writes from Cloud Functions (no client writes)
+      allow write: if false;
+    }
+    
+    // ===========================
     // Default Deny - Security Best Practice
     // ===========================
     

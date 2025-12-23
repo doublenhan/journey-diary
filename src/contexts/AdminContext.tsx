@@ -5,7 +5,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, collection, query, where, getDocs, setDoc, updateDoc } from 'firebase/firestore';
-import { db, getCollectionName } from '../firebase/firebaseConfig';
+import { db, getCollectionName, ENV_PREFIX } from '../firebase/firebaseConfig';
 import { UserRole } from '../config/roles';
 import { isValidRole } from '../utils/roleUtils';
 
@@ -24,8 +24,9 @@ interface AdminContextType {
   loading: boolean;
   error: string | null;
   users: UserWithRole[];
-  fetchUsers: () => Promise<void>;
+  fetchUsers: (forceRefresh?: boolean) => Promise<void>;
   changeUserRole: (userId: string, newRole: UserRole) => Promise<void>;
+  hasLoadedUsers: boolean;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -37,6 +38,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [error, setError] = useState<string | null>(null);
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const isFetchingRef = useRef(false);
+  const hasLoadedUsersRef = useRef(false);
 
   // Load current user's role
   useEffect(() => {
@@ -75,26 +77,27 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   // Fetch all users (admin only)
-  const fetchUsers = useCallback(async () => {
+  const fetchUsers = useCallback(async (forceRefresh = false) => {
     // Prevent concurrent fetch calls
     if (isFetchingRef.current) {
-      console.debug('⏭️ Users fetch already in progress');
+      console.log('⏭️ Fetch already in progress, skipping');
       return;
     }
 
-    // Only fetch if user is authenticated
-    if (!currentUserRole) {
-      console.debug('⏭️ User role not loaded yet, skipping fetch');
+    // Check if already loaded (unless forcing refresh)
+    if (hasLoadedUsersRef.current && !forceRefresh) {
+      console.log('⏭️ Users already loaded, skipping fetch');
       return;
     }
 
     isFetchingRef.current = true;
+    hasLoadedUsersRef.current = true;
 
     try {
-      setLoading(true);
       setError(null);
 
-      const usersRef = collection(db, getCollectionName('users'));
+      const collectionName = getCollectionName('users');
+      const usersRef = collection(db, collectionName);
       const q = query(usersRef);
       const querySnapshot = await getDocs(q);
 
@@ -111,14 +114,14 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         });
       });
 
-      console.log(`✅ Successfully fetched ${usersList.length} users`);
+      console.log(`✅ Fetched ${usersList.length} users from ${collectionName}`);
       setUsers(usersList);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Unknown error';
       console.error('❌ Error fetching users:', errorMsg);
       setError(`Failed to fetch users: ${errorMsg}`);
+      hasLoadedUsersRef.current = false; // Reset on error so can retry
     } finally {
-      setLoading(false);
       isFetchingRef.current = false;
     }
   }, []);
@@ -150,7 +153,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       console.error('Error changing user role:', err);
       throw new Error('Failed to change user role');
     }
-  }, []);
+  }, [isAdmin]);
 
   const value: AdminContextType = {
     currentUserRole,
@@ -159,7 +162,8 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     error,
     users,
     fetchUsers,
-    changeUserRole
+    changeUserRole,
+    hasLoadedUsers: hasLoadedUsersRef.current
   };
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;

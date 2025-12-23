@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
-import { Sparkles, Palette, User, Menu, X, Heart, Globe, Check, Info } from 'lucide-react';
+import { Sparkles, Palette, User, Menu, X, Heart, Globe, Check, Info, Shield } from 'lucide-react';
 import { auth } from './firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import { saveUserTheme, getUserTheme } from './apis/userThemeApi';
@@ -14,9 +14,10 @@ import ProfileInformation from './ProfileInformation';
 import MoodTracking from './MoodTracking';
 import { useSyncStatus } from './hooks/useSyncStatus';
 import SyncStatus from './components/SyncStatus';
+import { useAdmin } from './contexts/AdminContext';
 import './styles/SettingPage.css';
 
-type MenuItemType = 'effects' | 'mood' | 'language' | 'account';
+type MenuItemType = 'effects' | 'mood' | 'language' | 'account' | 'admin';
 
 interface SettingPageProps {
   onBack?: () => void;
@@ -33,6 +34,7 @@ interface MenuItem {
 function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps) {
   const { syncStatus, lastSyncTime, errorMessage, startSync, syncSuccess, syncError } = useSyncStatus();
   const { t, currentLanguage, setLanguage } = useLanguage();
+  const { isAdmin } = useAdmin();
   
   const [activeMenuItem, setActiveMenuItem] = useState<MenuItemType>('mood');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -78,7 +80,7 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
     document.body.style.setProperty('--hover-bg', theme.colors.hoverBg);
   }, [theme]);
 
-  const menuItems: MenuItem[] = [
+  const baseMenuItems: MenuItem[] = [
     {
       id: 'effects',
       label: t('settings.menuItems.effects'),
@@ -100,6 +102,16 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
       icon: <User className="w-5 h-5" />
     }
   ];
+
+  // Add admin menu item only for admins
+  const menuItems: MenuItem[] = isAdmin ? [
+    ...baseMenuItems,
+    {
+      id: 'admin',
+      label: t('settings.menuItems.admin'),
+      icon: <Shield className="w-5 h-5" />
+    }
+  ] : baseMenuItems;
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -385,8 +397,46 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
           onSyncSuccess={syncSuccess}
           onSyncError={syncError}
         />;
-      
-      default:
+            case 'admin':
+        return (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold mb-2" style={{ color: theme.colors.textPrimary }}>
+                {t('settings.admin.title')}
+              </h2>
+              <p style={{ color: theme.colors.textSecondary }}>
+                {t('settings.admin.subtitle')}
+              </p>
+            </div>
+
+            <div 
+              className="p-6 rounded-2xl border text-center"
+              style={{ 
+                background: theme.colors.cardBg,
+                borderColor: theme.colors.border
+              }}
+            >
+              <Shield className="w-16 h-16 mx-auto mb-4" style={{ color: theme.colors.primary }} />
+              <h3 className="text-lg font-semibold mb-4" style={{ color: theme.colors.textPrimary }}>
+                {t('settings.admin.navigateTitle')}
+              </h3>
+              <p className="mb-6" style={{ color: theme.colors.textSecondary }}>
+                {t('settings.admin.navigateDescription')}
+              </p>
+              <a
+                href="/admin"
+                className="inline-block px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 active:scale-95"
+                style={{
+                  background: theme.colors.primary,
+                  color: 'white'
+                }}
+              >
+                {t('settings.admin.openDashboard')}
+              </a>
+            </div>
+          </div>
+        );
+            default:
         return <div>Menu</div>;
     }
   };

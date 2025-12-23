@@ -191,6 +191,7 @@
       mood: 'Mood Tracking',
       language: 'Language',
       account: 'Account Settings',
+      admin: 'System Admin',
     },
     effects: {
       title: 'Visual Effects & Animation',
@@ -236,6 +237,48 @@
       profile: 'Profile Information',
       security: 'Security',
       logout: 'Logout',
+    },
+    admin: {
+      title: 'System Administration',
+      subtitle: 'Access admin dashboard',
+      navigateTitle: 'Admin Dashboard',
+      navigateDescription: 'Manage users, roles, and system settings',
+      openDashboard: 'Open Dashboard',
+      tabs: {
+        usage: 'Storage Usage',
+        users: 'User Management'
+      },
+      storageTitle: 'Storage Limits & Usage',
+      calculateStats: 'Calculate Stats',
+      loading: 'Loading storage data...',
+      statsNotAvailable: 'Stats Not Available',
+      statsNote: 'Note: The Cloud Function will automatically calculate stats every 12 hours. You can also click "Calculate Stats" button to trigger it manually.',
+      charts: {
+        firebaseDatabase: 'Firebase Database',
+        authentication: 'Authentication',
+        cloudFunctions: 'Cloud Functions',
+        firestoreReads: 'Firestore Reads',
+        firestoreWrites: 'Firestore Writes',
+        cloudinaryImages: 'Cloudinary Images',
+        totalImages: 'Total Images',
+        imagesStored: 'images stored',
+        users: 'Users',
+        memories: 'Memories'
+      },
+      units: {
+        calls: 'calls',
+        readsPerDay: 'reads/day',
+        writesPerDay: 'writes/day',
+        users: 'users'
+      },
+      usage: {
+        used: 'Used',
+        remaining: 'Remaining'
+      },
+      warnings: {
+        critical: '⚠️ Storage almost full! Please upgrade or delete old data.',
+        high: '⚡ Storage is high. Monitor to avoid running out of space.'
+      }
     },
     footer: 'Made with ❤️ for you',
   },

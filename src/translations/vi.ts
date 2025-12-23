@@ -190,6 +190,7 @@
       mood: 'Theo Dõi Tâm Trạng',
       language: 'Ngôn Ngữ',
       account: 'Cài Đặt Tài Khoản',
+      admin: 'Quản Trị Hệ Thống',
     },
     effects: {
       title: 'Hiệu Ứng Hình Ảnh & Hoạt Hình',
@@ -235,6 +236,47 @@
       profile: 'Thông Tin Cá Nhân',
       security: 'Bảo Mật',
       logout: 'Đăng Xuất',
+    },
+    admin: {
+      title: 'Quản Trị Hệ Thống',
+      subtitle: 'Truy cập bảng điều khiển quản trị',
+      navigateTitle: 'Bảng Điều Khiển Quản Trị',
+      navigateDescription: 'Quản lý người dùng, vai trò và cài đặt hệ thống',
+      openDashboard: 'Mở Bảng Điều Khiển',      tabs: {
+        usage: 'Dung Lượng Sử Dụng',
+        users: 'Quản Lý Người Dùng'
+      },
+      storageTitle: 'Giới Hạn Dung Lượng & Lưu Trữ',
+      calculateStats: 'Tính Toán Thống Kê',
+      loading: 'Đang tải dữ liệu dung lượng...',
+      statsNotAvailable: 'Chưa Có Thống Kê',
+      statsNote: 'Lưu ý: Cloud Function sẽ tự động tính toán thống kê mỗi 12 giờ. Bạn cũng có thể nhấn nút "Tính Toán Thống Kê" để kích hoạt thủ công.',
+      charts: {
+        firebaseDatabase: 'Cơ Sở Dữ Liệu Firebase',
+        authentication: 'Xác Thực',
+        cloudFunctions: 'Cloud Functions',
+        firestoreReads: 'Đọc Firestore',
+        firestoreWrites: 'Ghi Firestore',
+        cloudinaryImages: 'Ảnh Cloudinary',
+        totalImages: 'Tổng Số Ảnh',
+        imagesStored: 'ảnh được lưu trữ',
+        users: 'Người Dùng',
+        memories: 'Kỷ Niệm'
+      },
+      units: {
+        calls: 'lần gọi',
+        readsPerDay: 'đọc/ngày',
+        writesPerDay: 'ghi/ngày',
+        users: 'người dùng'
+      },
+      usage: {
+        used: 'Đã sử dụng',
+        remaining: 'Còn lại'
+      },
+      warnings: {
+        critical: '⚠️ Dung lượng sắp đầy! Vui lòng nâng cấp hoặc xóa dữ liệu cũ.',
+        high: '⚡ Dung lượng đang cao. Hãy theo dõi để tránh hết dung lượng.'
+      }
     },
     footer: 'Được làm với ❤️ dành cho bạn',
   },

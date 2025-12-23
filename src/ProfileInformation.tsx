@@ -316,23 +316,6 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
             {t('profile.security')}
           </h3>
 
-          {/* Admin Panel Button - Only show for SysAdmin */}
-          {isAdmin && (
-            <div className="mb-6">
-              <p className="text-sm mb-3" style={{ color: theme.colors.textSecondary }}>
-                🔐 Admin Access: You have administrator privileges
-              </p>
-              <button
-                onClick={() => navigate('/admin')}
-                className="flex items-center gap-2 px-4 py-2 rounded-full text-white font-semibold transition-all duration-300 hover:scale-105"
-                style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)' }}
-              >
-                <Shield className="w-4 h-4" />
-                Admin Dashboard
-              </button>
-            </div>
-          )}
-
           {/* Current Role Display */}
           <div className="mb-6 p-3 rounded-lg" style={{ background: 'rgba(236, 72, 153, 0.05)' }}>
             <p className="text-sm font-medium" style={{ color: theme.colors.textPrimary }}>
