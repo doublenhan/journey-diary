@@ -431,7 +431,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                 icon="🔍"
                 title={t('memory.noMemories')}
                 description={t('memory.searchPlaceholder')}
-                actionLabel={t('common.filter')}
+                actionLabel={t('common.refresh')}
                 onAction={() => {
                   setSearchQuery('');
                   setSelectedYear('ALL');

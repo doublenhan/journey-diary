@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import app from './firebase/firebaseConfig';
 import { Heart, Mail, Lock, Eye, EyeOff, BookHeart, Calendar, Phone, X } from 'lucide-react';
 import { MoodTheme, themes } from './config/themes';
@@ -9,6 +9,8 @@ import { logSecurityEvent } from './utils/securityMonitoring';
 import { useLanguage } from './hooks/useLanguage';
 import { SecureStorage } from './utils/secureStorage';
 import { createUserWithRole } from './apis/userRoleApi';
+import { db } from './firebase/firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
 import './styles/LoginPage.css';
 
 declare global {
@@ -134,6 +136,40 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
     const auth = getAuth(app);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Check user status before allowing login
+      try {
+        const ENV_PREFIX = import.meta.env.VITE_ENV_PREFIX || '';
+        const userDocRef = doc(db, `${ENV_PREFIX}users`, userCredential.user.uid);
+        const userDoc = await getDoc(userDocRef);
+        const userData = userDoc.data();
+        
+        // If user is Suspended, sign them out immediately
+        if (userData?.status === 'Suspended') {
+          await signOut(auth);
+          logSecurityEvent({
+            type: 'LOGIN_BLOCKED',
+            userId: userCredential.user.uid,
+            details: { reason: 'Account suspended', method: 'email' }
+          });
+          return { success: false, message: t('notification.accountSuspended') };
+        }
+        
+        // If user is Removed, sign them out immediately
+        if (userData?.status === 'Removed') {
+          await signOut(auth);
+          logSecurityEvent({
+            type: 'LOGIN_BLOCKED',
+            userId: userCredential.user.uid,
+            details: { reason: 'Account removed', method: 'email' }
+          });
+          return { success: false, message: t('notification.accountRemoved') };
+        }
+      } catch (statusCheckError) {
+        console.error('[Login] Error checking user status:', statusCheckError);
+        // If we can't check status, allow login to proceed
+        // The useStatusGuard hook will handle it during the session
+      }
       
       // Log successful login
       logSecurityEvent({
@@ -339,7 +375,50 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
     
     setIsLoading(true);
     try {
-      await confirmationResult.confirm(code);
+      const userCredential = await confirmationResult.confirm(code);
+      
+      // Check user status before allowing login (for phone auth)
+      try {
+        const ENV_PREFIX = import.meta.env.VITE_ENV_PREFIX || '';
+        const userDocRef = doc(db, `${ENV_PREFIX}users`, userCredential.user.uid);
+        const userDoc = await getDoc(userDocRef);
+        const userData = userDoc.data();
+        
+        // If user is Suspended, sign them out immediately
+        if (userData?.status === 'Suspended') {
+          const auth = getAuth(app);
+          await signOut(auth);
+          logSecurityEvent({
+            type: 'LOGIN_BLOCKED',
+            userId: userCredential.user.uid,
+            details: { reason: 'Account suspended', method: 'phone' }
+          });
+          setShowOtpModal(false);
+          setError(t('notification.accountSuspended'));
+          setIsLoading(false);
+          return;
+        }
+        
+        // If user is Removed, sign them out immediately
+        if (userData?.status === 'Removed') {
+          const auth = getAuth(app);
+          await signOut(auth);
+          logSecurityEvent({
+            type: 'LOGIN_BLOCKED',
+            userId: userCredential.user.uid,
+            details: { reason: 'Account removed', method: 'phone' }
+          });
+          setShowOtpModal(false);
+          setError(t('notification.accountRemoved'));
+          setIsLoading(false);
+          return;
+        }
+      } catch (statusCheckError) {
+        console.error('[OTP Login] Error checking user status:', statusCheckError);
+        // If we can't check status, allow login to proceed
+        // The useStatusGuard hook will handle it during the session
+      }
+      
       setShowOtpModal(false);
       setSuccessMsg(t('auth.successOtpVerified'));
       setIsRegister(false);

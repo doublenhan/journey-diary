@@ -13,7 +13,7 @@ export interface FirebaseUsageStats {
   usersCount: number;
   memoriesCount: number;
   limit: {
-    storageLimitGB: number;
+    storageLimitMB: number;
     readsPerDay: number;
     writesPerDay: number;
   };
@@ -28,7 +28,9 @@ export interface AuthenticationUsageStats {
 
 export interface CloudFunctionsUsageStats {
   totalFunctions: number;
+  actualInvocationsPerDay?: number;
   estimatedInvocationsPerDay: number;
+  isActualData?: boolean;
   limit: {
     invocationsPerMonth: number;
     gbSeconds: number;
@@ -49,9 +51,9 @@ export interface CloudinaryUsageStats {
   usedStorageMB: number;
   totalImages: number;
   limit: {
-    storageLimitGB: number;
+    storageLimitMB: number;
     transformationsPerMonth: number;
-    bandwidthGB: number;
+    bandwidthMB: number;
   };
 }
 
@@ -164,7 +166,7 @@ export async function getFirebaseUsage(): Promise<FirebaseUsageStats> {
       usersCount,
       memoriesCount,
       limit: {
-        storageLimitGB: 1, // Firebase free tier: 1GB
+        storageLimitMB: 1024, // Firebase free tier: 1GB = 1024MB
         readsPerDay: 50000, // 50K reads/day
         writesPerDay: 20000, // 20K writes/day
       }
@@ -211,9 +213,9 @@ export async function getCloudinaryUsage(): Promise<CloudinaryUsageStats> {
       usedStorageMB: parseFloat(estimatedStorageMB.toFixed(2)),
       totalImages,
       limit: {
-        storageLimitGB: 25, // Cloudinary free tier: 25GB
+        storageLimitMB: 25600, // Cloudinary free tier: 25GB = 25600MB
         transformationsPerMonth: 25000, // 25K transformations/month
-        bandwidthGB: 25, // 25GB bandwidth/month
+        bandwidthMB: 25600, // 25GB = 25600MB bandwidth/month
       }
     };
   } catch (error) {

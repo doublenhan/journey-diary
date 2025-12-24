@@ -128,13 +128,21 @@ export const createMemory = async (input: CreateMemoryInput): Promise<Memory> =>
     
     console.log('✅ Memory created successfully:', docRef.id);
     
-    // Fetch the created document to return full Memory object
-    const docSnap = await getDoc(docRef);
-    if (!docSnap.exists()) {
-      throw new Error('Memory created but not found');
-    }
-    
-    return docToMemory(docSnap as QueryDocumentSnapshot);
+    // Return memory object directly without fetching again
+    // This saves 1 Firestore read operation
+    return {
+      id: docRef.id,
+      userId: input.userId,
+      title: input.title,
+      description: input.description,
+      mood: input.mood,
+      photos: input.photos,
+      location: input.location,
+      tags: input.tags || [],
+      createdAt: now.toDate(),
+      updatedAt: now.toDate(),
+      date: input.date,
+    } as Memory;
   } catch (error) {
     console.error('❌ Error creating memory:', error);
     throw error;
@@ -168,7 +176,7 @@ export const fetchMemories = async (options: FetchMemoriesOptions): Promise<Memo
   try {
     const {
       userId,
-      limit: limitCount = 20,
+      limit: limitCount = 10, // Reduced from 20 to 10 to save Firestore reads
       orderByField = 'createdAt',
       orderDirection = 'desc',
       startAfterDoc,
@@ -207,7 +215,7 @@ export const fetchMemories = async (options: FetchMemoriesOptions): Promise<Memo
 
     const memories = querySnapshot.docs.map(docToMemory);
     
-    console.log(`✅ Fetched ${memories.length} memories for user ${userId}`);
+    console.log(`✅ [fetchMemories] Fetched ${memories.length} memories for user ${userId} (Firestore reads: ${querySnapshot.size})`);
     
     return memories;
   } catch (error) {

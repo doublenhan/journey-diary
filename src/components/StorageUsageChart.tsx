@@ -27,8 +27,13 @@ const StorageUsageChart: React.FC<StorageUsageChartProps> = ({
   color
 }) => {
   const { t } = useLanguage();
-  const percentage = Math.min((used / limit) * 100, 100);
-  const remaining = Math.max(limit - used, 0);
+  
+  // Handle invalid values
+  const safeUsed = isNaN(used) || used === null || used === undefined ? 0 : used;
+  const safeLimit = isNaN(limit) || limit === null || limit === undefined || limit === 0 ? 1 : limit;
+  
+  const percentage = Math.min((safeUsed / safeLimit) * 100, 100);
+  const remaining = Math.max(safeLimit - safeUsed, 0);
   
   // Determine color based on usage
   const getBarColor = () => {
@@ -66,7 +71,7 @@ const StorageUsageChart: React.FC<StorageUsageChartProps> = ({
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-gray-800">{label}</h3>
           <p className="text-sm text-gray-500">
-            {used.toFixed(2)} / {limit} {unit}
+            {safeUsed.toFixed(2)} / {safeLimit.toLocaleString()} {unit}
           </p>
         </div>
       </div>

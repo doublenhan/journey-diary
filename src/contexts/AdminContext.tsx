@@ -14,6 +14,7 @@ export interface UserWithRole {
   email?: string;
   displayName?: string;
   role: UserRole;
+  status?: 'Active' | 'Suspended' | 'Removed';
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -109,6 +110,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           email: data.email || '',
           displayName: data.displayName || '',
           role: isValidRole(data.role) ? data.role : 'User',
+          status: data.status || 'Active',
           createdAt: data.createdAt?.toDate?.() || new Date(),
           updatedAt: data.updatedAt?.toDate?.() || new Date()
         });

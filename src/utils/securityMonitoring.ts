@@ -4,7 +4,8 @@
 export interface SecurityEvent {
   type: 'LOGIN_SUCCESS' | 'LOGIN_FAILED' | 'LOGOUT' | 'SESSION_EXPIRED' | 
         'RATE_LIMIT_EXCEEDED' | 'INVALID_SESSION' | 'PASSWORD_RESET_REQUESTED' |
-        'SUSPICIOUS_ACTIVITY' | 'UNAUTHORIZED_ACCESS';
+        'SUSPICIOUS_ACTIVITY' | 'UNAUTHORIZED_ACCESS' | 'LOGIN_BLOCKED' | 
+        'SESSION_TERMINATED' | 'STATUS_GUARD_ERROR';
   userId?: string;
   ip?: string;
   userAgent?: string;
@@ -160,13 +161,16 @@ function getEventEmoji(type: SecurityEvent['type']): string {
   const emojiMap: Record<SecurityEvent['type'], string> = {
     LOGIN_SUCCESS: '✅',
     LOGIN_FAILED: '❌',
+    LOGIN_BLOCKED: '🚫',
     LOGOUT: '👋',
     SESSION_EXPIRED: '⏰',
+    SESSION_TERMINATED: '⛔',
     RATE_LIMIT_EXCEEDED: '🚫',
     INVALID_SESSION: '🔒',
     PASSWORD_RESET_REQUESTED: '🔑',
     SUSPICIOUS_ACTIVITY: '⚠️',
-    UNAUTHORIZED_ACCESS: '🛑'
+    UNAUTHORIZED_ACCESS: '🛑',
+    STATUS_GUARD_ERROR: '❗'
   };
   return emojiMap[type] || '📋';
 }

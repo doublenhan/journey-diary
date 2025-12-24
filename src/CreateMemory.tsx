@@ -316,8 +316,9 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
             memories: updatedMemories, 
             timestamp 
           }));
-          // Dispatch event to update UI immediately
-          window.dispatchEvent(new CustomEvent('memoryCacheInvalidated', { detail: { userId } }));
+          // Don't dispatch event here - it causes multiple fetches!
+          // Cache will auto-refresh when user navigates to ViewMemory
+          console.log('[CreateMemory] Optimistic cache updated, skipping fetch');
         } catch (e) {
           console.error('Failed to update cache optimistically:', e);
         }
@@ -458,7 +459,16 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
         tags: ['memory', 'love-journal'],
       });
       
-      console.log('✓ Memory saved to Firestore:', newMemory.id);
+      console.log('✅ [CreateMemory] Memory saved to Firestore:', newMemory.id);
+      console.log(`📊 [CreateMemory] Total operations: 1 write (addDoc), ${uploadedImages.length} image uploads`);
+      
+      // Invalidate cache immediately to show new memory
+      if (userId) {
+        console.log('🔄 [CreateMemory] Invalidating memory cache...');
+        window.dispatchEvent(new CustomEvent('memoryCacheInvalidated', { 
+          detail: { userId } 
+        }));
+      }
       
       // Success! Clear form and update cache
       setTimeout(() => {
@@ -474,11 +484,6 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
         setUploadProgress([]);
         setSaveMessage(null);
         setValidationAttempted(false);
-        // Refresh cache from API to get real data with updated images
-        if (userId) {
-          removeMemoryFromCache(userId, optimisticMemory.id);
-          updateCacheAndNotify(userId);
-        }
       }, 2000);
     } catch (error) {
       console.error('Failed to save memory:', error);

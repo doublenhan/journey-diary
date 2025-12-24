@@ -16,6 +16,34 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
     
+    // Kiểm tra user có role SysAdmin không (for dev environment)
+    function isSysAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/dev_users/$(request.auth.uid)).data.role == 'SysAdmin';
+    }
+    
+    // Kiểm tra user có role SysAdmin không (for production environment)
+    function isSysAdminProd() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SysAdmin';
+    }
+    
+    // Kiểm tra user có status Active (or không có status field - backward compatibility)
+    function isActiveUser() {
+      return isAuthenticated() && (
+        !('status' in get(/databases/$(database)/documents/dev_users/$(request.auth.uid)).data) ||
+        get(/databases/$(database)/documents/dev_users/$(request.auth.uid)).data.status == 'Active'
+      );
+    }
+    
+    // Kiểm tra user có status Active (for production environment)
+    function isActiveUserProd() {
+      return isAuthenticated() && (
+        !('status' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data) ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'Active'
+      );
+    }
+    
     // Validate mã ngôn ngữ
     function isValidLanguage() {
       return !('language' in request.resource.data) || 
@@ -88,7 +116,14 @@ service cloud.firestore {
       // Users can read their own doc
       // Authenticated users can read all users (for admin panel)
       allow read: if isOwner(userId) || isAuthenticated();
-      allow write: if isOwner(userId) && isValidLanguage();
+      // Users can update their own profile (except role and status)
+      allow update: if isOwner(userId) && isValidLanguage() && !('role' in request.resource.data.diff(resource.data).affectedKeys()) && !('status' in request.resource.data.diff(resource.data).affectedKeys());
+      // Only SysAdmin can change role
+      allow update: if isSysAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role', 'updatedAt', 'roleChangedAt', 'roleChangedBy']);
+      // Only SysAdmin can change status
+      allow update: if isSysAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'statusUpdatedAt', 'statusUpdatedBy']);
+      // Users can create their own doc
+      allow create: if isOwner(userId) && isValidLanguage();
     }
     
     // Production Users collection
@@ -97,7 +132,14 @@ service cloud.firestore {
       // Users can read their own doc
       // Authenticated users can read all users (for admin panel)
       allow read: if isOwner(userId) || isAuthenticated();
-      allow write: if isOwner(userId) && isValidLanguage();
+      // Users can update their own profile (except role and status)
+      allow update: if isOwner(userId) && isValidLanguage() && !('role' in request.resource.data.diff(resource.data).affectedKeys()) && !('status' in request.resource.data.diff(resource.data).affectedKeys());
+      // Only SysAdmin can change role
+      allow update: if isSysAdminProd() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role', 'updatedAt', 'roleChangedAt', 'roleChangedBy']);
+      // Only SysAdmin can change status
+      allow update: if isSysAdminProd() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'statusUpdatedAt', 'statusUpdatedBy']);
+      // Users can create their own doc
+      allow create: if isOwner(userId) && isValidLanguage();
     }
     
     // ===========================
@@ -106,34 +148,16 @@ service cloud.firestore {
     
     // Dev Memories - Development environment
     match /dev_memories/{memoryId} {
-      // Chỉ đọc memories của mình
-      allow read: if isAuthenticated() && isOwner(resource.data.userId);
-      // Tạo mới: phải validate data + là owner + stricter checks
-      allow create: if isAuthenticated() 
-        && isOwner(request.resource.data.userId)
-        && isValidMemoryCreate();
-      // Update: phải là owner + validate data + prevent critical changes
-      allow update: if isAuthenticated() 
-        && isOwner(resource.data.userId)
-        && isValidMemoryUpdate();
-      // Delete: chỉ owner mới xóa được
-      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
+      allow read: if isActiveUser();
+      allow write: if isActiveUser() && request.auth.uid == request.resource.data.userId;
+      allow delete: if isActiveUser() && request.auth.uid == resource.data.userId;
     }
     
     // Production Memories - Enhanced security
     match /memories/{memoryId} {
-      // Chỉ đọc memories của mình
-      allow read: if isAuthenticated() && isOwner(resource.data.userId);
-      // Tạo mới: phải validate data + là owner + stricter checks
-      allow create: if isAuthenticated() 
-        && isOwner(request.resource.data.userId)
-        && isValidMemoryCreate();
-      // Update: phải là owner + validate data + prevent critical changes
-      allow update: if isAuthenticated() 
-        && isOwner(resource.data.userId)
-        && isValidMemoryUpdate();
-      // Delete: chỉ owner mới xóa được
-      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
+      allow read: if isActiveUserProd();
+      allow write: if isActiveUserProd() && request.auth.uid == request.resource.data.userId;
+      allow delete: if isActiveUserProd() && request.auth.uid == resource.data.userId;
     }
     
     // ===========================
@@ -142,24 +166,24 @@ service cloud.firestore {
     
     // Dev Anniversary Events
     match /dev_AnniversaryEvent/{eventId} {
-      // Allow all authenticated users to read (filter by userId in client)
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated() 
+      // Allow all active users to read (filter by userId in client)
+      allow read: if isActiveUser();
+      allow create: if isActiveUser() 
         && isOwner(request.resource.data.userId)
         && isValidAnniversary();
-      allow update: if isAuthenticated() && isOwner(resource.data.userId);
-      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
+      allow update: if isActiveUser() && isOwner(resource.data.userId);
+      allow delete: if isActiveUser() && isOwner(resource.data.userId);
     }
     
     // Production Anniversary Events
     match /AnniversaryEvent/{eventId} {
-      // Allow all authenticated users to read (filter by userId in client)
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated() 
+      // Allow all active users to read (filter by userId in client)
+      allow read: if isActiveUserProd();
+      allow create: if isActiveUserProd() 
         && isOwner(request.resource.data.userId)
         && isValidAnniversary();
-      allow update: if isAuthenticated() && isOwner(resource.data.userId);
-      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
+      allow update: if isActiveUserProd() && isOwner(resource.data.userId);
+      allow delete: if isActiveUserProd() && isOwner(resource.data.userId);
     }
     
     // ===========================
@@ -167,11 +191,11 @@ service cloud.firestore {
     // ===========================
     
     match /dev_userEffects/{userId} {
-      allow read, write: if isOwner(userId);
+      allow read, write: if isActiveUser() && isOwner(userId);
     }
     
     match /userEffects/{userId} {
-      allow read, write: if isOwner(userId);
+      allow read, write: if isActiveUserProd() && isOwner(userId);
     }
     
     // ===========================

@@ -8,6 +8,7 @@ import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { useLanguage } from './hooks/useLanguage';
 import { useToastContext } from './contexts/ToastContext';
+import { useStatusGuard } from './hooks/useStatusGuard';
 import { fetchMemories } from './services/firebaseMemoriesService';
 import { MoodTheme, themes, isValidTheme } from './config/themes';
 import { getUserTheme } from './apis/userThemeApi';
@@ -160,6 +161,9 @@ function App() {
   const { t } = useLanguage();
   const { toasts, removeToast } = useToastContext();
   const { error: showError } = useToastContext();
+  
+  // Monitor user status in real-time and auto-logout if suspended/removed
+  useStatusGuard();
 
   useEffect(() => {
     if (loading) return;

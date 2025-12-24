@@ -16,26 +16,43 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const loadedYearsRef = useRef(0);
 
-  // Listen for memory cache invalidation events
+  // Listen for memory cache invalidation events with debounce
   useEffect(() => {
+    let debounceTimer: NodeJS.Timeout;
+    
+    console.log('[useInfiniteMemories] Event listener ADDED for userId:', userId);
+    
     const handleCacheInvalidated = (e: Event) => {
       const customEvent = e as CustomEvent;
       const eventUserId = customEvent.detail?.userId;
       
       if (!eventUserId || eventUserId === userId) {
-        console.log('[DEBUG] Memory cache invalidated, triggering refresh');
-        // Clear cache to force fresh fetch
-        const cacheKey = `memoriesCache_${userId}`;
-        localStorage.removeItem(cacheKey);
-        // Reset pagination
-        loadedYearsRef.current = 0;
-        setVisibleYears([]);
-        setRefreshTrigger(t => t + 1);
+        console.log('[useInfiniteMemories] ⚠️ Cache invalidation event received, debouncing...');
+        
+        // Clear any existing timer
+        clearTimeout(debounceTimer);
+        
+        // Debounce for 500ms to avoid multiple rapid fetches
+        debounceTimer = setTimeout(() => {
+          console.log('[useInfiniteMemories] Triggering refresh after debounce');
+          console.log('[useInfiniteMemories] WARNING: This will fetch ALL memories from Firestore!');
+          // Clear cache to force fresh fetch
+          const cacheKey = `memoriesCache_${userId}`;
+          localStorage.removeItem(cacheKey);
+          // Reset pagination
+          loadedYearsRef.current = 0;
+          setVisibleYears([]);
+          setRefreshTrigger(t => t + 1);
+        }, 500);
       }
     };
 
     window.addEventListener('memoryCacheInvalidated', handleCacheInvalidated);
-    return () => window.removeEventListener('memoryCacheInvalidated', handleCacheInvalidated);
+    return () => {
+      console.log('[useInfiniteMemories] Event listener REMOVED for userId:', userId);
+      clearTimeout(debounceTimer);
+      window.removeEventListener('memoryCacheInvalidated', handleCacheInvalidated);
+    };
   }, [userId]);
 
   // Initial load - fetch all memories and setup pagination
@@ -91,9 +108,31 @@ export function useInfiniteMemories(userId: string | null, loading: boolean) {
                 if (typeof photo === 'string') {
                   // Check if it's a URL or publicId
                   if (photo.startsWith('http://') || photo.startsWith('https://')) {
-                    // Already a URL
+                    // Extract public_id from Cloudinary URL
+                    // Example: https://res.cloudinary.com/dhelefhv1/image/upload/v1766559722/dev/love-journal/users/.../image.jpg
+                    // Extract: dev/love-journal/users/.../image
+                    let extractedPublicId = photo;
+                    try {
+                      const url = new URL(photo);
+                      const pathParts = url.pathname.split('/');
+                      const uploadIndex = pathParts.indexOf('upload');
+                      if (uploadIndex !== -1) {
+                        // Skip version if exists (e.g., v1766559722)
+                        let startIdx = uploadIndex + 1;
+                        if (pathParts[startIdx] && pathParts[startIdx].match(/^v\d+$/)) {
+                          startIdx++;
+                        }
+                        const publicIdWithExt = pathParts.slice(startIdx).join('/');
+                        // Remove extension
+                        const lastDotIdx = publicIdWithExt.lastIndexOf('.');
+                        extractedPublicId = lastDotIdx > 0 ? publicIdWithExt.substring(0, lastDotIdx) : publicIdWithExt;
+                      }
+                    } catch (e) {
+                      console.warn('Failed to extract publicId from URL:', photo, e);
+                    }
+                    
                     return {
-                      public_id: photo,
+                      public_id: extractedPublicId,
                       secure_url: photo,
                       url: photo,
                       width: 0,
