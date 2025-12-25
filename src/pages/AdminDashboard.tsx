@@ -9,6 +9,7 @@ import { useLanguage } from '../hooks/useLanguage';
 import { ArrowLeft, Users, Lock, Shield, CheckCircle, X, RefreshCw, Crown, UserCog, Search, Filter, SortAsc, SortDesc, Calendar, Info, Ban, UserX, UserCheck, AlertCircle, Clock, Activity, Zap } from 'lucide-react';
 import { getAllStorageUsage, FirebaseUsageStats, CloudinaryUsageStats, AuthenticationUsageStats, CloudFunctionsUsageStats, FirestoreOperationsStats, triggerStatsUpdate } from '../apis/storageUsageApi';
 import { CronJobsData, calculateNextRun, formatExecutionTime, CronHistoryRecord, DailyStats, subscribeToCronHistory, getDailyStats } from '../apis/cronJobsApi';
+import { restoreAccount } from '../apis/deleteAccountApi';
 import StorageUsageChart from '../components/StorageUsageChart';
 import UserDetailsModal from '../components/UserDetailsModal';
 import { SkeletonChart, SkeletonUserCard } from '../components/Skeleton';
@@ -353,21 +354,32 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
         throw new Error('Not authenticated');
       }
 
-      const userCollection = `${ENV_PREFIX}users`;
-      const userRef = doc(db, userCollection, userId);
+      // Get current user status to check if it's a restore operation
+      const targetUser = users.find(u => u.uid === userId);
+      const currentStatus = (targetUser as any)?.status;
       
-      await updateDoc(userRef, {
-        status: newStatus,
-        statusUpdatedAt: serverTimestamp(),
-        statusUpdatedBy: currentUser.uid
-      });
+      // If restoring from Removed to Active, use restoreAccount API
+      if (currentStatus === 'Removed' && newStatus === 'Active') {
+        await restoreAccount(userId, currentUser.uid);
+        showSuccess(t('settings.admin.userManagement.accountRestored') || 'Account restored successfully');
+      } else {
+        // Normal status change
+        const userCollection = `${ENV_PREFIX}users`;
+        const userRef = doc(db, userCollection, userId);
+        
+        await updateDoc(userRef, {
+          status: newStatus,
+          statusUpdatedAt: serverTimestamp(),
+          statusUpdatedBy: currentUser.uid
+        });
+        
+        const statusText = newStatus === 'Active' ? t('settings.admin.userManagement.active') :
+                          newStatus === 'Suspended' ? t('settings.admin.userManagement.suspended') :
+                          t('settings.admin.userManagement.removed');
+        showSuccess(`${t('settings.admin.userManagement.statusUpdated')} ${statusText}`);
+      }
       
       // Real-time listener will automatically update the UI
-      
-      const statusText = newStatus === 'Active' ? t('settings.admin.userManagement.active') :
-                        newStatus === 'Suspended' ? t('settings.admin.userManagement.suspended') :
-                        t('settings.admin.userManagement.removed');
-      showSuccess(`${t('settings.admin.userManagement.statusUpdated')} ${statusText}`);
       setActivePanel(null);
       setStatusConfirmModal(null);
     } catch (error: any) {
@@ -1022,14 +1034,22 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                         </button>
 
                         <button
-                          className="p-4 rounded-xl border-2 border-gray-300 bg-gray-100 cursor-not-allowed opacity-60 transition-all duration-200"
-                          disabled={true}
+                          className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                            (user as any).status === 'Removed'
+                              ? 'border-red-400 bg-red-50 ring-2 ring-red-300 shadow-md'
+                              : 'border-red-300 hover:border-red-500 hover:shadow-md bg-white'
+                          }`}
+                          onClick={() => handleChangeStatus(user.uid, 'Removed')}
+                          disabled={statusChangeInProgress === user.uid || (user as any).status === 'Removed'}
                         >
                           <div className="flex items-center gap-3 mb-2">
-                            <Ban className="w-5 h-5 text-gray-500" />
-                            <span className="font-semibold text-gray-600">{t('settings.admin.userManagement.removed')}</span>
+                            <Ban className="w-5 h-5 text-red-600" />
+                            <span className="font-semibold text-gray-800">{t('settings.admin.userManagement.removed')}</span>
+                            {(user as any).status === 'Removed' && (
+                              <CheckCircle className="w-5 h-5 text-red-600 ml-auto" />
+                            )}
                           </div>
-                          <span className="text-xs text-gray-500">{t('settings.admin.userManagement.removedDesc')} (Coming Soon)</span>
+                          <span className="text-xs text-gray-500">{t('settings.admin.userManagement.removedDesc')}</span>
                         </button>
                       </div>
                       {statusChangeInProgress === user.uid && (

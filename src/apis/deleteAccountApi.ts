@@ -1,9 +1,10 @@
 /**
  * User Account Deletion API
  * Handles marking accounts for permanent deletion with 7-day grace period
+ * and restoration of removed accounts
  */
 
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp, deleteField } from 'firebase/firestore';
 import { db, getCollectionName, auth } from '../firebase/firebaseConfig';
 import { signOut } from 'firebase/auth';
 
@@ -60,6 +61,30 @@ export const deleteAccount = async (): Promise<void> => {
     console.log('✅ Account deletion flow completed');
   } catch (error) {
     console.error('❌ Error in account deletion flow:', error);
+    throw error;
+  }
+};
+
+/**
+ * Restore account from Removed status back to Active
+ * Can be called by Admin within 7-day grace period
+ */
+export const restoreAccount = async (userId: string, adminUserId: string): Promise<void> => {
+  try {
+    const userDocRef = doc(db, getCollectionName('users'), userId);
+    
+    await updateDoc(userDocRef, {
+      status: 'Active',
+      removedAt: deleteField(), // Remove the removedAt timestamp
+      statusUpdatedAt: serverTimestamp(),
+      statusUpdatedBy: adminUserId,
+      restoredAt: serverTimestamp(),
+      restoredBy: adminUserId
+    });
+    
+    console.log('✅ Account restored:', userId);
+  } catch (error) {
+    console.error('❌ Error restoring account:', error);
     throw error;
   }
 };
