@@ -19,9 +19,9 @@ const cloudinaryApiKey = defineSecret('CLOUDINARY_API_KEY');
 const cloudinaryApiSecret = defineSecret('CLOUDINARY_API_SECRET');
 
 const getCloudinaryConfig = () => ({
-  cloud_name: cloudinaryCloudName.value(),
-  api_key: cloudinaryApiKey.value(),
-  api_secret: cloudinaryApiSecret.value(),
+  cloud_name: cloudinaryCloudName.value().trim(),
+  api_key: cloudinaryApiKey.value().trim(),
+  api_secret: cloudinaryApiSecret.value().trim(),
 });
 
 // Get environment prefix: 'dev_' for development/preview, '' for production
