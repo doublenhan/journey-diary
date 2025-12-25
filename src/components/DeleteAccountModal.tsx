@@ -16,14 +16,12 @@ interface DeleteAccountModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => Promise<void>;
-  userName?: string;
 }
 
 const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
   isOpen,
   onClose,
-  onConfirm,
-  userName = 'User'
+  onConfirm
 }) => {
   const { t } = useLanguage();
   const [confirmText, setConfirmText] = useState('');

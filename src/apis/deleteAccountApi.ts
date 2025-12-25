@@ -32,7 +32,8 @@ export const markAccountForDeletion = async (userId: string): Promise<void> => {
 /**
  * Complete account deletion flow:
  * 1. Mark account as Removed in Firestore
- * 2. Logout user immediately
+ * 2. Wait for update to complete
+ * 3. Logout user immediately
  */
 export const deleteAccount = async (): Promise<void> => {
   try {
@@ -42,10 +43,18 @@ export const deleteAccount = async (): Promise<void> => {
       throw new Error('No authenticated user');
     }
     
-    // 1. Mark account for deletion
+    console.log('🗑️ Starting account deletion for:', currentUser.uid);
+    
+    // 1. Mark account for deletion (WAIT for completion)
     await markAccountForDeletion(currentUser.uid);
     
-    // 2. Logout immediately
+    console.log('✅ Account marked as Removed, waiting before logout...');
+    
+    // 2. Small delay to ensure Firestore update is propagated
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // 3. Logout immediately
+    console.log('🚪 Logging out user...');
     await signOut(auth);
     
     console.log('✅ Account deletion flow completed');
