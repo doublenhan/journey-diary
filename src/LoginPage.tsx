@@ -11,14 +11,8 @@ import { SecureStorage } from './utils/secureStorage';
 import { createUserWithRole } from './apis/userRoleApi';
 import { db } from './firebase/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
+import { trackAuth } from './utils/performanceMonitoring';
 import './styles/LoginPage.css';
-
-declare global {
-  interface Window {
-    recaptchaVerifier: any;
-  }
-}
-
 
 const loveQuotes = [
   "Love is not just looking at each other, it's looking in the same direction.",
@@ -133,6 +127,9 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
 
   // Firebase Auth login function
   const loginWithFirebase = async (email: string, password: string) => {
+    const loginTrace = trackAuth('login');
+    loginTrace.putAttribute('method', 'email');
+    
     const auth = getAuth(app);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -147,6 +144,9 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
         // If user is Suspended, sign them out immediately
         if (userData?.status === 'Suspended') {
           await signOut(auth);
+          loginTrace.putAttribute('success', 'false');
+          loginTrace.putAttribute('blocked_reason', 'suspended');
+          loginTrace.stop();
           logSecurityEvent({
             type: 'LOGIN_BLOCKED',
             userId: userCredential.user.uid,
@@ -158,6 +158,9 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
         // If user is Removed, sign them out immediately
         if (userData?.status === 'Removed') {
           await signOut(auth);
+          loginTrace.putAttribute('success', 'false');
+          loginTrace.putAttribute('blocked_reason', 'removed');
+          loginTrace.stop();
           logSecurityEvent({
             type: 'LOGIN_BLOCKED',
             userId: userCredential.user.uid,
@@ -172,6 +175,8 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
       }
       
       // Log successful login
+      loginTrace.putAttribute('success', 'true');
+      loginTrace.stop();
       logSecurityEvent({
         type: 'LOGIN_SUCCESS',
         userId: userCredential.user.uid,
@@ -181,6 +186,9 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
       return { success: true };
     } catch (err: any) {
       // Log failed login
+      loginTrace.putAttribute('success', 'false');
+      loginTrace.putAttribute('error', err.code || err.message);
+      loginTrace.stop();
       logSecurityEvent({
         type: 'LOGIN_FAILED',
         details: { 
@@ -271,6 +279,9 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
 
   // Firebase Auth register (sign up) with phone number (OTP)
   const registerWithPhoneFirebase = async (phone: string) => {
+    const signupTrace = trackAuth('signup');
+    signupTrace.putAttribute('method', 'phone');
+    
     try {
       const { getAuth, RecaptchaVerifier, signInWithPhoneNumber } = await import('firebase/auth');
       const auth = getAuth(app);
@@ -293,14 +304,22 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
       setOtpError('');
       // Auto-focus first input
       setTimeout(() => otpInputRefs[0].current?.focus(), 100);
+      signupTrace.putAttribute('success', 'true');
+      signupTrace.stop();
       return { success: true };
     } catch (err: any) {
+      signupTrace.putAttribute('success', 'false');
+      signupTrace.putAttribute('error', err.code || err.message);
+      signupTrace.stop();
       return { success: false, message: err.message };
     }
   };
 
   // Firebase Auth register (sign up) with email/password
   const registerWithEmailFirebase = async (email: string, password: string) => {
+    const signupTrace = trackAuth('signup');
+    signupTrace.putAttribute('method', 'email');
+    
     try {
       const { getAuth, createUserWithEmailAndPassword } = await import('firebase/auth');
       const auth = getAuth(app);
@@ -312,11 +331,17 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
         displayName: ''
       }, 'User');
       
+      signupTrace.putAttribute('success', 'true');
+      signupTrace.stop();
       return { success: true };
     } catch (err: any) {
+      signupTrace.putAttribute('success', 'false');
+      signupTrace.putAttribute('error', err.code || err.message);
+      signupTrace.stop();
       return { success: false, message: err.message };
     }
   };
+
 
   // Handle OTP input change
   const handleOtpChange = (index: number, value: string) => {

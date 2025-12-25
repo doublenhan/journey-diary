@@ -6,6 +6,9 @@ import * as admin from 'firebase-admin';
 import { v2 as cloudinary } from 'cloudinary';
 import cors from 'cors';
 
+// Export cleanup function
+export { cleanupCronHistory } from './cleanupCronHistory';
+
 // Initialize Firebase Admin
 admin.initializeApp();
 
@@ -216,6 +219,7 @@ export const deleteCloudinaryImage = onRequest({
  * Runs every 1 hour to update stats for admin dashboard
  */
 export const calculateStorageStats = onSchedule('every 1 hours', async () => {
+  const startTime = Date.now();
   try {
     // Track function invocation
     await trackFunctionCall('calculateStorageStats');
@@ -364,9 +368,135 @@ export const calculateStorageStats = onSchedule('every 1 hours', async () => {
       dbStorageMB: estimatedDbStorageMB,
       imageStorageMB: estimatedImageStorageMB
     });
+
+    const executionTimeMs = Date.now() - startTime;
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+
+    // 1. Update current status
+    await db.collection('system_stats').doc('cron_jobs').set({
+      calculateStorageStats: {
+        lastRun: admin.firestore.FieldValue.serverTimestamp(),
+        status: 'success',
+        executionTimeMs: executionTimeMs,
+        schedule: 'every 1 hours',
+        lastError: null
+      }
+    }, { merge: true });
+
+    // 2. Add to detailed history (24h only)
+    await db.collection('cron_history').add({
+      jobName: 'calculateStorageStats',
+      status: 'success',
+      error: null,
+      startTime: admin.firestore.Timestamp.fromMillis(startTime),
+      endTime: admin.firestore.FieldValue.serverTimestamp(),
+      executionTimeMs: executionTimeMs,
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    // 3. Update daily aggregate
+    const dailyDocId = `${today}_calculateStorageStats`;
+    const dailyStatsRef = db.collection('cron_stats_daily').doc(dailyDocId);
+    const dailyDoc = await dailyStatsRef.get();
+    
+    if (dailyDoc.exists) {
+      const data = dailyDoc.data()!;
+      const totalRuns = (data.totalRuns || 0) + 1;
+      const successes = (data.successes || 0) + 1;
+      const prevAvg = data.avgExecutionTimeMs || 0;
+      const newAvg = ((prevAvg * (totalRuns - 1)) + executionTimeMs) / totalRuns;
+      
+      await dailyStatsRef.update({
+        totalRuns: totalRuns,
+        successes: successes,
+        avgExecutionTimeMs: Math.round(newAvg),
+        minExecutionTimeMs: Math.min(data.minExecutionTimeMs || executionTimeMs, executionTimeMs),
+        maxExecutionTimeMs: Math.max(data.maxExecutionTimeMs || executionTimeMs, executionTimeMs),
+        lastRunTime: admin.firestore.FieldValue.serverTimestamp()
+      });
+    } else {
+      await dailyStatsRef.set({
+        date: today,
+        jobName: 'calculateStorageStats',
+        totalRuns: 1,
+        successes: 1,
+        failures: 0,
+        avgExecutionTimeMs: executionTimeMs,
+        minExecutionTimeMs: executionTimeMs,
+        maxExecutionTimeMs: executionTimeMs,
+        failureDetails: [],
+        lastRunTime: admin.firestore.FieldValue.serverTimestamp()
+      });
+    }
     
   } catch (error) {
     console.error('Error calculating storage stats:', error);
+    
+    const executionTimeMs = Date.now() - startTime;
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
+    // Track failed execution
+    const db = admin.firestore();
+    
+    // 1. Update current status
+    await db.collection('system_stats').doc('cron_jobs').set({
+      calculateStorageStats: {
+        lastRun: admin.firestore.FieldValue.serverTimestamp(),
+        status: 'failed',
+        lastError: errorMessage,
+        schedule: 'every 1 hours'
+      }
+    }, { merge: true });
+
+    // 2. Add to detailed history
+    await db.collection('cron_history').add({
+      jobName: 'calculateStorageStats',
+      status: 'failed',
+      error: errorMessage,
+      startTime: admin.firestore.Timestamp.fromMillis(startTime),
+      endTime: admin.firestore.FieldValue.serverTimestamp(),
+      executionTimeMs: executionTimeMs,
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    // 3. Update daily aggregate
+    const dailyDocId = `${today}_calculateStorageStats`;
+    const dailyStatsRef = db.collection('cron_stats_daily').doc(dailyDocId);
+    const dailyDoc = await dailyStatsRef.get();
+    
+    if (dailyDoc.exists) {
+      await dailyStatsRef.update({
+        totalRuns: admin.firestore.FieldValue.increment(1),
+        failures: admin.firestore.FieldValue.increment(1),
+        failureDetails: admin.firestore.FieldValue.arrayUnion({
+          time: now.toISOString(),
+          error: errorMessage,
+          executionTimeMs: executionTimeMs
+        }),
+        lastRunTime: admin.firestore.FieldValue.serverTimestamp()
+      });
+    } else {
+      await db.collection('cron_stats_daily').doc(dailyDocId).set({
+        date: today,
+        jobName: 'calculateStorageStats',
+        totalRuns: 1,
+        successes: 0,
+        failures: 1,
+        avgExecutionTimeMs: executionTimeMs,
+        minExecutionTimeMs: executionTimeMs,
+        maxExecutionTimeMs: executionTimeMs,
+        failureDetails: [{
+          time: now.toISOString(),
+          error: errorMessage,
+          executionTimeMs: executionTimeMs
+        }],
+        lastRunTime: admin.firestore.FieldValue.serverTimestamp()
+      });
+    }
+    
     throw error;
   }
 });
@@ -378,6 +508,7 @@ export const calculateStorageStats = onSchedule('every 1 hours', async () => {
 export const updateStorageStats = onRequest({ 
   cors: true
 }, async (req, res) => {
+  const startTime = Date.now();
   try {
     // Track function invocation
     await trackFunctionCall('updateStorageStats');
@@ -542,12 +673,146 @@ export const updateStorageStats = onRequest({
     
     await db.collection('system_stats').doc('storage').set(stats);
     
+    const executionTimeMs = Date.now() - startTime;
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+
+    // Track cron job execution (manual trigger) with hybrid tracking
+    // 1. Update current status
+    await db.collection('system_stats').doc('cron_jobs').set({
+      calculateStorageStats: {
+        lastRun: admin.firestore.FieldValue.serverTimestamp(),
+        status: 'success',
+        executionTimeMs: executionTimeMs,
+        schedule: 'every 1 hours (manual trigger)',
+        lastError: null
+      }
+    }, { merge: true });
+
+    // 2. Add to detailed history
+    await db.collection('cron_history').add({
+      jobName: 'calculateStorageStats',
+      status: 'success',
+      error: null,
+      startTime: admin.firestore.Timestamp.fromMillis(startTime),
+      endTime: admin.firestore.FieldValue.serverTimestamp(),
+      executionTimeMs: executionTimeMs,
+      triggeredBy: 'manual',
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    // 3. Update daily aggregate
+    const dailyDocId = `${today}_calculateStorageStats`;
+    const dailyStatsRef = db.collection('cron_stats_daily').doc(dailyDocId);
+    const dailyDoc = await dailyStatsRef.get();
+    
+    if (dailyDoc.exists) {
+      const data = dailyDoc.data()!;
+      const totalRuns = (data.totalRuns || 0) + 1;
+      const successes = (data.successes || 0) + 1;
+      const prevAvg = data.avgExecutionTimeMs || 0;
+      const newAvg = ((prevAvg * (totalRuns - 1)) + executionTimeMs) / totalRuns;
+      
+      await dailyStatsRef.update({
+        totalRuns: totalRuns,
+        successes: successes,
+        avgExecutionTimeMs: Math.round(newAvg),
+        minExecutionTimeMs: Math.min(data.minExecutionTimeMs || executionTimeMs, executionTimeMs),
+        maxExecutionTimeMs: Math.max(data.maxExecutionTimeMs || executionTimeMs, executionTimeMs),
+        lastRunTime: admin.firestore.FieldValue.serverTimestamp()
+      });
+    } else {
+      await dailyStatsRef.set({
+        date: today,
+        jobName: 'calculateStorageStats',
+        totalRuns: 1,
+        successes: 1,
+        failures: 0,
+        avgExecutionTimeMs: executionTimeMs,
+        minExecutionTimeMs: executionTimeMs,
+        maxExecutionTimeMs: executionTimeMs,
+        failureDetails: [],
+        lastRunTime: admin.firestore.FieldValue.serverTimestamp()
+      });
+    }
+    
     res.status(200).json({
       success: true,
       stats
     });
   } catch (error: any) {
     console.error('Error updating storage stats:', error);
+    
+    // Track failed execution with hybrid tracking
+    try {
+      const db = admin.firestore();
+      const executionTimeMs = Date.now() - startTime;
+      const now = new Date();
+      const today = now.toISOString().split('T')[0];
+      const errorMessage = error.message || 'Unknown error';
+      
+      // 1. Update current status
+      await db.collection('system_stats').doc('cron_jobs').set({
+        calculateStorageStats: {
+          lastRun: admin.firestore.FieldValue.serverTimestamp(),
+          status: 'failed',
+          lastError: errorMessage,
+          schedule: 'every 1 hours (manual trigger)'
+        }
+      }, { merge: true });
+
+      // 2. Add to detailed history
+      await db.collection('cron_history').add({
+        jobName: 'calculateStorageStats',
+        status: 'failed',
+        error: errorMessage,
+        startTime: admin.firestore.Timestamp.fromMillis(startTime),
+        endTime: admin.firestore.FieldValue.serverTimestamp(),
+        executionTimeMs: executionTimeMs,
+        triggeredBy: 'manual',
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      // 3. Update daily aggregate
+      const dailyDocId = `${today}_calculateStorageStats`;
+      const dailyStatsRef = db.collection('cron_stats_daily').doc(dailyDocId);
+      const dailyDoc = await dailyStatsRef.get();
+      
+      if (dailyDoc.exists) {
+        await dailyStatsRef.update({
+          totalRuns: admin.firestore.FieldValue.increment(1),
+          failures: admin.firestore.FieldValue.increment(1),
+          failureDetails: admin.firestore.FieldValue.arrayUnion({
+            time: now.toISOString(),
+            error: errorMessage,
+            executionTimeMs: executionTimeMs,
+            triggeredBy: 'manual'
+          }),
+          lastRunTime: admin.firestore.FieldValue.serverTimestamp()
+        });
+      } else {
+        await db.collection('cron_stats_daily').doc(dailyDocId).set({
+          date: today,
+          jobName: 'calculateStorageStats',
+          totalRuns: 1,
+          successes: 0,
+          failures: 1,
+          avgExecutionTimeMs: executionTimeMs,
+          minExecutionTimeMs: executionTimeMs,
+          maxExecutionTimeMs: executionTimeMs,
+          failureDetails: [{
+            time: now.toISOString(),
+            error: errorMessage,
+            executionTimeMs: executionTimeMs,
+            triggeredBy: 'manual'
+          }],
+          lastRunTime: admin.firestore.FieldValue.serverTimestamp()
+        });
+      }
+    } catch (trackError) {
+      console.error('Failed to track error:', trackError);
+    }
+    
     res.status(500).json({
       error: {
         message: error.message || 'Internal error',

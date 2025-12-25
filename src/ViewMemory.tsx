@@ -22,6 +22,7 @@ import { EditMemoryModal } from './components/EditMemoryModal';
 import { ShareMemory } from './components/ShareMemory';
 import { MemoryStatistics } from './components/MemoryStatistics';
 import { sanitizePlainText, sanitizeRichText } from './utils/sanitize';
+import { trackMemoryLoad, trackMapRender } from './utils/performanceMonitoring';
 import './styles/ViewMemory.css';
 import './styles/MemoryCardHover.css';
 
@@ -81,18 +82,34 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
 
   // Show sync status when loading memories
   useEffect(() => {
+    let memoryLoadTrace: any = null;
+    
     if (isLoading && !loading) {
       startSync();
+      memoryLoadTrace = trackMemoryLoad();
+      memoryLoadTrace.putAttribute('user_id', userId || 'anonymous');
     } else if (!isLoading && !loading) {
       if (error) {
+        if (memoryLoadTrace) {
+          memoryLoadTrace.putAttribute('success', 'false');
+          memoryLoadTrace.putAttribute('error', error);
+          memoryLoadTrace.stop();
+        }
         syncError(error);
         showError(error);
       } else {
+        if (memoryLoadTrace) {
+          const totalMemories = Object.values(memoriesByYear).reduce((sum, memories) => sum + memories.length, 0);
+          memoryLoadTrace.putAttribute('success', 'true');
+          memoryLoadTrace.putMetric('memories_loaded', totalMemories);
+          memoryLoadTrace.putMetric('years_count', years.length);
+          memoryLoadTrace.stop();
+        }
         // Always call syncSuccess when loading completes, even with no data
         syncSuccess();
       }
     }
-  }, [isLoading, loading, error, startSync, syncSuccess, syncError]);
+  }, [isLoading, loading, error, startSync, syncSuccess, syncError, userId, memoriesByYear, years]);
 
   // Log all memory images for debugging after fetching
   useEffect(() => {
