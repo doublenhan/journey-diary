@@ -92,7 +92,8 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
         syncSuccess();
       }
     }
-  }, [isLoading, loading, error, startSync, syncSuccess, syncError, userId, memoriesByYear, years]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading, loading, error]);
 
   // Log all memory images for debugging after fetching
   useEffect(() => {

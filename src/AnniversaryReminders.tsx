@@ -149,7 +149,8 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         error(errorMsg);
       })
       .finally(() => setLoading(false));
-  }, [userId, startSync, syncSuccess, syncError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   // Hàm tạo file iCalendar (.ics) để lưu vào calendar
   const generateICS = (anniversary: Anniversary): string => {
