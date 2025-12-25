@@ -106,9 +106,9 @@ export const deleteRemovedAccounts = onSchedule({
       try {
         // Configure Cloudinary
         cloudinary.config({
-          cloud_name: cloudinaryCloudName.value(),
-          api_key: cloudinaryApiKey.value(),
-          api_secret: cloudinaryApiSecret.value()
+          cloud_name: cloudinaryCloudName.value().trim(),
+          api_key: cloudinaryApiKey.value().trim(),
+          api_secret: cloudinaryApiSecret.value().trim()
         });
         
         // STEP 1: Delete ALL Cloudinary images FIRST
