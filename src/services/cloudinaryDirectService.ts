@@ -180,8 +180,8 @@ export const deleteFromCloudinary = async (
     // Get ID token
     const idToken = await currentUser.getIdToken();
     
-    // Call Firebase Function via HTTP
-    const functionUrl = 'https://us-central1-love-journal-2025.cloudfunctions.net/deleteCloudinaryImage';
+    // Call Firebase Function via HTTP (updated URL after redeploy with secrets)
+    const functionUrl = 'https://deletecloudinaryimage-kao3m4wz5q-uc.a.run.app';
     
     console.log('📡 Calling Firebase Function...');
     const response = await fetch(functionUrl, {
