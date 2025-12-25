@@ -288,9 +288,6 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
       setTimeout(() => otpInputRefs[0].current?.focus(), 100);
       return { success: true };
     } catch (err: any) {
-      signupTrace.putAttribute('success', 'false');
-      signupTrace.putAttribute('error', err.code || err.message);
-      signupTrace.stop();
       return { success: false, message: err.message };
     }
   };
