@@ -118,8 +118,19 @@ service cloud.firestore {
       allow read: if isOwner(userId) || isAuthenticated();
       // Users can update their own profile (except role and status)
       allow update: if isOwner(userId) && isValidLanguage() && !('role' in request.resource.data.diff(resource.data).affectedKeys()) && !('status' in request.resource.data.diff(resource.data).affectedKeys());
+      // Users can delete their own account (Active → Removed)
+      allow update: if isOwner(userId) 
+        && resource.data.status == 'Active' 
+        && request.resource.data.status == 'Removed'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'removedAt', 'statusUpdatedAt', 'statusUpdatedBy']);
       // Only SysAdmin can change role
       allow update: if isSysAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role', 'updatedAt', 'roleChangedAt', 'roleChangedBy']);
+      // SysAdmin can restore account (Removed → Active)
+      allow update: if isSysAdmin() 
+        && resource.data.status == 'Removed'
+        && request.resource.data.status == 'Active'
+        && request.resource.data.keys().hasAll(['status', 'statusUpdatedAt', 'statusUpdatedBy', 'restoredAt', 'restoredBy'])
+        && !('removedAt' in request.resource.data);
       // Only SysAdmin can change status
       allow update: if isSysAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'statusUpdatedAt', 'statusUpdatedBy']);
       // Users can create their own doc
@@ -134,8 +145,19 @@ service cloud.firestore {
       allow read: if isOwner(userId) || isAuthenticated();
       // Users can update their own profile (except role and status)
       allow update: if isOwner(userId) && isValidLanguage() && !('role' in request.resource.data.diff(resource.data).affectedKeys()) && !('status' in request.resource.data.diff(resource.data).affectedKeys());
+      // Users can delete their own account (Active → Removed)
+      allow update: if isOwner(userId) 
+        && resource.data.status == 'Active' 
+        && request.resource.data.status == 'Removed'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'removedAt', 'statusUpdatedAt', 'statusUpdatedBy']);
       // Only SysAdmin can change role
       allow update: if isSysAdminProd() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role', 'updatedAt', 'roleChangedAt', 'roleChangedBy']);
+      // SysAdmin can restore account (Removed → Active)
+      allow update: if isSysAdminProd() 
+        && resource.data.status == 'Removed'
+        && request.resource.data.status == 'Active'
+        && request.resource.data.keys().hasAll(['status', 'statusUpdatedAt', 'statusUpdatedBy', 'restoredAt', 'restoredBy'])
+        && !('removedAt' in request.resource.data);
       // Only SysAdmin can change status
       allow update: if isSysAdminProd() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'statusUpdatedAt', 'statusUpdatedBy']);
       // Users can create their own doc

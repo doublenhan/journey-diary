@@ -1,6 +1,6 @@
 ﻿
 import { useEffect, useState } from 'react';
-import { Pencil, User, Mail, Phone, Calendar, LogOut, Lock, Shield, AlertTriangle } from 'lucide-react';
+import { Pencil, User, Mail, Phone, LogOut, Lock, AlertTriangle } from 'lucide-react';
 import { auth, db, getCollectionName } from './firebase/firebaseConfig';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -25,7 +25,7 @@ interface ProfileInformationProps {
 const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncStart, onSyncSuccess, onSyncError }) => {
   const { t } = useLanguage();
   const { success: showSuccess, error: showError } = useToastContext();
-  const { currentUserRole, isAdmin } = useAdmin();
+  const { currentUserRole } = useAdmin();
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState({
@@ -132,13 +132,21 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
   };
 
   const handleDeleteAccount = async () => {
+    console.log('[ProfileInformation] handleDeleteAccount called');
+    console.log('[ProfileInformation] Current user:', user?.uid, user?.email);
     try {
+      console.log('[ProfileInformation] Calling deleteAccount() API...');
       await deleteAccount();
+      console.log('[ProfileInformation] deleteAccount() completed successfully');
       // User will be logged out and redirected by deleteAccount()
       showSuccess(t('settings.deleteAccount.success'));
       navigate('/login');
     } catch (error) {
-      console.error('Error deleting account:', error);
+      console.error('[ProfileInformation] Error deleting account:', error);
+      if (error instanceof Error) {
+        console.error('[ProfileInformation] Error message:', error.message);
+        console.error('[ProfileInformation] Error stack:', error.stack);
+      }
       showError(t('settings.deleteAccount.error'));
       setShowDeleteAccountModal(false);
     }
@@ -411,7 +419,6 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
           isOpen={showDeleteAccountModal}
           onClose={() => setShowDeleteAccountModal(false)}
           onConfirm={handleDeleteAccount}
-          userName={profile.displayName}
         />
       </div>
 

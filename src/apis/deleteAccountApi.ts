@@ -16,6 +16,10 @@ export const markAccountForDeletion = async (userId: string): Promise<void> => {
   try {
     const userDocRef = doc(db, getCollectionName('users'), userId);
     
+    console.log('[markAccountForDeletion] Starting for userId:', userId);
+    console.log('[markAccountForDeletion] Collection:', getCollectionName('users'));
+    console.log('[markAccountForDeletion] Attempting to update status to Removed...');
+    
     await updateDoc(userDocRef, {
       status: 'Removed',
       removedAt: serverTimestamp(),
@@ -23,9 +27,14 @@ export const markAccountForDeletion = async (userId: string): Promise<void> => {
       statusUpdatedBy: userId // Self-delete
     });
     
-    console.log('✅ Account marked for deletion:', userId);
+    console.log('✅ [markAccountForDeletion] Account marked for deletion successfully:', userId);
   } catch (error) {
-    console.error('❌ Error marking account for deletion:', error);
+    console.error('❌ [markAccountForDeletion] Error marking account for deletion:', error);
+    if (error instanceof Error) {
+      console.error('[markAccountForDeletion] Error name:', error.name);
+      console.error('[markAccountForDeletion] Error message:', error.message);
+    }
+    console.error('[markAccountForDeletion] Full error object:', JSON.stringify(error, null, 2));
     throw error;
   }
 };

@@ -348,6 +348,7 @@
         removedDesc: 'Tài khoản được đánh dấu để xóa',
         updatingStatus: 'Đang cập nhật trạng thái...',
         statusUpdated: 'Trạng thái đã được cập nhật thành',
+        accountRestored: 'Tài khoản đã được khôi phục thành công về trạng thái Hoạt Động',
       },
       panelInfo: {
         title: 'Thông Tin Bảng Quản Trị',

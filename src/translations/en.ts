@@ -350,6 +350,7 @@
         removedDesc: 'Account marked for removal',
         updatingStatus: 'Updating status...',
         statusUpdated: 'Status updated to',
+        accountRestored: 'Account has been successfully restored to Active status',
       },
       panelInfo: {
         title: 'Admin Panel Information',

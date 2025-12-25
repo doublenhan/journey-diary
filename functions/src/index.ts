@@ -238,17 +238,27 @@ export const deleteCloudinaryImage = onRequest({
  * Scheduled function to calculate and store system-wide storage statistics
  * Runs every 1 hour to update stats for admin dashboard
  */
-export const calculateStorageStats = onSchedule('every 1 hours', async () => {
+export const calculateStorageStats = onSchedule({
+  schedule: 'every 1 hours',
+  timeZone: 'Asia/Ho_Chi_Minh',
+  timeoutSeconds: 300,
+  memory: '256MiB'
+}, async () => {
   const startTime = Date.now();
-  const ENV_PREFIX = getEnvPrefix(); // Define at function level for access in catch block
   
   try {
     // Track function invocation
     await trackFunctionCall('calculateStorageStats');
     
-    console.log('Starting storage stats calculation...');
+    console.log('🔍 Starting storage stats calculation for ALL environments...');
     
     const db = admin.firestore();
+    
+    // Process BOTH dev_ and production environments
+    const environments = ['dev_', ''];
+    
+    for (const ENV_PREFIX of environments) {
+      console.log(`\n📊 Calculating stats for ${ENV_PREFIX || 'production'} environment...`);
     
     // Get all collections
     const usersCollection = `${ENV_PREFIX}users`;
@@ -452,16 +462,22 @@ export const calculateStorageStats = onSchedule('every 1 hours', async () => {
       });
     }
     
-  } catch (error) {
-    console.error('Error calculating storage stats:', error);
+    } // End of environment loop
     
+    console.log(`\n✅ Storage stats calculation completed for all environments`);
+    
+  } catch (error) {
+    console.error('❌ Fatal error calculating storage stats:', error);
+    
+    // Track error in BOTH environments
+    const db = admin.firestore();
     const executionTimeMs = Date.now() - startTime;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     const now = new Date();
     const today = now.toISOString().split('T')[0];
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     
-    // Track failed execution
-    const db = admin.firestore();
+    const environments = ['dev_', ''];
+    for (const ENV_PREFIX of environments) {
     
     // 1. Update current status
     await db.collection(`${ENV_PREFIX}system_stats`).doc('cron_jobs').set({
@@ -519,6 +535,8 @@ export const calculateStorageStats = onSchedule('every 1 hours', async () => {
         lastRunTime: admin.firestore.FieldValue.serverTimestamp()
       });
     }
+    
+    } // End of error handling environment loop
     
     throw error;
   }

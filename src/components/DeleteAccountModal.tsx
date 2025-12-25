@@ -32,15 +32,21 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
   const isValid = confirmText === REQUIRED_TEXT && isChecked;
 
   const handleSubmit = async () => {
-    if (!isValid || isLoading) return;
+    if (!isValid || isLoading) {
+      console.log('[DeleteAccountModal] Submit blocked - isValid:', isValid, 'isLoading:', isLoading);
+      return;
+    }
     
+    console.log('[DeleteAccountModal] Starting delete account flow...');
     setIsLoading(true);
     try {
+      console.log('[DeleteAccountModal] Calling onConfirm()...');
       await onConfirm();
+      console.log('[DeleteAccountModal] onConfirm() completed');
       // Modal sẽ đóng khi user logout
     } catch (error) {
       setIsLoading(false);
-      console.error('Delete account error:', error);
+      console.error('[DeleteAccountModal] Delete account error:', error);
     }
   };
 
@@ -108,7 +114,7 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
             </label>
             <div className="space-y-1">
               <div className="bg-gray-100 rounded-lg px-3 py-2 border border-gray-300">
-                <code className="text-sm font-mono text-gray-800">{REQUIRED_TEXT}</code>
+                <code className="text-sm font-mono text-red-600 font-bold">{REQUIRED_TEXT}</code>
               </div>
               <input
                 type="text"
@@ -134,7 +140,7 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
               checked={isChecked}
               onChange={(e) => setIsChecked(e.target.checked)}
               disabled={isLoading}
-              className="mt-1 w-5 h-5 text-red-600 border-gray-300 rounded focus:ring-2 focus:ring-red-500 disabled:cursor-not-allowed"
+              className="mt-1 w-5 h-5 text-red-600 border-gray-300 rounded focus:ring-2 focus:ring-red-200 focus:outline-none disabled:cursor-not-allowed cursor-pointer"
             />
             <label
               htmlFor="understand-checkbox"

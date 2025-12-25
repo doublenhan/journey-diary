@@ -66,8 +66,11 @@ export const deleteRemovedAccounts = onSchedule({
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     const sevenDaysAgoTimestamp = admin.firestore.Timestamp.fromDate(sevenDaysAgo);
     
-    // Check BOTH dev_ and production environments
-    const environments = ['dev_', ''];
+    console.log(`📅 Deleting accounts removed before: ${sevenDaysAgo.toISOString()}`);
+    
+    // ⚠️ TEST MODE: Only process DEV environment
+    // Change to ['dev_', ''] for production to handle both environments
+    const environments = ['dev_']; // ONLY DEV for testing
     let totalDeleted = 0;
     let totalErrors = 0;
     const allErrors: string[] = [];
@@ -117,12 +120,39 @@ export const deleteRemovedAccounts = onSchedule({
         
         console.log(`  - Found ${memories.size} memories to process`);
         
+        // Helper function to extract publicId from Cloudinary URL
+        const extractPublicIdFromUrl = (urlOrPublicId: string): string => {
+          if (!urlOrPublicId.startsWith('http://') && !urlOrPublicId.startsWith('https://')) {
+            return urlOrPublicId;
+          }
+          try {
+            const url = new URL(urlOrPublicId);
+            const pathParts = url.pathname.split('/');
+            const uploadIndex = pathParts.indexOf('upload');
+            if (uploadIndex === -1) return urlOrPublicId;
+            let startIndex = uploadIndex + 1;
+            if (pathParts[startIndex]?.match(/^v\d+$/)) {
+              startIndex++;
+            }
+            const publicIdWithExtension = pathParts.slice(startIndex).join('/');
+            const lastDotIndex = publicIdWithExtension.lastIndexOf('.');
+            return lastDotIndex > 0 
+              ? publicIdWithExtension.substring(0, lastDotIndex)
+              : publicIdWithExtension;
+          } catch (error) {
+            console.error('Error extracting publicId:', error);
+            return urlOrPublicId;
+          }
+        };
+        
         // Extract all Cloudinary publicIds
         const allPublicIds: string[] = [];
         memories.forEach((memoryDoc) => {
           const memoryData = memoryDoc.data();
-          const publicIds = memoryData.cloudinaryPublicIds || memoryData.photos || [];
-          allPublicIds.push(...publicIds);
+          const rawIds = memoryData.cloudinaryPublicIds || memoryData.photos || [];
+          // Extract publicId from each URL/publicId
+          const extractedIds = rawIds.map((id: string) => extractPublicIdFromUrl(id));
+          allPublicIds.push(...extractedIds);
         });
         
         console.log(`  - Total Cloudinary images to delete: ${allPublicIds.length}`);
