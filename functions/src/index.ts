@@ -538,6 +538,13 @@ export const updateStorageStats = onRequest({
     // Track function invocation
     await trackFunctionCall('updateStorageStats');
     
+    // Get environment prefix from request data if provided
+    const requestEnvPrefix = req.body?.data?.envPrefix;
+    if (requestEnvPrefix !== undefined) {
+      ENV_PREFIX = requestEnvPrefix;
+      console.log('Using ENV_PREFIX from request:', ENV_PREFIX);
+    }
+    
     // Verify admin authentication
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -554,19 +561,29 @@ export const updateStorageStats = onRequest({
     const db = admin.firestore();
     let userData = null;
     
-    // Try dev_ prefix first (development/local)
-    let userDoc = await db.collection('dev_users').doc(decodedToken.uid).get();
-    if (userDoc.exists) {
-      userData = userDoc.data();
-      ENV_PREFIX = 'dev_';
-      console.log('Found user in dev_users collection');
-    } else {
-      // Try without prefix (production)
-      userDoc = await db.collection('users').doc(decodedToken.uid).get();
+    // If ENV_PREFIX not provided via request, detect from user's collection
+    if (requestEnvPrefix === undefined) {
+      // Try dev_ prefix first (development/local)
+      let userDoc = await db.collection('dev_users').doc(decodedToken.uid).get();
       if (userDoc.exists) {
         userData = userDoc.data();
-        ENV_PREFIX = '';
-        console.log('Found user in users collection');
+        ENV_PREFIX = 'dev_';
+        console.log('Found user in dev_users collection');
+      } else {
+        // Try without prefix (production)
+        userDoc = await db.collection('users').doc(decodedToken.uid).get();
+        if (userDoc.exists) {
+          userData = userDoc.data();
+          ENV_PREFIX = '';
+          console.log('Found user in users collection');
+        }
+      }
+    } else {
+      // ENV_PREFIX already set from request, just fetch user data
+      const userCollection = `${ENV_PREFIX}users`;
+      const userDoc = await db.collection(userCollection).doc(decodedToken.uid).get();
+      if (userDoc.exists) {
+        userData = userDoc.data();
       }
     }
     

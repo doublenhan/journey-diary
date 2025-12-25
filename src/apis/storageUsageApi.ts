@@ -111,7 +111,10 @@ export async function triggerStatsUpdate(): Promise<void> {
       headers: {
         'Authorization': `Bearer ${idToken}`,
         'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify({
+        data: { envPrefix: ENV_PREFIX }
+      })
     });
     
     if (!response.ok) {
