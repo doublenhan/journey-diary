@@ -23,7 +23,24 @@ const getCloudinaryConfig = () => ({
   api_secret: cloudinaryApiSecret.value(),
 });
 
-const getEnvPrefix = () => '';
+// Get environment prefix: 'dev_' for development/preview, '' for production
+const getEnvPrefix = () => {
+  const project = process.env.GCLOUD_PROJECT || '';
+  const firebaseConfig = process.env.FIREBASE_CONFIG || '';
+  
+  // Production: no dev or preview in project name
+  if (project && !project.includes('dev') && !project.includes('preview') && !project.includes('test')) {
+    return '';
+  }
+  
+  // Check Firebase config for prod
+  if (firebaseConfig.includes('prod')) {
+    return '';
+  }
+  
+  // Default to dev_ for all non-production
+  return 'dev_';
+};
 
 // Configure CORS
 const corsHandler = cors({ origin: true });
@@ -35,8 +52,9 @@ const corsHandler = cors({ origin: true });
 const trackFunctionCall = async (functionName: string): Promise<void> => {
   try {
     const db = admin.firestore();
+    const ENV_PREFIX = getEnvPrefix();
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    const docRef = db.collection('system_stats').doc('function_calls');
+    const docRef = db.collection(`${ENV_PREFIX}system_stats`).doc('function_calls');
     
     await db.runTransaction(async (transaction) => {
       const doc = await transaction.get(docRef);
@@ -220,6 +238,8 @@ export const deleteCloudinaryImage = onRequest({
  */
 export const calculateStorageStats = onSchedule('every 1 hours', async () => {
   const startTime = Date.now();
+  const ENV_PREFIX = getEnvPrefix(); // Define at function level for access in catch block
+  
   try {
     // Track function invocation
     await trackFunctionCall('calculateStorageStats');
@@ -227,7 +247,6 @@ export const calculateStorageStats = onSchedule('every 1 hours', async () => {
     console.log('Starting storage stats calculation...');
     
     const db = admin.firestore();
-    const ENV_PREFIX = getEnvPrefix();
     
     // Get all collections
     const usersCollection = `${ENV_PREFIX}users`;
@@ -270,7 +289,7 @@ export const calculateStorageStats = onSchedule('every 1 hours', async () => {
     // Get actual function invocations from tracking data
     let actualInvocationsPerDay = 0;
     try {
-      const functionCallsDoc = await db.collection('system_stats').doc('function_calls').get();
+      const functionCallsDoc = await db.collection(`${ENV_PREFIX}system_stats`).doc('function_calls').get();
       if (functionCallsDoc.exists) {
         const callsData = functionCallsDoc.data();
         if (callsData) {
@@ -359,7 +378,7 @@ export const calculateStorageStats = onSchedule('every 1 hours', async () => {
     };
     
     // Store in system_stats collection
-    await db.collection('system_stats').doc('storage').set(stats);
+    await db.collection(`${ENV_PREFIX}system_stats`).doc('storage').set(stats);
     
     console.log('Storage stats calculated and stored:', {
       users: usersCount,
@@ -374,7 +393,7 @@ export const calculateStorageStats = onSchedule('every 1 hours', async () => {
     const today = now.toISOString().split('T')[0];
 
     // 1. Update current status
-    await db.collection('system_stats').doc('cron_jobs').set({
+    await db.collection(`${ENV_PREFIX}system_stats`).doc('cron_jobs').set({
       calculateStorageStats: {
         lastRun: admin.firestore.FieldValue.serverTimestamp(),
         status: 'success',
@@ -385,7 +404,7 @@ export const calculateStorageStats = onSchedule('every 1 hours', async () => {
     }, { merge: true });
 
     // 2. Add to detailed history (24h only)
-    await db.collection('cron_history').add({
+    await db.collection(`${ENV_PREFIX}cron_history`).add({
       jobName: 'calculateStorageStats',
       status: 'success',
       error: null,
@@ -397,7 +416,7 @@ export const calculateStorageStats = onSchedule('every 1 hours', async () => {
 
     // 3. Update daily aggregate
     const dailyDocId = `${today}_calculateStorageStats`;
-    const dailyStatsRef = db.collection('cron_stats_daily').doc(dailyDocId);
+    const dailyStatsRef = db.collection(`${ENV_PREFIX}cron_stats_daily`).doc(dailyDocId);
     const dailyDoc = await dailyStatsRef.get();
     
     if (dailyDoc.exists) {
@@ -442,7 +461,7 @@ export const calculateStorageStats = onSchedule('every 1 hours', async () => {
     const db = admin.firestore();
     
     // 1. Update current status
-    await db.collection('system_stats').doc('cron_jobs').set({
+    await db.collection(`${ENV_PREFIX}system_stats`).doc('cron_jobs').set({
       calculateStorageStats: {
         lastRun: admin.firestore.FieldValue.serverTimestamp(),
         status: 'failed',
@@ -452,7 +471,7 @@ export const calculateStorageStats = onSchedule('every 1 hours', async () => {
     }, { merge: true });
 
     // 2. Add to detailed history
-    await db.collection('cron_history').add({
+    await db.collection(`${ENV_PREFIX}cron_history`).add({
       jobName: 'calculateStorageStats',
       status: 'failed',
       error: errorMessage,
@@ -464,7 +483,7 @@ export const calculateStorageStats = onSchedule('every 1 hours', async () => {
 
     // 3. Update daily aggregate
     const dailyDocId = `${today}_calculateStorageStats`;
-    const dailyStatsRef = db.collection('cron_stats_daily').doc(dailyDocId);
+    const dailyStatsRef = db.collection(`${ENV_PREFIX}cron_stats_daily`).doc(dailyDocId);
     const dailyDoc = await dailyStatsRef.get();
     
     if (dailyDoc.exists) {
@@ -479,7 +498,7 @@ export const calculateStorageStats = onSchedule('every 1 hours', async () => {
         lastRunTime: admin.firestore.FieldValue.serverTimestamp()
       });
     } else {
-      await db.collection('cron_stats_daily').doc(dailyDocId).set({
+      await db.collection(`${ENV_PREFIX}cron_stats_daily`).doc(dailyDocId).set({
         date: today,
         jobName: 'calculateStorageStats',
         totalRuns: 1,
@@ -509,6 +528,8 @@ export const updateStorageStats = onRequest({
   cors: true
 }, async (req, res) => {
   const startTime = Date.now();
+  let ENV_PREFIX = ''; // Define at function level for access in catch block
+  
   try {
     // Track function invocation
     await trackFunctionCall('updateStorageStats');
@@ -528,7 +549,6 @@ export const updateStorageStats = onRequest({
     // Check if user is admin - try both with and without dev_ prefix
     const db = admin.firestore();
     let userData = null;
-    let ENV_PREFIX = '';
     
     // Try dev_ prefix first (development/local)
     let userDoc = await db.collection('dev_users').doc(decodedToken.uid).get();
@@ -588,7 +608,7 @@ export const updateStorageStats = onRequest({
     // Get actual function invocations
     let actualInvocationsPerDay = 0;
     try {
-      const functionCallsDoc = await db.collection('system_stats').doc('function_calls').get();
+      const functionCallsDoc = await db.collection(`${ENV_PREFIX}system_stats`).doc('function_calls').get();
       if (functionCallsDoc.exists) {
         const callsData = functionCallsDoc.data();
         if (callsData) {
@@ -671,7 +691,7 @@ export const updateStorageStats = onRequest({
       calculatedAt: new Date().toISOString()
     };
     
-    await db.collection('system_stats').doc('storage').set(stats);
+    await db.collection(`${ENV_PREFIX}system_stats`).doc('storage').set(stats);
     
     const executionTimeMs = Date.now() - startTime;
     const now = new Date();
@@ -679,7 +699,7 @@ export const updateStorageStats = onRequest({
 
     // Track cron job execution (manual trigger) with hybrid tracking
     // 1. Update current status
-    await db.collection('system_stats').doc('cron_jobs').set({
+    await db.collection(`${ENV_PREFIX}system_stats`).doc('cron_jobs').set({
       calculateStorageStats: {
         lastRun: admin.firestore.FieldValue.serverTimestamp(),
         status: 'success',
@@ -690,7 +710,7 @@ export const updateStorageStats = onRequest({
     }, { merge: true });
 
     // 2. Add to detailed history
-    await db.collection('cron_history').add({
+    await db.collection(`${ENV_PREFIX}cron_history`).add({
       jobName: 'calculateStorageStats',
       status: 'success',
       error: null,
@@ -703,7 +723,7 @@ export const updateStorageStats = onRequest({
 
     // 3. Update daily aggregate
     const dailyDocId = `${today}_calculateStorageStats`;
-    const dailyStatsRef = db.collection('cron_stats_daily').doc(dailyDocId);
+    const dailyStatsRef = db.collection(`${ENV_PREFIX}cron_stats_daily`).doc(dailyDocId);
     const dailyDoc = await dailyStatsRef.get();
     
     if (dailyDoc.exists) {
@@ -752,7 +772,7 @@ export const updateStorageStats = onRequest({
       const errorMessage = error.message || 'Unknown error';
       
       // 1. Update current status
-      await db.collection('system_stats').doc('cron_jobs').set({
+      await db.collection(`${ENV_PREFIX}system_stats`).doc('cron_jobs').set({
         calculateStorageStats: {
           lastRun: admin.firestore.FieldValue.serverTimestamp(),
           status: 'failed',
@@ -762,7 +782,7 @@ export const updateStorageStats = onRequest({
       }, { merge: true });
 
       // 2. Add to detailed history
-      await db.collection('cron_history').add({
+      await db.collection(`${ENV_PREFIX}cron_history`).add({
         jobName: 'calculateStorageStats',
         status: 'failed',
         error: errorMessage,
@@ -775,7 +795,7 @@ export const updateStorageStats = onRequest({
 
       // 3. Update daily aggregate
       const dailyDocId = `${today}_calculateStorageStats`;
-      const dailyStatsRef = db.collection('cron_stats_daily').doc(dailyDocId);
+      const dailyStatsRef = db.collection(`${ENV_PREFIX}cron_stats_daily`).doc(dailyDocId);
       const dailyDoc = await dailyStatsRef.get();
       
       if (dailyDoc.exists) {
@@ -791,7 +811,7 @@ export const updateStorageStats = onRequest({
           lastRunTime: admin.firestore.FieldValue.serverTimestamp()
         });
       } else {
-        await db.collection('cron_stats_daily').doc(dailyDocId).set({
+        await db.collection(`${ENV_PREFIX}cron_stats_daily`).doc(dailyDocId).set({
           date: today,
           jobName: 'calculateStorageStats',
           totalRuns: 1,

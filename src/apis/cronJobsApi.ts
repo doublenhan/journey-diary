@@ -5,6 +5,9 @@
 import { doc, getDoc, collection, query, orderBy, limit, where, onSnapshot, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/firebaseConfig';
 
+// Get environment prefix from Vite env
+const ENV_PREFIX = import.meta.env.VITE_ENV_PREFIX || '';
+
 export interface CronJobStatus {
   lastRun: any; // Firestore Timestamp
   status: 'success' | 'failed' | 'running' | 'never-run';
@@ -55,7 +58,7 @@ export interface DailyStats {
  */
 export async function getCronJobsStatus(): Promise<CronJobsData | null> {
   try {
-    const cronJobsDoc = await getDoc(doc(db, 'system_stats', 'cron_jobs'));
+    const cronJobsDoc = await getDoc(doc(db, `${ENV_PREFIX}system_stats`, 'cron_jobs'));
     
     if (!cronJobsDoc.exists()) {
       console.warn('Cron jobs stats not found. Functions may not have run yet.');
@@ -75,14 +78,14 @@ export async function getCronJobsStatus(): Promise<CronJobsData | null> {
 export async function getRecentCronHistory(jobName?: string): Promise<CronHistoryRecord[]> {
   try {
     let q = query(
-      collection(db, 'cron_history'),
+      collection(db, `${ENV_PREFIX}cron_history`),
       orderBy('createdAt', 'desc'),
       limit(50)
     );
     
     if (jobName) {
       q = query(
-        collection(db, 'cron_history'),
+        collection(db, `${ENV_PREFIX}cron_history`),
         where('jobName', '==', jobName),
         orderBy('createdAt', 'desc'),
         limit(50)
@@ -114,7 +117,7 @@ export async function getDailyStats(jobName?: string): Promise<DailyStats[]> {
     
     const statsPromises = last7Days.map(async (date) => {
       const docId = jobName ? `${date}_${jobName}` : `${date}_calculateStorageStats`;
-      const docRef = doc(db, 'cron_stats_daily', docId);
+      const docRef = doc(db, `${ENV_PREFIX}cron_stats_daily`, docId);
       const docSnap = await getDoc(docRef);
       
       if (docSnap.exists()) {
@@ -139,14 +142,14 @@ export function subscribeToCronHistory(
   jobName?: string
 ): () => void {
   let q = query(
-    collection(db, 'cron_history'),
+    collection(db, `${ENV_PREFIX}cron_history`),
     orderBy('createdAt', 'desc'),
     limit(50)
   );
   
   if (jobName) {
     q = query(
-      collection(db, 'cron_history'),
+      collection(db, `${ENV_PREFIX}cron_history`),
       where('jobName', '==', jobName),
       orderBy('createdAt', 'desc'),
       limit(50)

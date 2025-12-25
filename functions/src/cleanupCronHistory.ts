@@ -1,6 +1,22 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import * as admin from 'firebase-admin';
 
+// Get environment prefix: 'dev_' for development/preview, '' for production  
+const getEnvPrefix = () => {
+  const project = process.env.GCLOUD_PROJECT || '';
+  const firebaseConfig = process.env.FIREBASE_CONFIG || '';
+  
+  if (project && !project.includes('dev') && !project.includes('preview') && !project.includes('test')) {
+    return '';
+  }
+  
+  if (firebaseConfig.includes('prod')) {
+    return '';
+  }
+  
+  return 'dev_';
+};
+
 /**
  * Scheduled function to cleanup old cron data
  * - Deletes cron_history records older than 24h
@@ -18,11 +34,12 @@ export const cleanupCronHistory = onSchedule({
   
   try {
     const db = admin.firestore();
+    const envPrefix = getEnvPrefix();
     const twentyFourHoursAgo = new Date(Date.now() - (24 * 60 * 60 * 1000));
     const sevenDaysAgo = new Date(Date.now() - (7 * 24 * 60 * 60 * 1000));
     
     // 1. Cleanup cron_history (older than 24h)
-    const oldHistoryQuery = db.collection('cron_history')
+    const oldHistoryQuery = db.collection(`${envPrefix}cron_history`)
       .where('createdAt', '<', admin.firestore.Timestamp.fromDate(twentyFourHoursAgo))
       .limit(500); // Process in batches to avoid timeout
     
@@ -41,7 +58,7 @@ export const cleanupCronHistory = onSchedule({
     
     // 2. Cleanup cron_stats_daily (older than 7 days)
     const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
-    const oldStatsQuery = db.collection('cron_stats_daily')
+    const oldStatsQuery = db.collection(`${envPrefix}cron_stats_daily`)
       .where('date', '<', sevenDaysAgoStr)
       .limit(500);
     
