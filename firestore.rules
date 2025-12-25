@@ -203,7 +203,15 @@ service cloud.firestore {
     // ===========================
     
     // System stats - Read-only for authenticated users, write by Cloud Functions
+    // Support both production (no prefix) and dev (dev_ prefix)
     match /system_stats/{statId} {
+      // All authenticated users can read system stats
+      allow read: if isAuthenticated();
+      // Only allow writes from Cloud Functions (no client writes)
+      allow write: if false;
+    }
+    
+    match /dev_system_stats/{statId} {
       // All authenticated users can read system stats
       allow read: if isAuthenticated();
       // Only allow writes from Cloud Functions (no client writes)
@@ -218,8 +226,22 @@ service cloud.firestore {
       allow write: if false;
     }
     
+    match /dev_cron_history/{historyId} {
+      // Only SysAdmin can read cron history
+      allow read: if isSysAdmin() || isSysAdminProd();
+      // Only Cloud Functions can write
+      allow write: if false;
+    }
+    
     // Cron Stats Daily - 7-day aggregated summary
     match /cron_stats_daily/{statsId} {
+      // Only SysAdmin can read daily stats
+      allow read: if isSysAdmin() || isSysAdminProd();
+      // Only Cloud Functions can write
+      allow write: if false;
+    }
+    
+    match /dev_cron_stats_daily/{statsId} {
       // Only SysAdmin can read daily stats
       allow read: if isSysAdmin() || isSysAdminProd();
       // Only Cloud Functions can write

@@ -25,10 +25,10 @@ interface AdminDashboardProps {
 }
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
-  const { users, fetchUsers, changeUserRole, loading: contextLoading, hasLoadedUsers } = useAdmin();
+  const { users, changeUserRole, loading: contextLoading } = useAdmin();
   const { success: showSuccess, error: showError } = useToastContext();
   const { t } = useLanguage();
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false); // Not needed with real-time listener
   const [roleChangeInProgress, setRoleChangeInProgress] = useState<string | null>(null);
   const [statusChangeInProgress, setStatusChangeInProgress] = useState<string | null>(null);
   
@@ -138,20 +138,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
     }
   }, [users]);
 
-  // Load users ONLY ONCE on component mount
-  useEffect(() => {
-    console.log(`🔍 AdminDashboard mount check - hasLoadedUsers: ${hasLoadedUsers}`);
-    
-    // Call fetchUsers - it has internal guards to prevent re-fetching
-    fetchUsers();
-  }, []); // Only on mount
-
   // Real-time listener for storage stats updates
   useEffect(() => {
     console.log('🔄 Setting up realtime listener for storage stats...');
     
     // Reference to the storage stats document
-    const statsDocRef = doc(db, 'system_stats', 'storage');
+    const statsDocRef = doc(db, `${ENV_PREFIX}system_stats`, 'storage');
     
     // Set up realtime listener
     const unsubscribe = onSnapshot(
@@ -196,7 +188,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
   useEffect(() => {
     console.log('🔄 Setting up realtime listener for cron jobs...');
     
-    const cronJobsDocRef = doc(db, 'system_stats', 'cron_jobs');
+    const cronJobsDocRef = doc(db, `${ENV_PREFIX}system_stats`, 'cron_jobs');
     
     const unsubscribe = onSnapshot(
       cronJobsDocRef,
@@ -255,15 +247,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
   }, [activeTab]);
 
   const handleRefresh = async () => {
-    try {
-      setLoading(true);
-      await fetchUsers(true); // Force refresh
-      showSuccess('Users reloaded successfully');
-    } catch (err) {
-      showError('Failed to reload users: ' + (err instanceof Error ? err.message : 'Unknown error'));
-    } finally {
-      setLoading(false);
-    }
+    // Real-time listener automatically syncs users - no manual refresh needed
+    showSuccess('Users list is automatically synced in real-time');
   };
 
   const formatDate = (date?: Date) => {
@@ -390,8 +375,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
         statusUpdatedBy: currentUser.uid
       });
       
-      // Force refresh users list from Firestore (no cache)
-      await fetchUsers(true);
+      // Real-time listener will automatically update the UI
       
       const statusText = newStatus === 'Active' ? t('settings.admin.userManagement.active') :
                         newStatus === 'Suspended' ? t('settings.admin.userManagement.suspended') :

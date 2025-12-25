@@ -1,21 +1,22 @@
 import * as functions from 'firebase-functions';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { onRequest } from 'firebase-functions/v2/https';
-import { defineString, defineSecret } from 'firebase-functions/params';
+import { defineSecret } from 'firebase-functions/params';
 import * as admin from 'firebase-admin';
 import { v2 as cloudinary } from 'cloudinary';
 import cors from 'cors';
 
 // Export cleanup function
 export { cleanupCronHistory } from './cleanupCronHistory';
+export { deleteRemovedAccounts } from './deleteRemovedAccounts';
 
 // Initialize Firebase Admin
 admin.initializeApp();
 
-// Define environment params for Cloudinary
-const cloudinaryCloudName = defineString('CLOUDINARY_CLOUD_NAME', { default: 'dhelefhv1' });
-const cloudinaryApiKey = defineString('CLOUDINARY_API_KEY', { default: '173954115685668' });
-const cloudinaryApiSecret = defineString('CLOUDINARY_API_SECRET', { default: 'f_W68NJxhgLgEHVjf7SefKEL76g' });
+// Cloudinary credentials stored as Firebase Secrets (secure)
+const cloudinaryCloudName = defineSecret('CLOUDINARY_CLOUD_NAME');
+const cloudinaryApiKey = defineSecret('CLOUDINARY_API_KEY');
+const cloudinaryApiSecret = defineSecret('CLOUDINARY_API_SECRET');
 
 const getCloudinaryConfig = () => ({
   cloud_name: cloudinaryCloudName.value(),
@@ -135,7 +136,8 @@ const extractPublicIdFromUrl = (urlOrPublicId: string): string => {
  * Requires Firebase Authentication
  */
 export const deleteCloudinaryImage = onRequest({ 
-  cors: true
+  cors: true,
+  secrets: [cloudinaryCloudName, cloudinaryApiKey, cloudinaryApiSecret]
 }, async (req, res) => {
   try {
     // Track function invocation
@@ -411,6 +413,7 @@ export const calculateStorageStats = onSchedule('every 1 hours', async () => {
       startTime: admin.firestore.Timestamp.fromMillis(startTime),
       endTime: admin.firestore.FieldValue.serverTimestamp(),
       executionTimeMs: executionTimeMs,
+      triggeredBy: 'auto',
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
 
@@ -478,6 +481,7 @@ export const calculateStorageStats = onSchedule('every 1 hours', async () => {
       startTime: admin.firestore.Timestamp.fromMillis(startTime),
       endTime: admin.firestore.FieldValue.serverTimestamp(),
       executionTimeMs: executionTimeMs,
+      triggeredBy: 'auto',
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
 
