@@ -4,7 +4,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, collection, query, where, getDocs, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { db, getCollectionName, ENV_PREFIX } from '../firebase/firebaseConfig';
 import { UserRole } from '../config/roles';
 import { isValidRole } from '../utils/roleUtils';
@@ -25,7 +25,6 @@ interface AdminContextType {
   loading: boolean;
   error: string | null;
   users: UserWithRole[];
-  fetchUsers: (forceRefresh?: boolean) => Promise<void>;
   changeUserRole: (userId: string, newRole: UserRole) => Promise<void>;
   hasLoadedUsers: boolean;
 }
@@ -38,8 +37,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [users, setUsers] = useState<UserWithRole[]>([]);
-  const isFetchingRef = useRef(false);
-  const hasLoadedUsersRef = useRef(false);
+  const [hasLoadedUsers, setHasLoadedUsers] = useState(false);
 
   // Load current user's role
   useEffect(() => {
@@ -77,56 +75,55 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return () => unsubscribe();
   }, []);
 
-  // Fetch all users (admin only)
-  const fetchUsers = useCallback(async (forceRefresh = false) => {
-    // Prevent concurrent fetch calls
-    if (isFetchingRef.current) {
-      console.log('⏭️ Fetch already in progress, skipping');
+  // Real-time listener for users list (admin only)
+  useEffect(() => {
+    // Only set up listener if user is admin
+    if (!isAdmin) {
+      console.log('⏭️ Not admin, skipping users listener');
       return;
     }
 
-    // Check if already loaded (unless forcing refresh)
-    if (hasLoadedUsersRef.current && !forceRefresh) {
-      console.log('⏭️ Users already loaded, skipping fetch');
-      return;
-    }
+    console.log('🔄 Setting up real-time listener for users list...');
+    
+    const collectionName = getCollectionName('users');
+    const usersRef = collection(db, collectionName);
+    const q = query(usersRef);
 
-    isFetchingRef.current = true;
-    hasLoadedUsersRef.current = true;
-
-    try {
-      setError(null);
-
-      const collectionName = getCollectionName('users');
-      const usersRef = collection(db, collectionName);
-      const q = query(usersRef);
-      const querySnapshot = await getDocs(q);
-
-      const usersList: UserWithRole[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        usersList.push({
-          uid: doc.id,
-          email: data.email || '',
-          displayName: data.displayName || '',
-          role: isValidRole(data.role) ? data.role : 'User',
-          status: data.status || 'Active',
-          createdAt: data.createdAt?.toDate?.() || new Date(),
-          updatedAt: data.updatedAt?.toDate?.() || new Date()
+    const unsubscribe = onSnapshot(
+      q,
+      (querySnapshot) => {
+        const usersList: UserWithRole[] = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          usersList.push({
+            uid: doc.id,
+            email: data.email || '',
+            displayName: data.displayName || '',
+            role: isValidRole(data.role) ? data.role : 'User',
+            status: data.status || 'Active',
+            createdAt: data.createdAt?.toDate?.() || new Date(),
+            updatedAt: data.updatedAt?.toDate?.() || new Date()
+          });
         });
-      });
 
-      console.log(`✅ Fetched ${usersList.length} users from ${collectionName}`);
-      setUsers(usersList);
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Unknown error';
-      console.error('❌ Error fetching users:', errorMsg);
-      setError(`Failed to fetch users: ${errorMsg}`);
-      hasLoadedUsersRef.current = false; // Reset on error so can retry
-    } finally {
-      isFetchingRef.current = false;
-    }
-  }, []);
+        console.log(`✅ Users updated in real-time: ${usersList.length} users from ${collectionName}`);
+        setUsers(usersList);
+        setHasLoadedUsers(true);
+        setError(null);
+      },
+      (err) => {
+        const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+        console.error('❌ Error in users listener:', errorMsg);
+        setError(`Failed to load users: ${errorMsg}`);
+        setHasLoadedUsers(false);
+      }
+    );
+
+    return () => {
+      console.log('🛑 Cleaning up users listener');
+      unsubscribe();
+    };
+  }, [isAdmin]);
 
   // Change user role (admin only)
   const changeUserRole = useCallback(async (userId: string, newRole: UserRole) => {
@@ -163,9 +160,8 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     loading,
     error,
     users,
-    fetchUsers,
     changeUserRole,
-    hasLoadedUsers: hasLoadedUsersRef.current
+    hasLoadedUsers
   };
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;

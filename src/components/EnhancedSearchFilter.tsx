@@ -94,7 +94,9 @@ export function EnhancedSearchFilter({
             <Calendar className="filter-icon" />
             <select
               value={selectedYear}
-              onChange={(e) => onYearChange(e.target.value)}
+              onChange={(e) => {
+                onYearChange(e.target.value);
+              }}
               className="filter-select"
             >
               <option value="ALL">Tất cả năm</option>

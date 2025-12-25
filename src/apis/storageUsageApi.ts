@@ -5,7 +5,7 @@
 import { collection, getDocs, getDoc, doc, query, where, getCountFromServer, AggregateField, count } from 'firebase/firestore';
 import { db, auth } from '../firebase/firebaseConfig';
 
-const ENV_PREFIX = import.meta.env.VITE_ENV_PREFIX || 'dev';
+const ENV_PREFIX = import.meta.env.VITE_ENV_PREFIX || '';
 
 export interface FirebaseUsageStats {
   documentsCount: number;
@@ -73,7 +73,7 @@ export interface SystemStats {
  */
 export async function getSystemStorageStats(): Promise<SystemStats | null> {
   try {
-    const statsDoc = await getDoc(doc(db, 'system_stats', 'storage'));
+    const statsDoc = await getDoc(doc(db, `${ENV_PREFIX}system_stats`, 'storage'));
     
     if (!statsDoc.exists()) {
       console.warn('System stats not found. Cloud Function may not have run yet.');
@@ -111,7 +111,10 @@ export async function triggerStatsUpdate(): Promise<void> {
       headers: {
         'Authorization': `Bearer ${idToken}`,
         'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify({
+        data: { envPrefix: ENV_PREFIX }
+      })
     });
     
     if (!response.ok) {

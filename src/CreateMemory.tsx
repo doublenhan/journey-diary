@@ -5,22 +5,17 @@ import { useSyncStatus } from './hooks/useSyncStatus';
 import { useLanguage } from './hooks/useLanguage';
 import { useToastContext } from './contexts/ToastContext';
 import { Heart, Camera, Calendar, Save, ArrowLeft, X, Upload, MapPin, Type, CheckCircle, AlertCircle, Navigation } from 'lucide-react';
-import type { MemoryData } from './apis/cloudinaryGalleryApi';
 import { MoodTheme, themes } from './config/themes';
 import VisualEffects from './components/VisualEffects';
 import SyncStatus from './components/SyncStatus';
 import { UploadProgress, UploadProgressItem } from './components/UploadProgress';
-import LazyImage from './components/LazyImage';
-import { WebPImage } from './components/WebPImage';
-import { addMemoryToCache, updateCacheAndNotify, removeMemoryFromCache } from './utils/memoryCacheUtils';
-import type { Memory } from './hooks/useMemoriesCache';
+import { updateCacheAndNotify, removeMemoryFromCache } from './utils/memoryCacheUtils';
 import { usePlacesAutocomplete } from './hooks/usePlacesAutocomplete';
-import { saveMemoryToFirestore } from './utils/memoryFirestore';
 import CustomDatePicker from './components/CustomDatePicker';
 import { validateImageFiles, IMAGE_VALIDATION } from './utils/imageValidation';
 import { sanitizePlainText, sanitizeRichText } from './utils/sanitize';
 import { createMemory } from './services/firebaseMemoriesService';
-import { uploadToCloudinary, uploadMultipleImages } from './services/cloudinaryDirectService';
+import { uploadToCloudinary } from './services/cloudinaryDirectService';
 import { reverseGeocode } from './services/geoService';
 import './styles/CreateMemory.css';
 
@@ -54,7 +49,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
   
   // OpenStreetMap Nominatim Autocomplete (FREE!)
   const locationInputRef = useRef<HTMLInputElement>(null);
-  const { place, suggestions, isLoading: isSearching, showDropdown, selectPlace, dropdownRef, isLoaded: isPlacesLoaded } = usePlacesAutocomplete(locationInputRef);
+  const { place, suggestions, isLoading: isSearching, showDropdown, selectPlace, dropdownRef } = usePlacesAutocomplete(locationInputRef);
   
   // Update location and coordinates when place is selected
   useEffect(() => {
@@ -270,7 +265,9 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
   const handleSave = async () => {
     // Invalidate cache after save
     setValidationAttempted(true);
-    if (!isFormValid) return;
+    if (!isFormValid) {
+      return;
+    }
     setIsLoading(true);
     setSaveMessage(null);
     startSync(); // Start sync animation

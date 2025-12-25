@@ -577,21 +577,39 @@
 .hero-image-wrapper {
   position: relative;
   z-index: 10;
+  width: 100%;
+  min-height: 400px;
+  /* Fixed minimum height to prevent layout shift */
+  height: 500px;
+  /* Fixed height for consistency */
+  overflow: hidden;
+  border-radius: 1.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+@media (min-width: 768px) {
+  .hero-image-wrapper {
+    height: 600px;
+    /* Larger on desktop */
+  }
 }
 
 .hero-image {
   border-radius: 1.5rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   width: 100%;
-  height: auto;
+  height: 100%;
+  /* Fill container */
+  object-fit: cover;
+  /* Maintain aspect ratio while filling */
 }
 
 .hero-image-consistent {
   width: 100%;
-  height: auto;
-  aspect-ratio: 800 / 460;
-  max-width: 100%;
+  height: 100%;
+  /* Fill parent container */
   object-fit: cover;
+  /* Cover entire area without distortion */
   border-radius: 1rem;
   box-shadow: 0 8px 32px rgba(236, 72, 153, 0.12);
   transition: opacity 0.7s;

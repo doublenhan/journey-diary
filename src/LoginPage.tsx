@@ -13,13 +13,6 @@ import { db } from './firebase/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import './styles/LoginPage.css';
 
-declare global {
-  interface Window {
-    recaptchaVerifier: any;
-  }
-}
-
-
 const loveQuotes = [
   "Love is not just looking at each other, it's looking in the same direction.",
   "In your smile, I see something more beautiful than the stars.",
@@ -317,6 +310,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
       return { success: false, message: err.message };
     }
   };
+
 
   // Handle OTP input change
   const handleOtpChange = (index: number, value: string) => {

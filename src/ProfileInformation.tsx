@@ -1,17 +1,19 @@
 ﻿
 import { useEffect, useState } from 'react';
-import { Pencil, User, Mail, Phone, Calendar, LogOut, Lock, Shield } from 'lucide-react';
+import { Pencil, User, Mail, Phone, LogOut, Lock, AlertTriangle } from 'lucide-react';
 import { auth, db, getCollectionName } from './firebase/firebaseConfig';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import CustomDatePicker from './components/CustomDatePicker';
 import ChangePasswordModal from './components/ChangePasswordModal';
+import DeleteAccountModal from './components/DeleteAccountModal';
 import { SecureStorage } from './utils/secureStorage';
 import { useLanguage } from './hooks/useLanguage';
 import { useToastContext } from './contexts/ToastContext';
 import { useAdmin } from './contexts/AdminContext';
 import { WebPImage } from './components/WebPImage';
+import { deleteAccount } from './apis/deleteAccountApi';
 
 interface ProfileInformationProps {
   theme: any;
@@ -23,7 +25,7 @@ interface ProfileInformationProps {
 const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncStart, onSyncSuccess, onSyncError }) => {
   const { t } = useLanguage();
   const { success: showSuccess, error: showError } = useToastContext();
-  const { currentUserRole, isAdmin } = useAdmin();
+  const { currentUserRole } = useAdmin();
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState({
@@ -39,6 +41,7 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
   const [editMode, setEditMode] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -125,6 +128,27 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
       console.error('Logout error:', error);
       setError(t('errors.logoutFailed'));
       setIsLoggingOut(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    console.log('[ProfileInformation] handleDeleteAccount called');
+    console.log('[ProfileInformation] Current user:', user?.uid, user?.email);
+    try {
+      console.log('[ProfileInformation] Calling deleteAccount() API...');
+      await deleteAccount();
+      console.log('[ProfileInformation] deleteAccount() completed successfully');
+      // User will be logged out and redirected by deleteAccount()
+      showSuccess(t('settings.deleteAccount.success'));
+      navigate('/login');
+    } catch (error) {
+      console.error('[ProfileInformation] Error deleting account:', error);
+      if (error instanceof Error) {
+        console.error('[ProfileInformation] Error message:', error.message);
+        console.error('[ProfileInformation] Error stack:', error.stack);
+      }
+      showError(t('settings.deleteAccount.error'));
+      setShowDeleteAccountModal(false);
     }
   };
 
@@ -363,6 +387,38 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
           onClose={() => setShowChangePasswordModal(false)}
           userEmail={profile.email}
           theme={theme}
+        />
+
+        {/* 🔴 Danger Zone - Delete Account */}
+        <div 
+          className="p-6 rounded-2xl border mt-6"
+          style={{ 
+            background: 'rgba(239, 68, 68, 0.05)',
+            borderColor: '#fee2e2'
+          }}
+        >
+          <h3 className="font-semibold mb-2 text-red-600 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5" />
+            {t('settings.deleteAccount.dangerZone')}
+          </h3>
+          <p className="text-sm text-red-700 mb-4">
+            {t('settings.deleteAccount.dangerZoneDesc')}
+          </p>
+          
+          <button
+            onClick={() => setShowDeleteAccountModal(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white font-medium transition-all duration-300 hover:bg-red-700 hover:shadow-lg border-2 border-red-700"
+          >
+            <AlertTriangle className="w-4 h-4" />
+            {t('settings.deleteAccount.button')}
+          </button>
+        </div>
+
+        {/* Delete Account Modal */}
+        <DeleteAccountModal
+          isOpen={showDeleteAccountModal}
+          onClose={() => setShowDeleteAccountModal(false)}
+          onConfirm={handleDeleteAccount}
         />
       </div>
 
