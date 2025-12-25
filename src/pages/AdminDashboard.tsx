@@ -14,7 +14,6 @@ import UserDetailsModal from '../components/UserDetailsModal';
 import { SkeletonChart, SkeletonUserCard } from '../components/Skeleton';
 import { doc, updateDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { db, auth } from '../firebase/firebaseConfig';
-import { startTrace } from '../utils/performanceMonitoring';
 
 type UserStatus = 'Active' | 'Suspended' | 'Removed';
 
@@ -74,7 +73,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
   const [cronHistoryLoading, setCronHistoryLoading] = useState(true);
 
   const loadStorageUsage = async () => {
-    const loadTrace = startTrace('admin_load_storage_usage');
     try {
       setStorageLoading(true);
       setStorageError(null);
@@ -85,21 +83,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
       setFunctionsUsage(usage.cloudFunctions);
       setFirestoreOps(usage.firestoreOperations);
       setLastCalculated(usage.timestamp || null);
-      loadTrace.putAttribute('success', 'true');
-      loadTrace.stop();
     } catch (error) {
       console.error('Error loading storage usage:', error);
       setStorageError('Storage stats not available yet. Click "Calculate Stats" to generate them.');
-      loadTrace.putAttribute('success', 'false');
-      loadTrace.putAttribute('error', error instanceof Error ? error.message : 'Unknown error');
-      loadTrace.stop();
     } finally {
       setStorageLoading(false);
     }
   };
 
   const handleCalculateStats = async () => {
-    const calcStatsTrace = startTrace('admin_calculate_storage_stats');
     try {
       setStorageLoading(true);
       setStorageError(null);
@@ -115,16 +107,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
       // Load the newly calculated stats
       await loadStorageUsage();
       
-      calcStatsTrace.putAttribute('success', 'true');
-      calcStatsTrace.stop();
       showSuccess('Storage stats calculated successfully!');
     } catch (error) {
       console.error('Error calculating storage stats:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to calculate stats';
       setStorageError(errorMessage);
-      calcStatsTrace.putAttribute('success', 'false');
-      calcStatsTrace.putAttribute('error', errorMessage);
-      calcStatsTrace.stop();
       showError(errorMessage);
     } finally {
       setStorageLoading(false);

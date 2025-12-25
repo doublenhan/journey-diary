@@ -17,7 +17,6 @@ import { sanitizePlainText, sanitizeRichText } from './utils/sanitize';
 import { createMemory } from './services/firebaseMemoriesService';
 import { uploadToCloudinary } from './services/cloudinaryDirectService';
 import { reverseGeocode } from './services/geoService';
-import { trackMemoryCreation, trackImageUpload } from './utils/performanceMonitoring';
 import './styles/CreateMemory.css';
 
 interface CreateMemoryProps {
@@ -264,16 +263,9 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
   };
 
   const handleSave = async () => {
-    // Start performance trace
-    const performanceTrace = trackMemoryCreation();
-    performanceTrace.putAttribute('image_count', uploadedImages.length.toString());
-    performanceTrace.putAttribute('has_location', coordinates ? 'true' : 'false');
-    
     // Invalidate cache after save
     setValidationAttempted(true);
     if (!isFormValid) {
-      performanceTrace.putAttribute('validation_failed', 'true');
-      performanceTrace.stop();
       return;
     }
     setIsLoading(true);
@@ -362,11 +354,6 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
           const currentIndex = i;
           
           try {
-            // Track individual image upload performance
-            const imageTrace = trackImageUpload();
-            imageTrace.putAttribute('image_size', Math.round(file.size / 1024).toString() + 'KB');
-            imageTrace.putAttribute('image_type', file.type);
-            
             // Build folder structure: dev/love-journal/users/{userId}/{year}/{month}/memories
             const now = new Date();
             const year = now.getFullYear();
@@ -407,9 +394,6 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
                 }));
               }
             );
-            
-            imageTrace.putMetric('upload_size_bytes', file.size);
-            imageTrace.stop();
             
             uploadedUrls.push(result.secure_url);
             
@@ -475,11 +459,6 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
       console.log('✅ [CreateMemory] Memory saved to Firestore:', newMemory.id);
       console.log(`📊 [CreateMemory] Total operations: 1 write (addDoc), ${uploadedImages.length} image uploads`);
       
-      // Stop performance trace - success
-      performanceTrace.putAttribute('success', 'true');
-      performanceTrace.putMetric('images_uploaded', uploadedImages.length);
-      performanceTrace.stop();
-      
       // Invalidate cache immediately to show new memory
       if (userId) {
         console.log('🔄 [CreateMemory] Invalidating memory cache...');
@@ -505,11 +484,6 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
       }, 2000);
     } catch (error) {
       console.error('Failed to save memory:', error);
-      
-      // Stop performance trace - failure
-      performanceTrace.putAttribute('success', 'false');
-      performanceTrace.putAttribute('error', error instanceof Error ? error.message : 'Unknown error');
-      performanceTrace.stop();
       
       // Rollback optimistic update
       if (userId) {

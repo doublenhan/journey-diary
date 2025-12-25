@@ -1,7 +1,6 @@
 ﻿import { useState } from 'react';
 import { Search, Filter, X, Calendar, MapPin, Tag, ChevronDown } from 'lucide-react';
 import CustomDatePicker from './CustomDatePicker';
-import { trackSearch, trackFilter } from '../utils/performanceMonitoring';
 import '../styles/EnhancedSearchFilter.css';
 
 interface EnhancedSearchFilterProps {
@@ -41,12 +40,6 @@ export function EnhancedSearchFilter({
   const [highlightedText, setHighlightedText] = useState('');
 
   const handleSearch = (query: string) => {
-    if (query) {
-      const searchTrace = trackSearch();
-      searchTrace.putAttribute('query_length', query.length.toString());
-      searchTrace.putAttribute('has_query', 'true');
-      searchTrace.stop();
-    }
     onSearchChange(query);
     setHighlightedText(query);
   };
@@ -102,10 +95,6 @@ export function EnhancedSearchFilter({
             <select
               value={selectedYear}
               onChange={(e) => {
-                const filterTrace = trackFilter();
-                filterTrace.putAttribute('filter_type', 'year');
-                filterTrace.putAttribute('filter_value', e.target.value);
-                filterTrace.stop();
                 onYearChange(e.target.value);
               }}
               className="filter-select"
