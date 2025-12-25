@@ -12,20 +12,31 @@ import { trace } from 'firebase/performance';
  * @returns Trace object with start/stop methods
  */
 export const startTrace = (traceName: string) => {
+  // Return a no-op trace object if performance monitoring is not available
+  const noOpTrace = {
+    start: () => {},
+    stop: () => {},
+    putAttribute: (_key: string, _value: string) => {},
+    putMetric: (_key: string, _value: number) => {},
+    record: (_startTime: number) => {},
+    incrementMetric: (_metricName: string, _num?: number) => {},
+    getAttribute: (_attr: string) => null,
+    getMetric: (_metricName: string) => 0,
+  };
+
   if (!performance) {
-    // If performance monitoring is not available, return a no-op trace
-    return {
-      start: () => {},
-      stop: () => {},
-      putAttribute: () => {},
-      putMetric: () => {},
-    };
+    console.warn(`⚠️ Performance trace "${traceName}" skipped - Performance Monitoring not initialized`);
+    return noOpTrace;
   }
 
-  const customTrace = trace(performance, traceName);
-  customTrace.start();
-  
-  return customTrace;
+  try {
+    const customTrace = trace(performance, traceName);
+    customTrace.start();
+    return customTrace;
+  } catch (error) {
+    console.error(`❌ Failed to start trace "${traceName}":`, error);
+    return noOpTrace;
+  }
 };
 
 /**
