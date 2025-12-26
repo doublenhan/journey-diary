@@ -280,6 +280,10 @@ function App() {
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [galleryLoading, setGalleryLoading] = useState(true);
   const [heroIndex, setHeroIndex] = useState(0);
+  
+  // Timeline state - 5 random memories for storytelling
+  const [timelineMemories, setTimelineMemories] = useState<any[]>([]);
+  const [timelineLoading, setTimelineLoading] = useState(true);
 
   const { memoriesByYear, years, isLoading: heroLoading, error: heroError } = useMemoriesCache(userId, loading);
   const heroImages = years.flatMap((y: string) => (memoriesByYear[y] || []).flatMap((mem: any) =>
@@ -333,6 +337,55 @@ function App() {
       }
     }
     fetchImages();
+  }, [userId]);
+
+  // Fetch timeline memories - 5 random curated moments
+  useEffect(() => {
+    async function fetchTimelineMemories() {
+      if (!userId) {
+        setTimelineLoading(false);
+        return;
+      }
+      
+      try {
+        setTimelineLoading(true);
+        // Fetch more memories to have a good selection pool
+        const memories = await fetchMemories({ 
+          userId, 
+          limit: 20
+        });
+        
+        // Filter memories that have at least one photo and a description
+        const memoriesWithPhotos = memories.filter(mem => 
+          mem.photos && mem.photos.length > 0 && mem.description
+        );
+        
+        // Randomly select 5 memories
+        const shuffled = [...memoriesWithPhotos].sort(() => Math.random() - 0.5);
+        const selected = shuffled.slice(0, 5);
+        
+        // Format timeline data
+        const timelineData = selected.map(mem => ({
+          id: mem.id,
+          date: mem.date,
+          image: mem.photos[0].startsWith('http') 
+            ? mem.photos[0]
+            : `https://res.cloudinary.com/dhelefhv1/image/upload/${mem.photos[0]}`,
+          caption: mem.description.length > 100 
+            ? mem.description.substring(0, 100) + '...'
+            : mem.description,
+          mood: mem.mood || 'romantic'
+        }));
+        
+        setTimelineMemories(timelineData);
+      } catch (e) {
+        console.error('Failed to fetch timeline memories:', e);
+        setTimelineMemories([]);
+      } finally {
+        setTimelineLoading(false);
+      }
+    }
+    fetchTimelineMemories();
   }, [userId]);
 
   return (
@@ -625,6 +678,150 @@ function App() {
                             ))}
                           </div>
                         )}
+                      </>
+                    )}
+                  </div>
+                </section>
+
+                {/* Beautiful Memories Timeline Section */}
+                <section className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-cream-50 via-pink-50 to-orange-50">
+                  <div className="max-w-5xl mx-auto">
+                    {/* Section Header */}
+                    <div className="text-center mb-16">
+                      <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+                        <span className="bg-gradient-to-r from-pink-500 to-rose-600 bg-clip-text text-transparent">
+                          Beautiful Memories
+                        </span>
+                      </h2>
+                      <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                        A small selection of moments from our journey together
+                      </p>
+                    </div>
+
+                    {timelineLoading ? (
+                      <div className="text-center py-12">
+                        <div className="inline-block w-12 h-12 border-4 border-pink-200 border-t-pink-500 rounded-full animate-spin" />
+                      </div>
+                    ) : timelineMemories.length === 0 ? (
+                      <div className="text-center py-12">
+                        <p className="text-gray-400 text-lg">No memories to display yet</p>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Timeline Container */}
+                        <div className="relative">
+                          {/* Vertical Line - Desktop */}
+                          <div className="hidden lg:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-pink-200 via-rose-300 to-pink-200 transform -translate-x-1/2" />
+                          
+                          {/* Vertical Line - Mobile */}
+                          <div className="lg:hidden absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-pink-200 via-rose-300 to-pink-200" />
+
+                          {/* Timeline Items */}
+                          <div className="space-y-12 lg:space-y-16">
+                            {timelineMemories.map((memory, idx) => {
+                              const isLeft = idx % 2 === 0;
+                              const formattedDate = new Date(memory.date).toLocaleDateString('en-US', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric'
+                              });
+
+                              return (
+                                <div key={memory.id} className="relative">
+                                  {/* Desktop Layout - Alternating Left/Right */}
+                                  <div className={`hidden lg:grid lg:grid-cols-2 lg:gap-12 items-center ${isLeft ? '' : 'lg:grid-flow-dense'}`}>
+                                    {/* Content Side */}
+                                    <div className={`${isLeft ? 'lg:text-right lg:pr-8' : 'lg:col-start-2 lg:text-left lg:pl-8'} opacity-0 animate-fade-in-up`} style={{ animationDelay: `${idx * 100}ms`, animationFillMode: 'forwards' }}>
+                                      {/* Date Badge */}
+                                      <div className={`inline-block px-4 py-2 rounded-full bg-gradient-to-r from-pink-100 to-rose-100 text-rose-700 font-semibold text-sm mb-4 shadow-sm`}>
+                                        {formattedDate}
+                                      </div>
+                                      
+                                      {/* Caption */}
+                                      <p className="text-gray-700 leading-relaxed italic">
+                                        "{memory.caption}"
+                                      </p>
+                                    </div>
+
+                                    {/* Image Side */}
+                                    <div className={`${isLeft ? 'lg:col-start-2' : 'lg:col-start-1'} opacity-0 animate-fade-in-up`} style={{ animationDelay: `${idx * 100 + 50}ms`, animationFillMode: 'forwards' }}>
+                                      <div className="group relative aspect-[4/3] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500">
+                                        <img
+                                          src={memory.image}
+                                          alt={`Memory from ${formattedDate}`}
+                                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                        />
+                                        {/* Subtle overlay on hover */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                      </div>
+                                    </div>
+
+                                    {/* Timeline Dot */}
+                                    <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                      <div className="w-4 h-4 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-4 border-white shadow-lg" />
+                                    </div>
+                                  </div>
+
+                                  {/* Mobile Layout - Single Column */}
+                                  <div className="lg:hidden flex gap-6">
+                                    {/* Timeline Dot - Mobile */}
+                                    <div className="flex-shrink-0">
+                                      <div className="w-4 h-4 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-4 border-white shadow-lg mt-2" />
+                                    </div>
+
+                                    {/* Content - Mobile */}
+                                    <div className="flex-1 opacity-0 animate-fade-in-up" style={{ animationDelay: `${idx * 100}ms`, animationFillMode: 'forwards' }}>
+                                      {/* Date Badge */}
+                                      <div className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-pink-100 to-rose-100 text-rose-700 font-semibold text-sm mb-4 shadow-sm">
+                                        {formattedDate}
+                                      </div>
+                                      
+                                      {/* Image */}
+                                      <div className="group relative aspect-[4/3] rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-500 mb-4">
+                                        <img
+                                          src={memory.image}
+                                          alt={`Memory from ${formattedDate}`}
+                                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                        />
+                                      </div>
+
+                                      {/* Caption */}
+                                      <p className="text-gray-700 leading-relaxed italic">
+                                        "{memory.caption}"
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          {/* End Dot */}
+                          <div className="relative mt-12 flex justify-center lg:justify-center">
+                            <div className="w-3 h-3 rounded-full bg-gradient-to-br from-pink-300 to-rose-400 shadow-md" />
+                          </div>
+                        </div>
+
+                        {/* CTA at Bottom */}
+                        <div className="text-center mt-16">
+                          <a 
+                            href="/view-memory" 
+                            className="inline-flex items-center gap-2 px-8 py-4 rounded-full border-2 border-pink-300 text-gray-700 font-semibold hover:bg-pink-50 hover:border-pink-400 hover:shadow-lg transition-all duration-300 group"
+                          >
+                            <span>View Full Journey</span>
+                            <svg 
+                              className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                            </svg>
+                          </a>
+                          <p className="text-sm text-gray-500 mt-4">
+                            Explore all memories from your journey
+                          </p>
+                        </div>
                       </>
                     )}
                   </div>
