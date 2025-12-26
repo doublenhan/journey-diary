@@ -690,11 +690,11 @@ function App() {
                     <div className="text-center mb-16">
                       <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
                         <span className="bg-gradient-to-r from-pink-500 to-rose-600 bg-clip-text text-transparent">
-                          Beautiful Memories
+                          {t('landing.timelineTitle')}
                         </span>
                       </h2>
                       <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                        A small selection of moments from our journey together
+                        {t('landing.timelineSubtitle')}
                       </p>
                     </div>
 
@@ -704,7 +704,7 @@ function App() {
                       </div>
                     ) : timelineMemories.length === 0 ? (
                       <div className="text-center py-12">
-                        <p className="text-gray-400 text-lg">No memories to display yet</p>
+                        <p className="text-gray-400 text-lg">{t('landing.noMemories')}</p>
                       </div>
                     ) : (
                       <>
@@ -808,7 +808,7 @@ function App() {
                             href="/view-memory" 
                             className="inline-flex items-center gap-2 px-8 py-4 rounded-full border-2 border-pink-300 text-gray-700 font-semibold hover:bg-pink-50 hover:border-pink-400 hover:shadow-lg transition-all duration-300 group"
                           >
-                            <span>View Full Journey</span>
+                            <span>{t('landing.viewFullJourney')}</span>
                             <svg 
                               className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" 
                               fill="none" 
@@ -819,7 +819,7 @@ function App() {
                             </svg>
                           </a>
                           <p className="text-sm text-gray-500 mt-4">
-                            Explore all memories from your journey
+                            {t('landing.exploreAllMemories')}
                           </p>
                         </div>
                       </>
