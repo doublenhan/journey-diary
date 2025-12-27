@@ -11,7 +11,6 @@ import { SecureStorage } from './utils/secureStorage';
 import { createUserWithRole } from './apis/userRoleApi';
 import { db } from './firebase/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
-import './styles/LoginPage.css';
 
 const loveQuotes = [
   "Love is not just looking at each other, it's looking in the same direction.",
@@ -42,18 +41,26 @@ const popularCountries = [
   { code: '+49', flag: '🇩🇪', name: 'Germany' },
 ];
 
-const FloatingHeart = ({ delay = 0, size = 'small' }) => (
-  <div 
-    className={`floating-heart ${size}`}
-    style={{ 
-      animationDelay: `${delay}s`,
-      left: `${Math.random() * 100}%`,
-      top: `${Math.random() * 100}%`
-    }}
-  >
-    <Heart className="fill-current" />
-  </div>
-);
+const FloatingHeart = ({ delay = 0, size = 'small' }) => {
+  const sizeClasses = {
+    small: 'w-4 h-4',
+    medium: 'w-5 h-5',
+    large: 'w-6 h-6'
+  };
+  
+  return (
+    <div 
+      className={`absolute text-pink-200/60 pointer-events-none animate-[float_6s_ease-in-out_infinite] ${sizeClasses[size as keyof typeof sizeClasses]}`}
+      style={{ 
+        animationDelay: `${delay}s`,
+        left: `${Math.random() * 100}%`,
+        top: `${Math.random() * 100}%`
+      }}
+    >
+      <Heart className="fill-current" />
+    </div>
+  );
+};
 
 
 interface LoginPageProps {
@@ -499,7 +506,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
   const animationSpeed = 50;
 
   return (
-    <div className="login-container">
+    <div className="min-h-screen bg-gradient-to-br from-pink-400 via-pink-500 to-pink-600 bg-[length:400%_400%] animate-[gradient-shift_15s_ease_infinite] flex items-center justify-center p-4 relative overflow-hidden">
       {/* Visual Effects */}
       <VisualEffects 
         effectsEnabled={effectsEnabled}
@@ -517,47 +524,49 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
       ))}
       
       {/* Main Login Card */}
-      <div className="login-card">
-        <div className="login-card-inner">
+      <div className="w-full max-w-md animate-[fade-in-up_0.8s_ease-out]">
+        <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] p-8 border border-pink-200/30">
           {/* Header */}
-          <div className="login-header">
-            <div className="logo-container">
-              <BookHeart className="logo-icon" />
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-pink-500 to-pink-700 rounded-full mb-4 shadow-[0_10px_25px_rgba(236,72,153,0.3)] animate-[bounce-in_1s_ease-out_0.3s_both]">
+              <BookHeart className="w-8 h-8 text-white" />
             </div>
-            <h1 className="login-title">{t('auth.appTitle')}</h1>
-            <p className="login-subtitle">{t('auth.appSubtitle')}</p>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2 animate-[fade-in-up_0.8s_ease-out_0.4s_both]">{t('auth.appTitle')}</h1>
+            <p className="text-pink-600 text-lg font-medium animate-[fade-in-up_0.8s_ease-out_0.5s_both]">{t('auth.appSubtitle')}</p>
           </div>
 
           {/* Current Date */}
-          <div className="date-display">
-            <Calendar className="date-icon" />
+          <div className="flex items-center justify-center text-sm text-gray-600 mb-6 bg-pink-50 rounded-lg p-3 animate-[fade-in-up_0.8s_ease-out_0.6s_both]">
+            <Calendar className="w-4 h-4 mr-2 text-pink-500" />
             {getCurrentDate()}
           </div>
 
           {/* Login Form */}
-          <form onSubmit={handleSubmit} className="login-form">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6 animate-[fade-in-up_0.8s_ease-out_0.7s_both]">
             {/* Registration Method Selector (only show when registering) */}
             {isRegister && (
-              <div className="register-method-toggle">
-                <label>
+              <div className="flex gap-6 mb-2">
+                <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio"
                     name="register-method"
                     value="email"
                     checked={registerMethod === 'email'}
                     onChange={() => setRegisterMethod('email')}
-                  />{' '}
-                  {t('auth.registerMethodEmail')}
+                    className="w-4 h-4 text-pink-600 focus:ring-pink-500"
+                  />
+                  <span className="text-gray-700">{t('auth.registerMethodEmail')}</span>
                 </label>
-                <label style={{ marginLeft: '1.5em' }}>
+                <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio"
                     name="register-method"
                     value="phone"
                     checked={registerMethod === 'phone'}
                     onChange={() => setRegisterMethod('phone')}
-                  />{' '}
-                  {t('auth.registerMethodPhone')}
+                    className="w-4 h-4 text-pink-600 focus:ring-pink-500"
+                  />
+                  <span className="text-gray-700">{t('auth.registerMethodPhone')}</span>
                 </label>
               </div>
             )}
@@ -565,27 +574,27 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
             {/* Email/Phone Field */}
             {isRegister ? (
               registerMethod === 'phone' ? (
-                <div className="form-group">
-                  <label htmlFor="phone" className="form-label">
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="phone" className="text-sm font-medium text-gray-700">
                     {t('auth.phoneLabel')}
                   </label>
-                  <div className="phone-input-container" ref={dropdownRef}>
+                  <div className="relative" ref={dropdownRef}>
                     {/* Country Code Dropdown Button */}
                     <button
                       type="button"
                       onClick={() => setShowCountryDropdown(!showCountryDropdown)}
-                      className="country-dropdown-button"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 px-2 py-1 bg-gray-50 rounded hover:bg-gray-100 transition-colors z-10"
                     >
-                      <span className="country-flag">{selectedCountry.flag}</span>
-                      <span className="country-code">{selectedCountry.code}</span>
-                      <svg className="dropdown-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <span className="text-lg">{selectedCountry.flag}</span>
+                      <span className="text-sm font-medium text-gray-700">{selectedCountry.code}</span>
+                      <svg className="w-4 h-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
 
                     {/* Country Dropdown Menu */}
                     {showCountryDropdown && (
-                      <div className="country-dropdown-menu">
+                      <div className="absolute top-full left-0 mt-1 w-64 max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg z-50">
                         {popularCountries.map((country) => (
                           <button
                             key={country.code}
@@ -594,25 +603,25 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                               setSelectedCountry(country);
                               setShowCountryDropdown(false);
                             }}
-                            className="country-dropdown-item"
+                            className="w-full flex items-center gap-3 px-4 py-2 hover:bg-pink-50 transition-colors text-left"
                           >
-                            <span className="country-flag">{country.flag}</span>
-                            <span className="country-name">{country.name}</span>
-                            <span className="country-code-text">{country.code}</span>
+                            <span className="text-lg">{country.flag}</span>
+                            <span className="flex-1 text-sm text-gray-700">{country.name}</span>
+                            <span className="text-sm text-gray-500">{country.code}</span>
                           </button>
                         ))}
                       </div>
                     )}
 
                     {/* Phone Input */}
-                    <div className="phone-input-wrapper">
-                      <Phone className="input-icon" />
+                    <div className="relative">
+                      <Phone className="absolute left-[140px] top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                       <input
                         id="phone"
                         type="tel"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        className="form-input phone-input"
+                        className="w-full pl-[170px] pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all outline-none"
                         placeholder="123 456 7890"
                         required
                       />
@@ -622,18 +631,18 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                   <div id="recaptcha-container" />
                 </div>
               ) : (
-                <div className="form-group">
-                  <label htmlFor="email" className="form-label">
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="email" className="text-sm font-medium text-gray-700">
                     {t('auth.emailLabel')}
                   </label>
-                  <div className="input-container">
-                    <Mail className="input-icon" />
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                     <input
                       id="email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="form-input"
+                      className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all outline-none"
                       placeholder="Nhập email của bạn"
                       required
                     />
@@ -641,18 +650,18 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                 </div>
               )
             ) : (
-              <div className="form-group">
-                <label htmlFor="email" className="form-label">
+              <div className="flex flex-col gap-2">
+                <label htmlFor="email" className="text-sm font-medium text-gray-700">
                   {t('auth.emailLabel')}
                 </label>
-                <div className="input-container">
-                  <Mail className="input-icon" />
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                   <input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="form-input"
+                    className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all outline-none"
                     placeholder={t('auth.emailPlaceholder')}
                     required
                   />
@@ -661,59 +670,59 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
             )}
 
             {/* Password Field */}
-            <div className="form-group">
-              <label htmlFor="password" className="form-label">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="password" className="text-sm font-medium text-gray-700">
                 Mật Khẩu
               </label>
-              <div className="input-container">
-                <Lock className="input-icon" />
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="form-input"
+                  className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all outline-none"
                   placeholder="Nhập mật khẩu của bạn"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="password-toggle"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
                   aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiển thị mật khẩu'}
                 >
                   {showPassword ? (
-                    <EyeOff className="password-toggle-icon" />
+                    <EyeOff className="w-5 h-5" />
                   ) : (
-                    <Eye className="password-toggle-icon" />
+                    <Eye className="w-5 h-5" />
                   )}
                 </button>
               </div>
             </div>
 
             {/* Remember Me Checkbox */}
-            <div className="form-group remember-me-row">
-              <label htmlFor="rememberMe" className="remember-me-label">
+            <div className="flex items-center gap-2">
+              <label htmlFor="rememberMe" className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   id="rememberMe"
                   checked={rememberMe}
                   onChange={e => setRememberMe(e.target.checked)}
-                  className="remember-me-checkbox"
+                  className="w-4 h-4 text-pink-600 rounded focus:ring-pink-500"
                 />
-                <span className="remember-me-text">{t('auth.rememberMe')}</span>
+                <span className="text-sm text-gray-700">{t('auth.rememberMe')}</span>
               </label>
             </div>
 
 
             {/* Error & Success Message */}
             {error && (
-              <div className="error-message">
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                 {error}
               </div>
             )}
             {successMsg && (
-              <div className="success-message">
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
                 {successMsg}
               </div>
             )}
@@ -722,52 +731,52 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
             <button
               type="submit"
               disabled={isLoading}
-              className="login-button"
+              className="w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {isLoading ? (
                 <>
-                  <Heart className="login-button-icon loading fill-current" />
+                  <Heart className="w-5 h-5 fill-current animate-pulse" />
                   <span>{isRegister ? t('auth.registering') : t('auth.loggingIn')}</span>
                 </>
               ) : (
                 <>
-                  <Heart className="login-button-icon fill-current" />
+                  <Heart className="w-5 h-5 fill-current" />
                   <span>{isRegister ? t('auth.registerButton') : t('auth.loginButton')}</span>
-                  <Heart className="login-button-icon fill-current" />
+                  <Heart className="w-5 h-5 fill-current" />
                 </>
               )}
             </button>
           </form>
 
           {/* Divider */}
-          <div className="divider">
-            <div className="divider-line"></div>
-            <span className="divider-text">{t('auth.or')}</span>
-            <div className="divider-line"></div>
+          <div className="flex items-center gap-4 my-6">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+            <span className="text-sm text-gray-500 font-medium">{t('auth.or')}</span>
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
           </div>
 
           {/* Social Login Options */}
-          <div className="social-login">
-            <button className="social-button">
-              <div className="social-icon google">G</div>
-              <span>{t('auth.googleLogin')}</span>
+          <div className="flex flex-col gap-3">
+            <button className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border-2 border-gray-200 rounded-lg hover:border-pink-300 hover:bg-pink-50 transition-all duration-200 shadow-sm hover:shadow-md">
+              <div className="w-8 h-8 flex items-center justify-center bg-white rounded-full shadow-sm border border-gray-200 text-red-500 font-bold text-lg">G</div>
+              <span className="font-medium text-gray-700">{t('auth.googleLogin')}</span>
             </button>
             
-            <button className="social-button">
-              <div className="social-icon facebook">f</div>
-              <span>{t('auth.facebookLogin')}</span>
+            <button className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border-2 border-gray-200 rounded-lg hover:border-pink-300 hover:bg-pink-50 transition-all duration-200 shadow-sm hover:shadow-md">
+              <div className="w-8 h-8 flex items-center justify-center bg-blue-600 rounded-full shadow-sm text-white font-bold text-lg">f</div>
+              <span className="font-medium text-gray-700">{t('auth.facebookLogin')}</span>
             </button>
           </div>
 
           {/* Footer Links */}
-          <div className="footer-links">
-            <p className="footer-text">
+          <div className="mt-6 text-center space-y-3">
+            <p className="text-sm text-gray-600">
               {isRegister ? (
                 <>
                   {t('auth.existingUser')}{' '}
                   <button
                     type="button"
-                    className="footer-link"
+                    className="text-pink-600 font-semibold hover:text-pink-700 hover:underline transition-colors"
                     onClick={() => {
                       setIsRegister(false);
                       setError('');
@@ -782,7 +791,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                   {t('auth.newUser')}{' '}
                   <button
                     type="button"
-                    className="footer-link"
+                    className="text-pink-600 font-semibold hover:text-pink-700 hover:underline transition-colors"
                     onClick={() => {
                       setIsRegister(true);
                       setError('');
@@ -796,7 +805,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
             </p>
             <button 
               type="button"
-              className="footer-link"
+              className="text-sm text-pink-600 font-medium hover:text-pink-700 hover:underline transition-colors"
               onClick={() => {
                 setShowForgotPasswordModal(true);
                 setError('');
@@ -811,33 +820,33 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
 
         {/* Forgot Password Modal */}
         {showForgotPasswordModal && (
-          <div className="otp-modal-overlay" onClick={() => setShowForgotPasswordModal(false)}>
-            <div className="otp-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-[fade-in_0.3s_ease-out]" onClick={() => setShowForgotPasswordModal(false)}>
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative animate-[bounce-in_0.5s_ease-out]" onClick={(e) => e.stopPropagation()}>
               <button 
-                className="otp-modal-close"
+                className="absolute top-4 right-4 p-1 text-gray-400 hover:text-gray-600 transition-colors"
                 onClick={() => setShowForgotPasswordModal(false)}
                 aria-label="Đóng"
               >
-                <X />
+                <X className="w-5 h-5" />
               </button>
               
-              <div className="otp-modal-header">
-                <Mail className="otp-modal-icon" />
-                <h2 className="otp-modal-title">{t('auth.forgotPasswordTitle')}</h2>
-                <p className="otp-modal-subtitle">
+              <div className="text-center mb-6">
+                <Mail className="w-12 h-12 mx-auto mb-3 text-pink-500" />
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('auth.forgotPasswordTitle')}</h2>
+                <p className="text-sm text-gray-600">
                   {t('auth.forgotPasswordSubtitle')}
                 </p>
               </div>
 
               <form onSubmit={handleForgotPassword}>
-                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                  <div className="input-container">
-                    <Mail className="input-icon" />
+                <div className="mb-6">
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                     <input
                       type="email"
                       value={forgotPasswordEmail}
                       onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                      className="form-input"
+                      className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all outline-none"
                       placeholder={t('auth.forgotPasswordEmailPlaceholder')}
                       required
                       autoFocus
@@ -846,7 +855,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                 </div>
 
                 {error && (
-                  <div className="otp-error-message" style={{ marginBottom: '1rem' }}>
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                     {error}
                   </div>
                 )}
@@ -854,29 +863,29 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                 <button
                   type="submit"
                   disabled={isLoading || !forgotPasswordEmail}
-                  className="otp-submit-button"
+                  className="w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <>
-                      <Heart className="animate-pulse" />
+                      <Heart className="w-5 h-5 animate-pulse" />
                       <span>{t('auth.forgotPasswordSending')}</span>
                     </>
                   ) : (
                     <>
-                      <Mail style={{ width: '20px', height: '20px' }} />
+                      <Mail className="w-5 h-5" />
                       <span>{t('auth.forgotPasswordSendButton')}</span>
                     </>
                   )}
                 </button>
 
-                <div className="otp-resend-container">
+                <div className="mt-4 text-center">
                   <button
                     type="button"
                     onClick={() => {
                       setShowForgotPasswordModal(false);
                       setError('');
                     }}
-                    className="otp-resend-button"
+                    className="text-sm text-pink-600 font-medium hover:text-pink-700 hover:underline transition-colors"
                   >
                     {t('auth.forgotPasswordBackToLogin')}
                   </button>
@@ -888,26 +897,26 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
 
         {/* OTP Verification Modal */}
         {showOtpModal && (
-          <div className="otp-modal-overlay" onClick={() => setShowOtpModal(false)}>
-            <div className="otp-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-[fade-in_0.3s_ease-out]" onClick={() => setShowOtpModal(false)}>
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative animate-[bounce-in_0.5s_ease-out]" onClick={(e) => e.stopPropagation()}>
               <button 
-                className="otp-modal-close"
+                className="absolute top-4 right-4 p-1 text-gray-400 hover:text-gray-600 transition-colors"
                 onClick={() => setShowOtpModal(false)}
                 aria-label="Đóng"
               >
-                <X />
+                <X className="w-5 h-5" />
               </button>
               
-              <div className="otp-modal-header">
-                <Phone className="otp-modal-icon" />
-                <h2 className="otp-modal-title">{t('auth.otpTitle')}</h2>
-                <p className="otp-modal-subtitle">
+              <div className="text-center mb-6">
+                <Phone className="w-12 h-12 mx-auto mb-3 text-pink-500" />
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('auth.otpTitle')}</h2>
+                <p className="text-sm text-gray-600">
                   {t('auth.otpSubtitle')}<br />
                   <strong>{selectedCountry.flag} {selectedCountry.code} {phone}</strong>
                 </p>
               </div>
 
-              <div className="otp-inputs-container" onPaste={handleOtpPaste}>
+              <div className="flex gap-2 justify-center mb-6" onPaste={handleOtpPaste}>
                 {otpCode.map((digit, index) => (
                   <input
                     key={index}
@@ -918,13 +927,14 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                     value={digit}
                     onChange={(e) => handleOtpChange(index, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                    className="otp-input"
+                    className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300 rounded-lg focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none transition-all"
                     aria-label={`OTP digit ${index + 1}`}
                   />
-                ))}</div>
+                ))}
+              </div>
 
               {otpError && (
-                <div className="otp-error-message">
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm text-center">
                   {otpError}
                 </div>
               )}
@@ -932,11 +942,11 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
               <button
                 onClick={() => handleOtpSubmit(otpCode.join(''))}
                 disabled={isLoading || otpCode.some(d => !d)}
-                className="otp-submit-button"
+                className="w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>
-                    <Heart className="animate-pulse" />
+                    <Heart className="w-5 h-5 animate-pulse" />
                     <span>{t('auth.otpVerifying')}</span>
                   </>
                 ) : (
@@ -944,18 +954,18 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                 )}
               </button>
 
-              <div className="otp-resend-container">
+              <div className="mt-4 text-center">
                 {canResend ? (
                   <button
                     onClick={handleResendOtp}
                     disabled={isLoading}
-                    className="otp-resend-button"
+                    className="text-sm text-pink-600 font-medium hover:text-pink-700 hover:underline transition-colors disabled:opacity-50"
                   >
                     {t('auth.otpResendButton')}
                   </button>
                 ) : (
-                  <p className="otp-countdown">
-                    {t('auth.otpResendCountdown')} <strong>{resendCountdown}s</strong>
+                  <p className="text-sm text-gray-600">
+                    {t('auth.otpResendCountdown')} <strong className="text-pink-600">{resendCountdown}s</strong>
                   </p>
                 )}
               </div>
@@ -964,9 +974,9 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
         )}
 
         {/* Love Quote */}
-        <div className="love-quote-container">
-          <div className="love-quote-card">
-            <p className="love-quote-text">
+        <div className="mt-6 animate-[fade-in-up_0.8s_ease-out_1s_both]">
+          <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl p-4 shadow-sm border border-pink-100">
+            <p className="text-center text-sm text-gray-700 italic leading-relaxed">
               "{loveQuotes[currentQuote]}"
             </p>
           </div>

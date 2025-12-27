@@ -1,6 +1,5 @@
 ﻿import { useMemo } from 'react';
 import { Calendar, MapPin, Heart, TrendingUp, Image, Clock, Award } from 'lucide-react';
-import '../styles/MemoryStatistics.css';
 
 interface Memory {
   id: string;
@@ -102,96 +101,96 @@ export function MemoryStatistics({ memories, theme }: MemoryStatisticsProps) {
   }
 
   return (
-    <div className="memory-statistics">
+    <div className="bg-gradient-to-br from-white to-pink-50 rounded-3xl p-8 shadow-[0_4px_20px_rgba(236,72,153,0.1)] mb-8 max-md:p-6">
       {/* Header */}
-      <div className="stats-header">
+      <div className="flex items-center gap-3 mb-8">
         <TrendingUp className="w-6 h-6" style={{ color: primaryColor }} />
-        <h2 className="stats-title">Thống Kê Kỷ Niệm</h2>
+        <h2 className="text-2xl font-bold text-gray-700 m-0">Thống Kê Kỷ Niệm</h2>
       </div>
 
       {/* Key Metrics */}
-      <div className="stats-grid">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-6 mb-8 max-md:grid-cols-1 max-md:gap-4">
         {/* Total Memories */}
-        <div className="stat-card" style={{ borderColor: primaryColor }}>
-          <div className="stat-icon" style={{ background: `${primaryColor}15`, color: primaryColor }}>
+        <div className="bg-white rounded-2xl p-6 border-2 transition-all duration-300 flex items-center gap-4 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(236,72,153,0.15)] max-[480px]:flex-col max-[480px]:text-center max-md:p-4" style={{ borderColor: primaryColor }}>
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 max-[480px]:w-12 max-[480px]:h-12" style={{ background: `${primaryColor}15`, color: primaryColor }}>
             <Heart className="w-6 h-6" />
           </div>
-          <div className="stat-content">
-            <div className="stat-value" style={{ color: primaryColor }}>
+          <div className="flex-1">
+            <div className="text-3xl font-bold leading-none mb-2 max-md:text-2xl" style={{ color: primaryColor }}>
               {stats.totalMemories}
             </div>
-            <div className="stat-label">Tổng Kỷ Niệm</div>
+            <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Tổng Kỷ Niệm</div>
           </div>
         </div>
 
         {/* Total Images */}
-        <div className="stat-card" style={{ borderColor: primaryColor }}>
-          <div className="stat-icon" style={{ background: `${primaryColor}15`, color: primaryColor }}>
+        <div className="bg-white rounded-2xl p-6 border-2 transition-all duration-300 flex items-center gap-4 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(236,72,153,0.15)] max-[480px]:flex-col max-[480px]:text-center max-md:p-4" style={{ borderColor: primaryColor }}>
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 max-[480px]:w-12 max-[480px]:h-12" style={{ background: `${primaryColor}15`, color: primaryColor }}>
             <Image className="w-6 h-6" />
           </div>
-          <div className="stat-content">
-            <div className="stat-value" style={{ color: primaryColor }}>
+          <div className="flex-1">
+            <div className="text-3xl font-bold leading-none mb-2 max-md:text-2xl" style={{ color: primaryColor }}>
               {stats.totalImages}
             </div>
-            <div className="stat-label">Tổng Hình Ảnh</div>
-            <div className="stat-sub">~{stats.avgImages} ảnh/kỷ niệm</div>
+            <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Tổng Hình Ảnh</div>
+            <div className="text-xs text-gray-400 mt-1">~{stats.avgImages} ảnh/kỷ niệm</div>
           </div>
         </div>
 
         {/* Recent Activity */}
-        <div className="stat-card" style={{ borderColor: primaryColor }}>
-          <div className="stat-icon" style={{ background: `${primaryColor}15`, color: primaryColor }}>
+        <div className="bg-white rounded-2xl p-6 border-2 transition-all duration-300 flex items-center gap-4 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(236,72,153,0.15)] max-[480px]:flex-col max-[480px]:text-center max-md:p-4" style={{ borderColor: primaryColor }}>
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 max-[480px]:w-12 max-[480px]:h-12" style={{ background: `${primaryColor}15`, color: primaryColor }}>
             <Clock className="w-6 h-6" />
           </div>
-          <div className="stat-content">
-            <div className="stat-value" style={{ color: primaryColor }}>
+          <div className="flex-1">
+            <div className="text-3xl font-bold leading-none mb-2 max-md:text-2xl" style={{ color: primaryColor }}>
               {stats.recentMemories}
             </div>
-            <div className="stat-label">3 Tháng Gần Đây</div>
+            <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider">3 Tháng Gần Đây</div>
           </div>
         </div>
 
         {/* Most Active Month */}
         {stats.mostActiveMonth && (
-          <div className="stat-card" style={{ borderColor: primaryColor }}>
-            <div className="stat-icon" style={{ background: `${primaryColor}15`, color: primaryColor }}>
+          <div className="bg-white rounded-2xl p-6 border-2 transition-all duration-300 flex items-center gap-4 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(236,72,153,0.15)] max-[480px]:flex-col max-[480px]:text-center max-md:p-4" style={{ borderColor: primaryColor }}>
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 max-[480px]:w-12 max-[480px]:h-12" style={{ background: `${primaryColor}15`, color: primaryColor }}>
               <Award className="w-6 h-6" />
             </div>
-            <div className="stat-content">
-              <div className="stat-value" style={{ color: primaryColor }}>
+            <div className="flex-1">
+              <div className="text-3xl font-bold leading-none mb-2 max-md:text-2xl" style={{ color: primaryColor }}>
                 {stats.mostActiveMonth[1]}
               </div>
-              <div className="stat-label">Tháng Nhiều Nhất</div>
-              <div className="stat-sub">{formatMonth(stats.mostActiveMonth[0])}</div>
+              <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Tháng Nhiều Nhất</div>
+              <div className="text-xs text-gray-400 mt-1">{formatMonth(stats.mostActiveMonth[0])}</div>
             </div>
           </div>
         )}
       </div>
 
       {/* Detailed Sections */}
-      <div className="stats-details">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-8 max-md:grid-cols-1 max-md:gap-6">
         {/* Memories by Year */}
         {Object.keys(stats.byYear).length > 0 && (
-          <div className="stats-section">
-            <div className="section-header">
+          <div className="bg-white rounded-2xl p-6 border-2 border-pink-100 max-md:p-4">
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b-2 border-pink-100">
               <Calendar className="w-5 h-5" style={{ color: primaryColor }} />
-              <h3>Theo Năm</h3>
+              <h3 className="text-lg font-bold text-gray-700 m-0">Theo Năm</h3>
             </div>
-            <div className="stats-bars">
+            <div className="flex flex-col gap-4">
               {Object.entries(stats.byYear)
                 .sort((a, b) => b[0].localeCompare(a[0]))
                 .map(([year, count]) => {
                   const maxCount = Math.max(...Object.values(stats.byYear));
                   const percentage = (count / maxCount) * 100;
                   return (
-                    <div key={year} className="stats-bar-item">
-                      <div className="bar-label">
-                        <span className="bar-name">{year}</span>
-                        <span className="bar-count">{count}</span>
+                    <div key={year} className="flex flex-col gap-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-semibold text-gray-700">{year}</span>
+                        <span className="text-sm font-bold text-pink-500">{count}</span>
                       </div>
-                      <div className="bar-track">
+                      <div className="w-full h-3 bg-pink-100 rounded-full overflow-hidden">
                         <div 
-                          className="bar-fill" 
+                          className="h-full rounded-full transition-[width] duration-500 animate-[fillBar_1s_ease]" 
                           style={{ 
                             width: `${percentage}%`,
                             background: `linear-gradient(90deg, ${primaryColor}, ${primaryColor}dd)`
@@ -207,20 +206,20 @@ export function MemoryStatistics({ memories, theme }: MemoryStatisticsProps) {
 
         {/* Top Locations */}
         {stats.topLocations.length > 0 && (
-          <div className="stats-section">
-            <div className="section-header">
+          <div className="bg-white rounded-2xl p-6 border-2 border-pink-100 max-md:p-4">
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b-2 border-pink-100">
               <MapPin className="w-5 h-5" style={{ color: primaryColor }} />
-              <h3>Địa Điểm Phổ Biến</h3>
+              <h3 className="text-lg font-bold text-gray-700 m-0">Địa Điểm Phổ Biến</h3>
             </div>
-            <div className="location-list">
+            <div className="flex flex-col gap-4">
               {stats.topLocations.map(([location, count], index) => (
-                <div key={location} className="location-item">
-                  <div className="location-rank" style={{ background: `${primaryColor}15`, color: primaryColor }}>
+                <div key={location} className="flex items-center gap-4 px-4 py-4 bg-pink-50 rounded-xl transition-all duration-200 hover:bg-pink-100 hover:translate-x-1">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-base font-bold flex-shrink-0" style={{ background: `${primaryColor}15`, color: primaryColor }}>
                     {index + 1}
                   </div>
-                  <div className="location-info">
-                    <div className="location-name">{location}</div>
-                    <div className="location-count">{count} kỷ niệm</div>
+                  <div className="flex-1">
+                    <div className="text-[0.95rem] font-semibold text-gray-700 mb-1">{location}</div>
+                    <div className="text-xs text-gray-500">{count} kỷ niệm</div>
                   </div>
                 </div>
               ))}

@@ -18,10 +18,8 @@ import { LazyImage } from './components/LazyImage';
 import { GallerySkeleton } from './components/GallerySkeleton';
 import { ToastContainer } from './components/Toast';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import './styles/App.css';
 import './styles/PageLoader.css';
 import './styles/transitions.css';
-import './styles/Toast.css';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 
 // Lazy load heavy components with prefetch hints
@@ -441,86 +439,223 @@ function App() {
                     </button>
                   </div>
                 </div>
+              </header>
 
-                {/* Mobile Menu */}
-                {mobileMenuOpen && (
-                  <>
-                    {/* Backdrop */}
-                    <div 
-                      className={`fixed inset-0 bg-black/50 z-[999] transition-opacity duration-300 ${menuMounted ? 'opacity-100' : 'opacity-0'}`}
-                      onClick={() => setMobileMenuOpen(false)}
-                      aria-label="Close menu"
-                    />
-                    
-                    {/* Menu Panel */}
-                    <div className={`fixed top-0 right-0 w-80 max-w-[80vw] h-full bg-gradient-to-br from-pink-50 to-rose-100 shadow-2xl z-[1001] overflow-y-auto transition-transform duration-300 ${menuMounted ? 'translate-x-0' : 'translate-x-full'}`}>
-                      <div className="p-6 flex flex-col gap-5">
-                        {/* Close Button */}
+              {/* Mobile Menu - Outside header to avoid stacking context issues */}
+              {mobileMenuOpen && (
+                <>
+                  {/* Animated Backdrop with blur */}
+                  <div 
+                    className={`fixed inset-0 bg-gradient-to-br from-black/70 via-rose-900/40 to-black/70 backdrop-blur-md z-[60] transition-all duration-700 ${menuMounted ? 'opacity-100' : 'opacity-0'}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    aria-label="Close menu"
+                  >
+                    {/* Animated gradient orbs */}
+                    <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
+                    <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-rose-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }} />
+                  </div>
+                  
+                  {/* Menu Panel */}
+                  <div className={`fixed top-0 right-0 w-[360px] max-w-[90vw] h-full bg-gradient-to-b from-white via-white to-pink-50/30 shadow-[-15px_0_60px_rgba(236,72,153,0.2)] z-[70] overflow-y-auto transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${menuMounted ? 'translate-x-0' : 'translate-x-full'}`}>
+                    {/* Animated Decorative Background Pattern */}
+                    <div className="absolute top-0 right-0 w-full h-56 bg-gradient-to-br from-pink-500 via-rose-500 to-pink-600 overflow-hidden">
+                      {/* Floating animated orbs */}
+                      <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/10 rounded-full blur-3xl animate-float" />
+                      <div className="absolute top-24 -left-12 w-36 h-36 bg-white/10 rounded-full blur-2xl animate-float-delayed" />
+                      <div className="absolute top-8 right-20 w-20 h-20 bg-white/20 rounded-full blur-xl animate-pulse" />
+                      
+                      {/* Animated gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent animate-shimmer" />
+                      
+                      {/* Sparkles effect */}
+                      <div className="absolute top-10 right-16 w-2 h-2 bg-white rounded-full animate-ping" style={{ animationDuration: '3s' }} />
+                      <div className="absolute top-28 right-32 w-1.5 h-1.5 bg-white/70 rounded-full animate-ping" style={{ animationDuration: '2.5s', animationDelay: '1s' }} />
+                      <div className="absolute top-20 left-20 w-1 h-1 bg-white/50 rounded-full animate-ping" style={{ animationDuration: '2s', animationDelay: '0.5s' }} />
+                      
+                      {/* Wave decoration at bottom */}
+                      <div className="absolute bottom-0 left-0 right-0">
+                        <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-8">
+                          <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" className="fill-white/10"></path>
+                          <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" className="fill-white/10"></path>
+                          <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" className="fill-white/20"></path>
+                        </svg>
+                      </div>
+                    </div>
+
+                    {/* Header */}
+                    <div className="relative z-10 p-6 pb-8">
+                      <div className={`flex items-start justify-between mb-8 transition-all duration-700 ${menuMounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+                        <div className="flex items-center gap-3">
+                          <div className="relative group">
+                            <div className="absolute inset-0 bg-gradient-to-br from-pink-400 to-rose-500 rounded-2xl blur-md opacity-60 group-hover:opacity-100 transition-opacity" />
+                            <div className="relative w-14 h-14 bg-white rounded-2xl shadow-xl flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+                              <Heart className="w-8 h-8 text-pink-500 animate-pulse" fill="currentColor" style={{ animationDuration: '2s' }} />
+                            </div>
+                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 border-3 border-white rounded-full shadow-lg">
+                              <div className="absolute inset-0 bg-green-400 rounded-full animate-ping" />
+                            </div>
+                          </div>
+                          <div>
+                            <h2 className="text-white font-bold text-xl leading-tight drop-shadow-lg">{t('landing.heroHighlight')}</h2>
+                            <p className="text-pink-100 text-xs font-medium mt-0.5 flex items-center gap-1">
+                              <span className="inline-block w-1.5 h-1.5 bg-pink-200 rounded-full animate-pulse" />
+                              Lưu giữ khoảnh khắc yêu thương
+                            </p>
+                          </div>
+                        </div>
                         <button 
-                          className="self-end p-2 hover:bg-white/50 rounded-lg transition-colors" 
+                          className="p-3 hover:bg-white/20 rounded-xl transition-all duration-300 active:scale-90 backdrop-blur-sm hover:rotate-90 group" 
                           onClick={() => setMobileMenuOpen(false)} 
                           aria-label="Close menu"
                         >
-                          <X size={28} className="text-gray-700" />
+                          <X size={22} className="text-white group-hover:scale-110 transition-transform" strokeWidth={2.5} />
                         </button>
-
-                        {/* Menu Links */}
-                        <a 
-                          href="/create-memory" 
-                          className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${window.location.pathname === '/create-memory' ? 'bg-white text-rose-600 shadow-md' : 'text-gray-700 hover:bg-white/50'}`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setTimeout(() => window.location.href = '/create-memory', 300);
-                            setMobileMenuOpen(false);
-                          }}
-                        >
-                          <BookOpen size={20} />
-                          {t('nav.create')}
-                        </a>
-                        
-                        <a 
-                          href="/view-memory" 
-                          className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${window.location.pathname === '/view-memory' ? 'bg-white text-rose-600 shadow-md' : 'text-gray-700 hover:bg-white/50'}`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setTimeout(() => window.location.href = '/view-memory', 300);
-                            setMobileMenuOpen(false);
-                          }}
-                        >
-                          <Camera size={20} />
-                          {t('nav.memories')}
-                        </a>
-                        
-                        <a 
-                          href="/anniversary-reminders" 
-                          className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${window.location.pathname === '/anniversary-reminders' ? 'bg-white text-rose-600 shadow-md' : 'text-gray-700 hover:bg-white/50'}`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setTimeout(() => window.location.href = '/anniversary-reminders', 300);
-                            setMobileMenuOpen(false);
-                          }}
-                        >
-                          <Bell size={20} />
-                          {t('nav.anniversary')}
-                        </a>
-                        
-                        <a 
-                          href="/setting-page" 
-                          className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${window.location.pathname === '/setting-page' ? 'bg-white text-rose-600 shadow-md' : 'text-gray-700 hover:bg-white/50'}`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setTimeout(() => window.location.href = '/setting-page', 300);
-                            setMobileMenuOpen(false);
-                          }}
-                        >
-                          <Download2 size={20} />
-                          {t('nav.settings')}
-                        </a>
+                      </div>
+                      
+                      {/* User Stats */}
+                      <div className={`flex gap-2 transition-all duration-700 delay-100 ${menuMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                        <div className="flex-1 bg-white/20 backdrop-blur-md rounded-xl p-3 border border-white/30 text-center">
+                          <div className="text-white text-2xl font-bold">{years.length}</div>
+                          <div className="text-pink-100 text-[10px] font-medium">Năm</div>
+                        </div>
+                        <div className="flex-1 bg-white/20 backdrop-blur-md rounded-xl p-3 border border-white/30 text-center">
+                          <div className="text-white text-2xl font-bold">
+                            {Object.values(memoriesByYear).reduce((acc, memories) => acc + memories.length, 0)}
+                          </div>
+                          <div className="text-pink-100 text-[10px] font-medium">Kỷ niệm</div>
+                        </div>
+                        <div className="flex-1 bg-white/20 backdrop-blur-md rounded-xl p-3 border border-white/30 text-center">
+                          <div className="text-white text-2xl font-bold">
+                            {Object.values(memoriesByYear).flat().reduce((acc, m) => acc + (m.images?.length || 0), 0)}
+                          </div>
+                          <div className="text-pink-100 text-[10px] font-medium">Hình ảnh</div>
+                        </div>
                       </div>
                     </div>
-                  </>
-                )}
-              </header>
+
+                    {/* Menu Links */}
+                    <nav className="relative z-10 px-6 py-4">
+                      <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl shadow-gray-200/60 p-3 space-y-2 border border-gray-100/50">
+                        {[
+                          { href: '/create-memory', icon: BookOpen, label: t('nav.create'), delay: '0ms', badge: '+', isBadgePlus: true },
+                          { href: '/view-memory', icon: Camera, label: t('nav.memories'), delay: '100ms', badge: Object.values(memoriesByYear).reduce((acc, memories) => acc + memories.length, 0).toString() },
+                          { href: '/anniversary-reminders', icon: Bell, label: t('nav.anniversary'), delay: '200ms', badge: years.length.toString() },
+                          { href: '/setting-page', icon: Download2, label: t('nav.settings'), delay: '300ms' }
+                        ].map((item) => {
+                          const Icon = item.icon;
+                          const isActive = window.location.pathname === item.href;
+                          return (
+                            <a 
+                              key={item.href}
+                              href={item.href}
+                              style={{ animationDelay: item.delay }}
+                              className={`group relative flex items-center gap-4 px-4 py-4 rounded-2xl font-semibold transition-all duration-500 overflow-hidden ${
+                                menuMounted ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
+                              } ${
+                                isActive
+                                  ? 'bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 text-white shadow-xl shadow-pink-500/50 scale-[1.03]' 
+                                  : 'text-gray-700 hover:bg-gradient-to-r hover:from-pink-50 hover:via-rose-50 hover:to-pink-50 active:scale-[0.97] hover:shadow-lg hover:shadow-pink-200/50'
+                              }`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setTimeout(() => window.location.href = item.href, 400);
+                                setMobileMenuOpen(false);
+                              }}
+                            >
+                              {/* Ripple effect overlay */}
+                              <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-all duration-500 rounded-2xl" />
+                              
+                              {/* Animated border glow for active item */}
+                              {isActive && (
+                                <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-pink-400 via-rose-400 to-pink-400 opacity-75 blur-sm animate-pulse" style={{ animationDuration: '3s' }} />
+                              )}
+                              
+                              <div className="relative flex items-center gap-4 w-full">
+                                <div className={`relative p-3 rounded-2xl transition-all duration-500 ${
+                                  isActive
+                                    ? 'bg-white/25 shadow-inner scale-110 rotate-12' 
+                                    : 'bg-gradient-to-br from-pink-100 via-rose-100 to-pink-100 group-hover:scale-125 group-hover:rotate-12 shadow-lg shadow-pink-200/50'
+                                }`}>
+                                  {/* Icon glow */}
+                                  {isActive && (
+                                    <div className="absolute inset-0 bg-white/30 rounded-2xl blur-md" />
+                                  )}
+                                  <Icon 
+                                    size={22} 
+                                    className={`relative transition-all duration-500 ${
+                                      isActive ? 'text-white' : 'text-pink-600 group-hover:text-pink-700'
+                                    }`} 
+                                    strokeWidth={2.5} 
+                                  />
+                                </div>
+                                <span className="flex-1 tracking-wide relative z-10">{item.label}</span>
+                                
+                                {/* Badge or Indicator */}
+                                {item.badge && !isActive && (
+                                  <div className="relative z-10 min-w-[28px] h-7 px-2.5 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full flex items-center justify-center shadow-lg shadow-pink-500/30">
+                                    <span className="text-white text-sm font-bold leading-none">{item.badge}</span>
+                                  </div>
+                                )}
+                                
+                                {isActive ? (
+                                  <div className="flex items-center gap-1.5 relative z-10">
+                                    <div className="w-2 h-2 rounded-full bg-white animate-bounce" style={{ animationDuration: '1s' }} />
+                                    <div className="w-2 h-2 rounded-full bg-white/70 animate-bounce" style={{ animationDuration: '1s', animationDelay: '0.15s' }} />
+                                    <div className="w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDuration: '1s', animationDelay: '0.3s' }} />
+                                  </div>
+                                ) : (
+                                  <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 relative z-10">
+                                    <div className="w-2 h-2 rounded-full bg-gradient-to-r from-pink-400 to-rose-400 group-hover:scale-150 transition-transform" />
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Shine effect on hover */}
+                              <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12" />
+                            </a>
+                          );
+                        })}
+                      </div>
+                      
+                      {/* Decorative divider */}
+                      <div className="flex items-center gap-3 my-6 px-4">
+                        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
+                        <div className="flex gap-1">
+                          <div className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-pulse" />
+                          <div className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" style={{ animationDelay: '0.3s' }} />
+                          <div className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-pulse" style={{ animationDelay: '0.6s' }} />
+                        </div>
+                        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
+                      </div>
+                    </nav>
+
+                    {/* Footer */}
+                    <div className={`relative z-10 mt-auto pt-4 pb-6 px-6 transition-all duration-700 delay-300 ${menuMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                      <div className="relative bg-gradient-to-br from-pink-50 via-rose-50 to-pink-100 rounded-3xl p-5 border border-pink-200/50 shadow-xl shadow-pink-200/40 overflow-hidden group hover:shadow-2xl hover:shadow-pink-300/50 transition-all duration-500">
+                        {/* Animated background gradient */}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-pink-100/50 via-transparent to-rose-100/50 animate-shimmer" />
+                        
+                        <div className="relative flex items-center gap-4">
+                          <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-br from-pink-400 to-rose-500 rounded-2xl blur-md opacity-60 group-hover:opacity-100 transition-opacity" />
+                            <div className="relative w-12 h-12 bg-gradient-to-br from-pink-400 via-rose-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl shadow-pink-500/40 group-hover:scale-110 transition-transform duration-500">
+                              <Heart className="w-6 h-6 text-white animate-pulse" fill="currentColor" style={{ animationDuration: '2s' }} />
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-rose-600">Made with Love</p>
+                            <p className="text-xs text-gray-500 mt-0.5 font-medium">Version 3.0.0 • Premium</p>
+                          </div>
+                          <div className="relative">
+                            <div className="w-2 h-2 rounded-full bg-green-400 shadow-lg shadow-green-400/50" />
+                            <div className="absolute inset-0 w-2 h-2 rounded-full bg-green-400 animate-ping" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Main Content */}
               <main>
@@ -561,15 +696,24 @@ function App() {
 
                       {/* Hero Image */}
                       <div className="relative">
-                        <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[600px] rounded-3xl overflow-hidden shadow-2xl">
-                          <LazyImage
-                            src={heroImages.length > 0 ? heroImages[heroIndex] : "https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=800"}
-                            alt="Love Memory"
-                            className="w-full h-full object-cover"
-                            priority={true}
-                            transformations="f_auto,q_auto,w_800"
-                            enableBlur={true}
-                          />
+                        <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[600px] rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-pink-100 to-rose-100">
+                          {heroImages.length > 0 ? (
+                            <LazyImage
+                              src={heroImages[heroIndex]}
+                              alt="Love Memory"
+                              className="w-full h-full object-cover"
+                              priority={true}
+                              transformations="f_auto,q_auto,w_800"
+                              enableBlur={true}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <div className="text-center">
+                                <Heart className="w-24 h-24 text-pink-300 mx-auto mb-4" />
+                                <p className="text-gray-500 text-lg">{t('landing.noMemories')}</p>
+                              </div>
+                            </div>
+                          )}
                         </div>
                         {/* Decorative Elements */}
                         <div className="absolute -top-4 -left-4 w-24 h-24 bg-pink-200 rounded-full blur-3xl opacity-60 animate-pulse" />
@@ -621,65 +765,6 @@ function App() {
                         </div>
                       ))}
                     </div>
-                  </div>
-                </section>
-
-                {/* Gallery Section - Redesigned Grid Layout */}
-                <section className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-pink-50">
-                  <div className="max-w-7xl mx-auto">
-                    {galleryLoading ? (
-                      <GallerySkeleton />
-                    ) : (
-                      <>
-                        {/* Section Header */}
-                        <div className="text-center mb-12 lg:mb-16">
-                          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-                            <span className="bg-gradient-to-r from-red-600 to-rose-500 bg-clip-text text-transparent">
-                              {t('landing.galleryTitle')}
-                            </span>
-                          </h2>
-                          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                            {t('landing.gallerySubtitle')}
-                          </p>
-                        </div>
-
-                        {/* Gallery Grid */}
-                        {galleryImages.length === 0 ? (
-                          <div className="text-center py-16">
-                            <p className="text-gray-400 text-lg">{t('landing.emptyState')}</p>
-                          </div>
-                        ) : (
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-                            {galleryImages.slice(0, 6).map((img, idx) => (
-                              <div
-                                key={idx}
-                                className="group relative aspect-[4/3] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
-                              >
-                                {/* Image */}
-                                <LazyImage
-                                  src={img}
-                                  alt={`Memory ${idx + 1}`}
-                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                  transformations="f_auto,q_auto,w_600"
-                                  enableBlur={true}
-                                />
-                                
-                                {/* Hover Overlay with Heart */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
-                                  <Heart 
-                                    className="w-12 h-12 text-white transform scale-0 group-hover:scale-100 transition-transform duration-500 delay-100" 
-                                    fill="white"
-                                  />
-                                </div>
-
-                                {/* Decorative Corner */}
-                                <div className="absolute top-3 right-3 w-3 h-3 bg-pink-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </>
-                    )}
                   </div>
                 </section>
 

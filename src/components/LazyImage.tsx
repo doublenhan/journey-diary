@@ -1,6 +1,4 @@
 ﻿import { useState, useEffect, useRef } from 'react';
-import '../styles/LazyImage.css';
-import '../styles/LazyImageEnhanced.css';
 
 interface LazyImageProps {
   src: string;
@@ -133,7 +131,7 @@ export function LazyImage({
 
   return (
     <div 
-      className={`lazy-image-wrapper ${isLoaded ? 'loaded' : 'loading'} ${blurLoaded ? 'blur-loaded' : ''} ${imageError ? 'error' : ''} ${className}`}
+      className={`relative overflow-hidden rounded-xl min-h-[200px] md:min-h-[150px] ${!isLoaded ? 'bg-gradient-to-r from-gray-100/30 via-white/50 to-gray-100/30 bg-[length:200%_100%] animate-shimmer' : 'bg-transparent'} ${imageError ? 'bg-gradient-to-br from-red-50 to-red-100 animate-none' : ''} ${className}`}
       onClick={onClick}
       style={{ 
         aspectRatio: width && height ? `${width}/${height}` : 'auto'
@@ -145,7 +143,7 @@ export function LazyImage({
           ref={blurImgRef}
           src={blurSrc}
           alt=""
-          className="lazy-image-blur"
+          className={`absolute top-0 left-0 w-full h-full object-cover blur-[20px] scale-110 rounded-xl transition-opacity duration-300 ${blurLoaded ? 'opacity-100' : 'opacity-0'} ${isLoaded ? 'opacity-0 duration-[400ms]' : ''}`}
           onLoad={() => setBlurLoaded(true)}
           aria-hidden="true"
         />
@@ -169,7 +167,7 @@ export function LazyImage({
             srcSet={isInView && srcSet ? srcSet : undefined}
             sizes={isInView ? sizes : undefined}
             alt={alt}
-            className="lazy-image"
+            className={`w-full h-full object-cover rounded-xl transition-opacity duration-[400ms] ${isLoaded ? 'opacity-100 animate-[imageReveal_0.6s_cubic-bezier(0.4,0,0.2,1)]' : 'opacity-0'} motion-reduce:animate-none motion-reduce:transition-opacity motion-reduce:duration-200`}
             onLoad={() => setIsLoaded(true)}
             onError={handleImageError}
             loading={priority ? 'eager' : 'lazy'}
@@ -177,19 +175,19 @@ export function LazyImage({
           />
         </picture>
       ) : (
-        <div className="lazy-image-error">
-          <svg className="error-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center gap-3 p-5">
+          <svg className="w-12 h-12 text-red-500 opacity-50 md:w-9 md:h-9" width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M21 19V5C21 3.9 20.1 3 19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19ZM8.5 13.5L11 16.51L14.5 12L19 18H5L8.5 13.5Z" fill="currentColor" opacity="0.3"/>
             <path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM19 19H5V5H19V19Z" fill="currentColor"/>
           </svg>
-          <p className="error-text">Failed to load image</p>
+          <p className="text-red-900 text-sm font-medium text-center m-0 md:text-xs">Failed to load image</p>
         </div>
       )}
       
       {/* Loading spinner (only show if blur not loaded and not priority) */}
       {!isLoaded && !blurLoaded && !priority && !imageError && (
-        <div className="lazy-image-placeholder">
-          <div className="lazy-image-spinner" />
+        <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-gray-100/10 backdrop-blur-[10px]">
+          <div className="w-10 h-10 border-[3px] border-white/30 border-t-pink-500 rounded-full animate-spin md:w-[30px] md:h-[30px] md:border-2" />
         </div>
       )}
     </div>

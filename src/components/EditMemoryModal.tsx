@@ -10,8 +10,8 @@ import { uploadToCloudinary, deleteFromCloudinary } from '../services/cloudinary
 import { reverseGeocode } from '../services/geoService';
 import { usePlacesAutocomplete } from '../hooks/usePlacesAutocomplete';
 import { useToastContext } from '../contexts/ToastContext';
+import { useLanguage } from '../hooks/useLanguage';
 import { WebPImage } from './WebPImage';
-import '../styles/components.css';
 
 // Parse date string (YYYY-MM-DD) as local date to avoid timezone offset
 function parseLocalDate(dateString: string): Date {
@@ -47,6 +47,7 @@ interface EditMemoryModalProps {
 }
 
 export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemoryModalProps) {
+  const { t } = useLanguage();
   const { success: showSuccess, error: showError } = useToastContext();
   const [title, setTitle] = useState(memory.title);
   const [text, setText] = useState(memory.text);
@@ -375,39 +376,39 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
   };
 
   return (
-    <div className="modal-overlay" onClick={handleClose}>
-      <div className="modal-content edit-memory-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Edit Memory</h2>
-          <button className="close-button" onClick={handleClose}>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-5" onClick={handleClose}>
+      <div className="bg-gradient-to-br from-pink-50/95 via-white to-pink-50/95 rounded-[20px] max-w-[650px] w-full max-h-[90vh] overflow-hidden flex flex-col shadow-[0_25px_70px_rgba(236,72,153,0.2),0_10px_30px_rgba(0,0,0,0.15)] border border-pink-200/50" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center p-5 px-6 border-b border-gray-200">
+          <h2 className="text-2xl font-bold m-0 text-gray-800 text-pink-600">{t('editMemory.title')}</h2>
+          <button className="bg-transparent border-none cursor-pointer p-2 rounded-lg transition-all duration-200 text-gray-500 hover:bg-gray-100 hover:text-gray-800" onClick={handleClose}>
             <X size={24} />
           </button>
         </div>
 
         {error && (
-          <div className="error-message">{error}</div>
+          <div className="bg-red-100 text-red-600 p-3 px-4 rounded-lg mx-6 mt-4 text-sm">{error}</div>
         )}
 
         {validationErrors.length > 0 && (
-          <div className="error-message">
-            <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>Lỗi validation ảnh:</div>
+          <div className="bg-red-100 text-red-600 p-3 px-4 rounded-lg mx-6 mt-4 text-sm">
+            <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>{t('editMemory.validationError')}</div>
             {validationErrors.map((err, idx) => (
               <div key={idx} style={{ marginBottom: '4px' }}>• {err}</div>
             ))}
           </div>
         )}
 
-        <div className="modal-body">
-          <div className="form-group">
-            <label>
+        <div className="p-6 overflow-y-auto flex-1">
+          <div className="mb-5">
+            <label className="font-semibold mb-2 text-gray-700 text-sm block">
               <Type className="w-4 h-4" style={{ display: 'inline', marginRight: '8px' }} />
-              Title *
+              {t('editMemory.titleLabel')} *
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Memory title"
+              placeholder={t('editMemory.titlePlaceholder')}
               maxLength={100}
               required
               style={{
@@ -424,21 +425,21 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
             />
           </div>
 
-          <div className="form-group">
-            <label>Date *</label>
+          <div className="mb-5">
+            <label className="font-semibold mb-2 text-gray-700 text-sm block">{t('editMemory.dateLabel')} *</label>
             <CustomDatePicker
               selected={date ? parseLocalDate(date) : null}
               onChange={(newDate) => setDate(newDate ? newDate.toISOString().split('T')[0] : '')}
-              placeholder="Select date"
+              placeholder={t('editMemory.datePlaceholder')}
               required
               maxDate={new Date()}
             />
           </div>
 
-          <div className="form-group">
-            <label>
+          <div className="mb-5">
+            <label className="font-semibold mb-2 text-gray-700 text-sm block">
               <MapPin className="w-4 h-4" style={{ display: 'inline', marginRight: '8px' }} />
-              Location
+              {t('editMemory.locationLabel')}
             </label>
             <div style={{ position: 'relative' }}>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
@@ -447,7 +448,7 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
                   type="text"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  placeholder="Where was this?"
+                  placeholder={t('editMemory.locationPlaceholder')}
                   style={{
                     flex: 1,
                     padding: '0.75rem',
@@ -482,11 +483,10 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
                     minWidth: '110px',
                     justifyContent: 'center'
                   }}
-                >
-                  <Navigation className="w-5 h-5" style={{ 
+                >  <Navigation className="w-5 h-5" style={{ 
                     animation: isGettingLocation ? 'spin 1s linear infinite' : 'none' 
                   }} />
-                  {isGettingLocation ? 'Đang lấy...' : coordinates ? '✓ GPS' : 'GPS'}
+                  {isGettingLocation ? t('editMemory.gettingLocation') : coordinates ? `✓ ${t('editMemory.gps')}` : t('editMemory.gps')}
                 </button>
               </div>
               
@@ -555,12 +555,12 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
             </div>
           </div>
 
-          <div className="form-group">
-            <label>Description *</label>
+          <div className="mb-5">
+            <label className="font-semibold mb-2 text-gray-700 text-sm block">{t('editMemory.descriptionLabel')} *</label>
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Tell your story..."
+              placeholder={t('editMemory.descriptionPlaceholder')}
               rows={6}
               maxLength={2000}
               required
@@ -583,39 +583,39 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
             </div>
           </div>
 
-          <div className="form-group">
-            <label>Images (Drag to reorder) - Tối đa {IMAGE_VALIDATION.MAX_IMAGES} ảnh, mỗi ảnh ≤ 10MB</label>
-            <div className="images-grid">
+          <div className="mb-5">
+            <label className="font-semibold mb-2 text-gray-700 text-sm block">{t('editMemory.imagesLabel')} - {t('editMemory.maxImagesPrefix')} {IMAGE_VALIDATION.MAX_IMAGES} {t('editMemory.maxImagesSuffix')}</label>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-3 mt-3">
               {images.map((img, index) => (
                 <div
                   key={img.public_id}
-                  className={`image-item ${draggedIndex === index ? 'dragging' : ''}`}
+                  className={`group relative aspect-square rounded-xl overflow-hidden border-2 border-gray-200 cursor-move transition-all duration-200 hover:border-pink-500 hover:scale-105 ${draggedIndex === index ? 'opacity-50 scale-95' : ''}`}
                   draggable
                   onDragStart={() => handleDragStart(index)}
                   onDragOver={(e) => handleDragOver(e, index)}
                   onDragEnd={handleDragEnd}
                 >
                   <button
-                    className="drag-handle"
-                    title="Drag to reorder"
+                    className="absolute top-1 left-1 bg-white/90 border-none rounded-md p-1 cursor-move z-[2] opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                    title={t('editMemory.dragToReorder')}
                   >
                     <GripVertical size={20} />
                   </button>
                   <WebPImage src={img.secure_url} alt={`Image ${index + 1}`} />
                   <button
-                    className="delete-image-button"
+                    className="absolute top-1 right-1 bg-red-600/90 text-white border-none rounded-md p-1 cursor-pointer z-[2] opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-opacity duration-200"
                     onClick={() => handleDeleteImage(index)}
-                    title="Delete image"
+                    title={t('editMemory.deleteImage')}
                   >
                     <X size={16} />
                   </button>
-                  <span className="image-order">{index + 1}</span>
+                  <span className="absolute bottom-1 right-1 bg-black/70 text-white px-2 py-0.5 rounded text-xs font-semibold">{index + 1}</span>
                 </div>
               ))}
 
               {/* Upload Zone */}
               <div
-                className={`upload-zone ${isUploading ? 'uploading' : ''}`}
+                className={`relative aspect-square border-2 border-dashed border-pink-200 rounded-xl bg-pink-50/50 flex items-center justify-center cursor-pointer transition-all duration-300 ${isUploading ? 'cursor-not-allowed opacity-70' : 'hover:border-pink-500 hover:bg-pink-100 hover:scale-[1.02]'}`}
                 onDrop={handleDrop}
                 onDragOver={(e) => e.preventDefault()}
                 style={{ display: images.length >= IMAGE_VALIDATION.MAX_IMAGES ? 'none' : 'flex' }}
@@ -629,17 +629,17 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
                   style={{ display: 'none' }}
                   id="image-upload-input"
                 />
-                <label htmlFor="image-upload-input" className="upload-label">
+                <label htmlFor="image-upload-input" className="flex flex-col items-center gap-2 p-5 cursor-pointer text-center">
                   {isUploading ? (
                     <>
-                      <div className="upload-spinner"></div>
-                      <span>Uploading... {uploadProgress}%</span>
+                      <div className="w-8 h-8 border-[3px] border-pink-200 border-t-pink-500 rounded-full animate-spin"></div>
+                      <span className="text-pink-900 font-medium text-sm">{t('editMemory.uploading')} {uploadProgress}%</span>
                     </>
                   ) : (
                     <>
-                      <Upload size={32} />
-                      <span>Click or drag images here</span>
-                      <span className="upload-hint">Support multiple images</span>
+                      <Upload size={32} className="text-pink-500" />
+                      <span className="text-pink-900 font-medium text-sm">{t('editMemory.uploadPrompt')}</span>
+                      <span className="text-xs text-gray-400 font-normal">{t('editMemory.uploadHint')}</span>
                     </>
                   )}
                 </label>
@@ -648,30 +648,30 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
           </div>
         </div>
 
-        <div className="modal-footer">
+        <div className="flex justify-between items-center p-5 px-6 border-t border-gray-200 gap-3">
           <button
-            className="delete-button-icon"
+            className="flex items-center justify-center p-2.5 bg-white text-red-600 border-2 border-red-600 rounded-[10px] cursor-pointer transition-all duration-200 hover:bg-red-600 hover:text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => setShowDeleteConfirm(true)}
             disabled={isSaving || isDeleting}
-            title="Delete Memory"
+            title={t('editMemory.deleteMemory')}
           >
             <Trash2 size={20} />
           </button>
           
-          <div className="action-buttons">
+          <div className="flex gap-3">
             <button
-              className="cancel-icon-button"
+              className="flex items-center justify-center p-2.5 bg-white text-gray-500 border-2 border-gray-300 rounded-[10px] cursor-pointer transition-all duration-200 hover:bg-gray-100 hover:border-gray-400 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleClose}
               disabled={isSaving || isDeleting}
-              title="Cancel"
+              title={t('common.cancel')}
             >
               <X size={20} />
             </button>
             <button
-              className="save-icon-button"
+              className="flex items-center justify-center p-2.5 bg-gradient-to-br from-pink-500 to-pink-600 text-white border-none rounded-[10px] cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-[0_4px_12px_rgba(236,72,153,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleSave}
               disabled={isSaving || isDeleting || images.length === 0}
-              title={isSaving ? 'Saving...' : 'Save Changes'}
+              title={isSaving ? t('editMemory.saving') : t('editMemory.saveChanges')}
             >
               {isSaving ? <Save size={20} className="animate-spin" /> : <Check size={20} />}
             </button>
@@ -679,24 +679,24 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
         </div>
 
         {showDeleteConfirm && (
-          <div className="delete-confirm-overlay">
-            <div className="delete-confirm-box">
-              <h3>Delete Memory?</h3>
-              <p>This will permanently delete "{memory.title}" and all its images. This cannot be undone.</p>
-              <div className="confirm-buttons">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[10000] p-5">
+            <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+              <h3 className="text-xl font-bold mb-3 text-gray-900">{t('editMemory.deleteConfirmTitle')}</h3>
+              <p className="text-gray-600 mb-6">{t('editMemory.deleteConfirmMessage')} "{memory.title}" {t('editMemory.deleteConfirmMessageSuffix')}</p>
+              <div className="flex gap-3 justify-end">
                 <button
-                  className="cancel-button"
+                  className="px-5 py-2.5 bg-white text-gray-500 border border-gray-300 rounded-lg font-semibold cursor-pointer transition-all duration-200 hover:bg-gray-100 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => setShowDeleteConfirm(false)}
                   disabled={isDeleting}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
-                  className="confirm-delete-button"
+                  className="px-5 py-2.5 bg-gradient-to-r from-red-500 to-red-600 text-white border-none rounded-lg font-semibold cursor-pointer transition-all duration-200 hover:from-red-600 hover:to-red-700 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={handleDelete}
                   disabled={isDeleting}
                 >
-                  {isDeleting ? 'Deleting...' : 'Delete Permanently'}
+                  {isDeleting ? t('editMemory.deleting') : t('editMemory.deleteButton')}
                 </button>
               </div>
             </div>
@@ -704,25 +704,25 @@ export function EditMemoryModal({ memory, userId, onClose, onSuccess }: EditMemo
         )}
 
         {showUnsavedConfirm && (
-          <div className="delete-confirm-overlay">
-            <div className="delete-confirm-box">
-              <h3>Unsaved Changes</h3>
-              <p>You have unsaved changes. Are you sure you want to close without saving?</p>
-              <div className="confirm-buttons">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[10000] p-5">
+            <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+              <h3 className="text-xl font-bold mb-3 text-gray-900">{t('editMemory.unsavedTitle')}</h3>
+              <p className="text-gray-600 mb-6">{t('editMemory.unsavedMessage')}</p>
+              <div className="flex gap-3 justify-end">
                 <button
-                  className="cancel-button"
+                  className="px-5 py-2.5 bg-white text-gray-500 border border-gray-300 rounded-lg font-semibold cursor-pointer transition-all duration-200 hover:bg-gray-100 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => setShowUnsavedConfirm(false)}
                 >
-                  Continue Editing
+                  {t('editMemory.continueEditing')}
                 </button>
                 <button
-                  className="confirm-delete-button"
+                  className="px-5 py-2.5 bg-gradient-to-r from-red-500 to-red-600 text-white border-none rounded-lg font-semibold cursor-pointer transition-all duration-200 hover:from-red-600 hover:to-red-700 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => {
                     setShowUnsavedConfirm(false);
                     onClose();
                   }}
                 >
-                  Discard Changes
+                  {t('editMemory.discardChanges')}
                 </button>
               </div>
             </div>

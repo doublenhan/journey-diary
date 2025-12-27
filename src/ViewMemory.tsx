@@ -3,7 +3,7 @@ import { useInfiniteMemories } from './hooks/useInfiniteMemories';
 import { useDebouncedValue } from './hooks/useDebouncedValue';
 import { useLanguage } from './hooks/useLanguage';
 import { useToast } from './hooks/useToast';
-import { Heart, Calendar, ArrowLeft, ChevronLeft, ChevronRight, Loader, Map, Share2, Edit, Trash2, Image, Clock, BarChart3, X } from 'lucide-react';
+import { Heart, Calendar, ArrowLeft, ChevronLeft, ChevronRight, Map, Share2, Edit, Image, Clock, BarChart3, X } from 'lucide-react';
 // import { cloudinaryApi, type SavedMemory } from './apis/cloudinaryGalleryApi';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
 import { MoodTheme, themes } from './config/themes';
@@ -12,7 +12,6 @@ import { useSyncStatus } from './hooks/useSyncStatus';
 import SyncStatus from './components/SyncStatus';
 import { EmptyState } from './components/EmptyState';
 import { YearSectionSkeleton, DashboardSkeleton } from './components/LoadingSkeleton';
-import { LazyImage } from './components/LazyImage';
 import { WebPImage } from './components/WebPImage';
 import { InfiniteScrollTrigger } from './components/InfiniteScrollTrigger';
 import { EnhancedSearchFilter } from './components/EnhancedSearchFilter';
@@ -22,8 +21,6 @@ import { EditMemoryModal } from './components/EditMemoryModal';
 import { ShareMemory } from './components/ShareMemory';
 import { MemoryStatistics } from './components/MemoryStatistics';
 import { sanitizePlainText, sanitizeRichText } from './utils/sanitize';
-import './styles/ViewMemory.css';
-import './styles/MemoryCardHover.css';
 
 // Update Memory interface to match SavedMemory from the API
 interface MemoryImage {
@@ -59,7 +56,7 @@ interface ViewMemoryProps {
 
 function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
   // All hooks must come first
-  const { toasts: _, removeToast: __, success, error: showError } = useToast();
+  const { toasts: _, removeToast: __, error: showError } = useToast();
   const { userId, loading } = useCurrentUserId();
   const { memoriesByYear, years, allYears, isLoading, isLoadingMore, error, hasMore, loadMore } = useInfiniteMemories(userId, loading);
   const { syncStatus, lastSyncTime, errorMessage, startSync, syncSuccess, syncError } = useSyncStatus();
@@ -158,6 +155,24 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
     preloadImages();
   }, [selectedPhotoIndex, allPhotos]);
 
+  // Handle keyboard navigation for lightbox (ESC, Arrow keys)
+  useEffect(() => {
+    if (!selectedPhoto) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        closeLightbox();
+      } else if (e.key === 'ArrowLeft') {
+        navigatePhoto('prev');
+      } else if (e.key === 'ArrowRight') {
+        navigatePhoto('next');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedPhoto, allPhotos, selectedPhotoIndex]);
+
   // Debounce search query for better performance
   const debouncedSearch = useDebouncedValue(searchQuery, 300);
 
@@ -183,9 +198,6 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
   // Important: Use years (visible) data, not allYears, to respect pagination
   const filteredMemoriesByYear = useMemo(() => {
     let filtered = { ...memoriesByYear };
-
-    // If searching or filtering by year, we need to check if data exists
-    const hasActiveFilter = debouncedSearch.trim() || selectedYear !== 'ALL';
 
     // Filter by year first
     if (selectedYear !== 'ALL') {
@@ -245,17 +257,17 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
 
   // Default visual effects settings
   const effectsEnabled = {
-    particles: true,
-    hearts: true,
-    transitions: true,
-    glow: true,
-    fadeIn: true,
-    slideIn: true
+    fireworks: false,
+    colorMorph: false,
+    rippleWave: false,
+    floatingBubbles: false,
+    magneticCursor: false,
+    gradientMesh: false
   };
   const animationSpeed = 50;
 
   return (
-    <div className="view-memory-page" style={{ background: theme.background, color: theme.textPrimary }}>
+    <div className="min-h-screen" style={{ background: theme.background, color: theme.textPrimary }}>
       {/* Visual Effects */}
       <VisualEffects 
         effectsEnabled={effectsEnabled}
@@ -319,48 +331,47 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
-        <div className="page-header">
-          <h1 className="page-title">
-            {t('memory.viewTitle')}
-            <span className="gradient-text"> {t('landing.gallerySubtitle')}</span>
+        <div className="text-center mb-12">
+          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
+            {t('memory.viewTitle')}<br />
+            <span className="text-3xl sm:text-4xl bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent"> {t('landing.gallerySubtitle')}</span> 
           </h1>
-          <p className="page-subtitle">
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             {t('landing.heroSubtitle')}
           </p>
         </div>
 
         {/* Dashboard: Your Love Story by the Numbers */}
-        <div className="love-story-dashboard mb-8">
-          <h2 className="dashboard-title text-xl font-bold mb-4 text-pink-600">{t('memory.statistics')}</h2>
+        <div className="mb-8">
+          <h2 className="text-xl font-bold mb-4 text-pink-600">{t('memory.statistics')}</h2>
           {isLoading ? (
             <DashboardSkeleton />
           ) : (
-          <div className="dashboard-grid grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="dashboard-card bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
               <Heart className="w-8 h-8 text-pink-500 mb-2" />
-              <div className="dashboard-number text-2xl font-bold">{
+              <div className="text-2xl font-bold">{
                 (Object.values(memoriesByYear) as any[][]).reduce((total, arr) => total + (Array.isArray(arr) ? arr.length : 0), 0)
               }</div>
-              <div className="dashboard-label text-sm text-gray-500">{t('memory.totalMemories')}</div>
+              <div className="text-sm text-gray-500">{t('memory.totalMemories')}</div>
             </div>
-            <div className="dashboard-card bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
+            <div className="bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
               <Calendar className="w-8 h-8 text-pink-500 mb-2" />
-              <div className="dashboard-number text-2xl font-bold">{allYears.length}</div>
-              <div className="dashboard-label text-sm text-gray-500">{t('common.all')}</div>
+              <div className="text-2xl font-bold">{allYears.length}</div>
+              <div className="text-sm text-gray-500">{t('common.all')}</div>
             </div>
-            <div className="dashboard-card bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
+            <div className="bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
               <Image className="w-8 h-8 text-pink-600 mb-2" />
-              <div className="dashboard-number text-2xl font-bold">{
+              <div className="text-2xl font-bold">{
                 (Object.values(memoriesByYear) as any[][]).reduce((total, arr) => total + (Array.isArray(arr) ? arr.reduce((p, m) => p + (Array.isArray(m.images) ? m.images.length : 0), 0) : 0), 0)
               }</div>
-              <div className="dashboard-label text-sm text-gray-500">{t('memory.withPhotos')}</div>
+              <div className="text-sm text-gray-500">{t('memory.withPhotos')}</div>
             </div>
-            <div className="dashboard-card bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
+            <div className="bg-white rounded-xl shadow border border-pink-100 p-4 flex flex-col items-center">
               <Clock className="w-8 h-8 text-pink-600 mb-2" />
-              <div className="dashboard-number text-base font-bold">{
+              <div className="text-base font-bold">{
                 (() => {
                   const allMemories = years.flatMap((y: string) => memoriesByYear[y] || []);
-                  <div className="dashboard-number text-2xl font-bold">{years.length}</div>
                   if (allMemories.length === 0) return '--';
                   const firstDate = allMemories[allMemories.length - 1]?.date;
                   const lastDate = allMemories[0]?.date;
@@ -445,49 +456,52 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
 
             {/* Memories by Year - Only show when we have filtered results */}
             {resultCount > 0 && (
-              <div className="memories-by-year">
+              <div className="space-y-12">
             {filteredYears.map((year: string) => (
-              <div key={year} className="year-section">
+              <div key={year} className="mb-12">
                 {/* Year Header */}
-                <div className="year-header">
-                  <h2 className="year-title">{year}</h2>
-                  <div className="year-divider"></div>
+                <div className="flex items-center gap-4 mb-8">
+                  <h2 className="text-3xl font-bold text-gray-900">{year}</h2>
+                  <div className="flex-1 h-px bg-gradient-to-r from-pink-300 via-rose-300 to-transparent"></div>
                 </div>
 
                 {/* Memories for this year */}
-                <div className="memory-timeline">
+                <div className="space-y-8">
                   {filteredMemoriesByYear[year].map((memory: any, memoryIndex: number) => (
                     <div 
                       key={memory.id} 
                       id={memory.id}
-                      className="memory-card memory-card-hover animate-fade-in"
-                      style={{ animationDelay: `${memoryIndex * 0.2}s` }}
+                      className="opacity-0 animate-[fade-in-up_0.6s_ease-out_forwards]"
+                      style={{ animationDelay: `${memoryIndex * 0.1}s` }}
                     >
                       {/* Memory Card */}
                       <div className="bg-white rounded-3xl shadow-xl border border-pink-100 overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1">
                         {/* Date Header */}
-                        <div className="date-header">
-                          <div className="flex items-center justify-center space-x-2 text-white">
-                            <Calendar className="w-5 h-5" />
-                            <span className="date-text">{formatDate(memory.date)}</span>
-                          </div>
-                          
-                          {/* Action buttons */}
-                          <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
-                            <button
-                              onClick={() => setShareModalMemory(memory)}
-                              className="p-2 bg-white/90 hover:bg-white rounded-full shadow-lg transition-all duration-200 hover:scale-110"
-                              title="Share memory"
-                            >
-                              <Share2 size={18} className="text-pink-600" />
-                            </button>
-                            <button
-                              onClick={() => setEditingMemory(memory)}
-                              className="p-2 bg-white/90 hover:bg-white rounded-full shadow-lg transition-all duration-200 hover:scale-110"
-                              title="Edit memory"
-                            >
-                              <Edit size={18} className="text-pink-600" />
-                            </button>
+                        <div className="relative bg-gradient-to-r from-pink-500 to-rose-500 px-6 py-4">
+                          <div className="flex items-center justify-between">
+                            {/* Left: Date */}
+                            <div className="flex items-center space-x-2 text-white">
+                              <Calendar className="w-5 h-5" />
+                              <span className="font-semibold text-lg">{formatDate(memory.date)}</span>
+                            </div>
+                            
+                            {/* Right: Action buttons */}
+                            <div className="flex items-center gap-2 z-10">
+                              <button
+                                onClick={() => setShareModalMemory(memory)}
+                                className="p-2 bg-white/90 hover:bg-white rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                                title="Share memory"
+                              >
+                                <Share2 size={18} className="text-pink-600" />
+                              </button>
+                              <button
+                                onClick={() => setEditingMemory(memory)}
+                                className="p-2 bg-white/90 hover:bg-white rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                                title="Edit memory"
+                              >
+                                <Edit size={18} className="text-pink-600" />
+                              </button>
+                            </div>
                           </div>
                         </div>
 
@@ -495,24 +509,24 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                         <div className="p-8">
                           {/* Title if available */}
                           {memory.title && (
-                            <h3 className="memory-title">{sanitizePlainText(memory.title)}</h3>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-3">{sanitizePlainText(memory.title)}</h3>
                           )}
 
                           {/* Date below title */}
-                          <div className="memory-date text-xs text-pink-500 font-semibold mb-2 flex items-center gap-1">
+                          <div className="text-xs text-pink-500 font-semibold mb-2 flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
                             <span>{formatDate(memory.date)}</span>
                           </div>
 
                           {/* Location if available */}
                           {memory.location && (
-                            <div className="memory-location">
+                            <div className="inline-flex items-center gap-1 px-3 py-1 bg-pink-50 text-pink-700 rounded-full text-sm font-medium mb-4">
                               <span>{sanitizePlainText(memory.location)}</span>
                             </div>
                           )}
 
                           <p 
-                            className="memory-content"
+                            className="text-gray-700 leading-relaxed mb-6 whitespace-pre-wrap"
                             dangerouslySetInnerHTML={{ __html: sanitizeRichText(memory.text) }}
                           />
 
@@ -556,7 +570,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
         {/* Lightbox Modal - only render once at the root level */}
         {selectedPhoto && (
           <div 
-            className="lightbox-overlay animate-fade-in"
+            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center animate-[fade-in_0.3s_ease-out]"
             tabIndex={0}
             onBlur={e => {
               // Only close if focus moves outside the lightbox
@@ -568,56 +582,69 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
             }}
             style={{ outline: 'none' }}
           >
-            <div className="lightbox-container">
+            <div className="relative w-full h-full flex flex-col items-center justify-center p-4">
+              {/* Close Button */}
+              <button
+                onClick={closeLightbox}
+                className="absolute top-4 right-4 z-20 p-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full transition-all hover:scale-110 group"
+                title="Đóng (ESC)"
+              >
+                <X className="w-6 h-6 text-white group-hover:text-pink-300" />
+              </button>
+              
               {/* Navigation Buttons */}
               {allPhotos.length > 1 && (
                 <>
                   <button
                     onClick={() => navigatePhoto('prev')}
-                    className="lightbox-nav lightbox-nav-prev"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full transition-all hover:scale-110"
                   >
-                    <ChevronLeft className="w-8 h-8" />
+                    <ChevronLeft className="w-8 h-8 text-white" />
                   </button>
                   <button
                     onClick={() => navigatePhoto('next')}
-                    className="lightbox-nav lightbox-nav-next"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full transition-all hover:scale-110"
                   >
-                    <ChevronRight className="w-8 h-8" />
+                    <ChevronRight className="w-8 h-8 text-white" />
                   </button>
                 </>
               )}
 
               {/* Main Image (medium size) */}
-              <div className="lightbox-image-container">
-                <div className="lightbox-image-inner">
+              <div className="flex-1 flex items-center justify-center max-w-5xl max-h-[80vh]">
+                <div className="relative w-full h-full flex items-center justify-center">
                   <WebPImage
                     src={selectedPhoto}
                     alt="Memory"
-                    className="animate-zoom-in lightbox-main-img"
+                    className="max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-[zoom-in_0.3s_ease-out]"
                     loading="eager"
                   />
                 </div>
               </div>
               {/* Photo Counter */}
               {allPhotos.length > 1 && (
-                <div className="lightbox-counter">
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/50 backdrop-blur-sm text-white rounded-full text-sm font-medium">
                   {selectedPhotoIndex + 1} of {allPhotos.length}
                 </div>
               )}
               {/* Thumbnails Gallery */}
               {allPhotos.length > 1 && (
-                <div className="lightbox-thumbnails-container">
-                  <div className="lightbox-thumbnails">
+                <div className="w-full max-w-5xl mt-4 px-4">
+                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-pink-500 scrollbar-track-gray-700">
                     {allPhotos.map((photo, index) => (
                       <div 
                         key={index}
-                        className={`lightbox-thumbnail ${selectedPhotoIndex === index ? 'active' : ''}`}
+                        className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 cursor-pointer transition-all ${
+                          selectedPhotoIndex === index 
+                            ? 'border-pink-500 ring-2 ring-pink-400 scale-110' 
+                            : 'border-white/30 hover:border-pink-400 opacity-70 hover:opacity-100'
+                        }`}
                         onClick={() => navigateToPhoto(index)}
                       >
                         <WebPImage
                           src={photo}
                           alt={`Thumbnail ${index + 1}`}
-                          className="thumbnail-img"
+                          className="w-full h-full object-cover"
                           loading="lazy"
                         />
                       </div>
@@ -658,7 +685,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
             theme={{
               colors: {
                 primary: theme.textPrimary,
-                secondary: theme.textSecondary,
+                secondary: '#6B7280',
                 background: theme.background
               }
             }}
@@ -681,7 +708,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                 theme={{
                   colors: {
                     primary: theme.textPrimary,
-                    secondary: theme.textSecondary
+                    secondary: '#6B7280'
                   }
                 }}
               />

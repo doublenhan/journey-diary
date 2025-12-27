@@ -226,62 +226,105 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
               </div>
             </div>
             <div>
-              <label className="block text-sm mb-1" style={{ color: theme.colors.textSecondary }}>{t('profile.displayName')}</label>
-              <div className="relative flex items-center">
-                <User className="w-4 h-4 absolute left-3 text-gray-400" />
-                <input 
-                  type="text"
-                  name="displayName"
-                  value={profile.displayName}
-                  onChange={handleChange}
-                  className={`form-input w-full pl-9${!editMode ? ' bg-gray-100 cursor-not-allowed' : ''}`}
-                  style={{ 
-                    borderColor: theme.colors.border,
-                    '--tw-ring-color': theme.colors.primary + '33'
-                  } as React.CSSProperties}
-                  required
-                  disabled={!editMode}
-                />
+              <label className="flex items-center gap-2 text-sm font-semibold mb-2" style={{ color: theme.colors.textPrimary }}>
+                <User className="w-4 h-4" style={{ color: theme.colors.primary }} />
+                {t('profile.displayName')}
+              </label>
+              <div className="relative group">
+                <div className={`absolute -inset-0.5 bg-gradient-to-r from-pink-400 to-rose-400 rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300 ${editMode ? '' : 'hidden'}`} />
+                <div className="relative flex items-center">
+                  <div className="absolute left-3.5 flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-300" style={{ 
+                    backgroundColor: editMode ? theme.colors.primary + '10' : 'transparent'
+                  }}>
+                    <User className="w-5 h-5 transition-all duration-300" style={{ 
+                      color: editMode ? theme.colors.primary : '#9ca3af'
+                    }} />
+                  </div>
+                  <input 
+                    type="text"
+                    name="displayName"
+                    value={profile.displayName}
+                    onChange={handleChange}
+                    className={`w-full pl-14 pr-4 py-3.5 border-2 rounded-xl font-medium transition-all duration-300 focus:outline-none ${
+                      editMode 
+                        ? 'bg-white focus:border-pink-500 focus:shadow-lg focus:shadow-pink-500/10 hover:border-pink-300' 
+                        : 'bg-gray-50 cursor-not-allowed border-gray-200'
+                    }`}
+                    style={{ 
+                      borderColor: editMode ? theme.colors.border : '#e5e7eb',
+                      color: theme.colors.textPrimary
+                    }}
+                    placeholder={t('profile.displayName')}
+                    required
+                    disabled={!editMode}
+                  />
+                </div>
               </div>
             </div>
             <div>
-              <label className="block text-sm mb-1" style={{ color: theme.colors.textSecondary }}>{t('profile.email')}</label>
-              <div className="relative flex items-center">
-                <Mail className="w-4 h-4 absolute left-3 text-gray-400" />
+              <label className="flex items-center gap-2 text-sm font-semibold mb-2" style={{ color: theme.colors.textPrimary }}>
+                <Mail className="w-4 h-4" style={{ color: theme.colors.primary }} />
+                {t('profile.email')}
+                <span className="ml-auto px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md bg-gray-100 text-gray-500">Locked</span>
+              </label>
+              <div className="relative">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center w-9 h-9 rounded-lg" style={{ 
+                  backgroundColor: '#f3f4f6'
+                }}>
+                  <Mail className="w-5 h-5 text-gray-400" />
+                </div>
                 <input 
                   type="email"
                   name="email"
                   value={profile.email}
-                  className="form-input w-full pl-9 bg-gray-100 cursor-not-allowed"
-                  style={{ 
-                    borderColor: theme.colors.border,
-                    '--tw-ring-color': theme.colors.primary + '33'
-                  } as React.CSSProperties}
+                  className="w-full pl-14 pr-4 py-3.5 border-2 border-gray-200 rounded-xl bg-gray-50 cursor-not-allowed font-medium text-gray-500"
                   disabled
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm mb-1" style={{ color: theme.colors.textSecondary }}>{t('profile.phone')}</label>
-              <div className="relative flex items-center">
-                <Phone className="w-4 h-4 absolute left-3 text-gray-400" />
-                <input 
-                  type="tel"
-                  name="phone"
-                  value={profile.phone}
-                  onChange={handleChange}
-                  className={`form-input w-full pl-9${!editMode ? ' bg-gray-100 cursor-not-allowed' : ''}`}
-                  style={{ 
-                    borderColor: theme.colors.border,
-                    '--tw-ring-color': theme.colors.primary + '33'
-                  } as React.CSSProperties}
-                  required
-                  disabled={!editMode}
-                />
+              <label className="flex items-center gap-2 text-sm font-semibold mb-2" style={{ color: theme.colors.textPrimary }}>
+                <Phone className="w-4 h-4" style={{ color: theme.colors.primary }} />
+                {t('profile.phone')}
+              </label>
+              <div className="relative group">
+                <div className={`absolute -inset-0.5 bg-gradient-to-r from-pink-400 to-rose-400 rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300 ${editMode ? '' : 'hidden'}`} />
+                <div className="relative flex items-center">
+                  <div className="absolute left-3.5 flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-300" style={{ 
+                    backgroundColor: editMode ? theme.colors.primary + '10' : 'transparent'
+                  }}>
+                    <Phone className="w-5 h-5 transition-all duration-300" style={{ 
+                      color: editMode ? theme.colors.primary : '#9ca3af'
+                    }} />
+                  </div>
+                  <input 
+                    type="tel"
+                    name="phone"
+                    value={profile.phone}
+                    onChange={handleChange}
+                    className={`w-full pl-14 pr-4 py-3.5 border-2 rounded-xl font-medium transition-all duration-300 focus:outline-none ${
+                      editMode 
+                        ? 'bg-white focus:border-pink-500 focus:shadow-lg focus:shadow-pink-500/10 hover:border-pink-300' 
+                        : 'bg-gray-50 cursor-not-allowed border-gray-200'
+                    }`}
+                    style={{ 
+                      borderColor: editMode ? theme.colors.border : '#e5e7eb',
+                      color: theme.colors.textPrimary
+                    }}
+                    placeholder={t('profile.phone')}
+                    required
+                    disabled={!editMode}
+                  />
+                </div>
               </div>
             </div>
             <div>
-              <label className="block text-sm mb-1" style={{ color: theme.colors.textSecondary }}>{t('profile.dateOfBirth')}</label>
+              <label className="flex items-center gap-2 text-sm font-semibold mb-2" style={{ color: theme.colors.textPrimary }}>
+                <svg className="w-4 h-4" style={{ color: theme.colors.primary }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                {t('profile.dateOfBirth')}
+              </label>
               <div className={!editMode ? 'opacity-50 pointer-events-none' : ''}>
                 <CustomDatePicker
                   selected={profile.dob ? new Date(profile.dob) : null}

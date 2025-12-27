@@ -12,7 +12,6 @@ import SyncStatus from './components/SyncStatus';
 import { EmptyState } from './components/EmptyState';
 import { AnniversaryItemSkeleton } from './components/LoadingSkeleton';
 import CustomDatePicker from './components/CustomDatePicker';
-import './styles/AnniversaryReminders.css';
 import anniversaryTimeline from "./data/anniversaryTimeline.json";
 
 interface Anniversary extends ApiAnniversary {
@@ -207,10 +206,10 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       link.click();
       document.body.removeChild(link);
       
-      // Hiển thị thông báo thành công
-      alert(`✅ Sự kiện "${anniversary.title}" đã sẵn sàng để lưu vào calendar!`);
+      // Hiển thị toast notification thành công
+      success(`Sự kiện "${anniversary.title}" đã được tải xuống!`);
     } catch (err) {
-      alert('❌ Không thể tạo file calendar. Vui lòng thử lại.');
+      error('Không thể tạo file calendar. Vui lòng thử lại.');
     }
   };
 
@@ -694,17 +693,17 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
   
   // Default visual effects settings
   const effectsEnabled = {
-    particles: true,
-    hearts: true,
-    transitions: true,
-    glow: true,
-    fadeIn: true,
-    slideIn: true
+    fireworks: false,
+    colorMorph: false,
+    rippleWave: false,
+    floatingBubbles: false,
+    magneticCursor: false,
+    gradientMesh: false
   };
   const animationSpeed = 50;
 
   return (
-    <div className="anniversary-reminders-page" style={{ background: theme.background, color: theme.textPrimary }}>
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-orange-50 relative overflow-x-hidden" style={{ background: theme.background, color: theme.textPrimary }}>
       {/* Visual Effects */}
       <VisualEffects 
         effectsEnabled={effectsEnabled}
@@ -719,9 +718,9 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         errorMessage={errorMessage || undefined}
       />
       {/* Header */}
-      <header className="anniversary-header">
-        <div className="anniversary-header-container">
-          <div className="anniversary-header-content">
+      <header className="bg-white/95 backdrop-blur-xl border-b border-pink-100 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
             <button 
               onClick={onBack}
               className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-pink-200 hover:bg-pink-50 hover:border-pink-300 transition-all duration-300 shadow-sm hover:shadow-md active:scale-90 active:shadow-inner"
@@ -730,63 +729,63 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
               <ArrowLeft className="w-5 h-5 text-pink-600" />
             </button>
             
-            <div className="header-logo">
-              <div className="header-logo-icon">
+            <div className="flex items-center gap-2">
+              <div className="bg-gradient-to-r from-pink-500 to-rose-500 p-2 rounded-xl animate-[heartbeat_2s_infinite]">
                 <Heart className="w-5 h-5 text-white" />
               </div>
-              <span className="header-logo-text">Love Journal</span>
+              <span className="text-lg font-bold bg-gradient-to-r from-red-600 to-rose-500 bg-clip-text text-transparent">Love Journal</span>
             </div>
             
             <button
               onClick={() => setShowAddForm(true)}
-              className="add-button"
+              className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white px-4 py-2 rounded-full font-medium transition-all duration-200 border-none cursor-pointer shadow-md hover:from-pink-600 hover:to-rose-600 hover:scale-105 hover:shadow-lg"
             >
               <Plus className="w-5 h-5" />
-              <span className="add-button-text">{t('anniversary.addNew')}</span>
+              <span className="hidden sm:block">{t('anniversary.addNew')}</span>
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="anniversary-main">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
-        <div className="page-header">
-          <h1 className="page-title">
+        <div className="text-center mb-16 animate-[fade-in-up_0.8s_ease-out]">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 leading-tight">
             {t('anniversary.title')}
           </h1>
-          <p className="page-subtitle">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
             {t('anniversary.subtitle')}
           </p>
         </div>
 
         {/* Upcoming Anniversaries */}
         {upcomingAnniversaries.length > 0 && (
-          <section className="upcoming-section">
-            <div className="section-header">
-              <div className="section-title-container">
+          <section className="mb-16">
+            <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+              <div className="flex items-center gap-3">
                 <BellRing className="w-6 h-6 text-pink-500 animate-pulse" />
-                <h2 className="section-title">{t('anniversary.comingSoon')}</h2>
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('anniversary.comingSoon')}</h2>
               </div>
-              <div className="upcoming-count">
+              <div className="bg-gradient-to-r from-pink-100 to-pink-50 text-pink-500 px-4 py-2 rounded-full text-sm font-semibold border border-pink-100">
                 {upcomingAnniversaries.length} {t('anniversary.daysRemaining')}
               </div>
             </div>
             
-            <div className="anniversaries-grid">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {upcomingAnniversaries.map((anniversary, index) => (
                 <div 
                   key={anniversary.id}
-                  className="anniversary-card upcoming-card"
+                  className="bg-white rounded-2xl p-6 border-2 border-pink-200 shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden cursor-pointer animate-[bounce-in_0.6s_ease-out] hover:-translate-y-1 hover:border-pink-300"
                   style={{ animationDelay: `${index * 0.1}s` }}
                   onClick={createFloatingHearts}
                 >
                   {/* Card Header */}
-                  <div className="card-header">
-                    <div className={`anniversary-icon bg-gradient-to-r ${getAnniversaryColor(anniversary.type)}`}>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`p-3 rounded-xl bg-gradient-to-r ${getAnniversaryColor(anniversary.type)}`}>
                       {getAnniversaryIcon(anniversary.type)}
                     </div>
-                    <div className="card-actions">
+                    <div className="flex gap-1">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -802,7 +801,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                           e.stopPropagation();
                           handleSaveToCalendar(anniversary);
                         }}
-                        className="save-calendar-button"
+                        className="p-2 rounded-lg transition-colors text-blue-600 hover:bg-blue-100"
                         title="Lưu sự kiện vào calendar"
                       >
                         <Download className="w-4 h-4" />
@@ -812,7 +811,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                           e.stopPropagation();
                           handleEditAnniversary(anniversary);
                         }}
-                        className="edit-button"
+                        className="p-2 rounded-lg transition-colors text-gray-600 hover:bg-gray-100"
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
@@ -821,7 +820,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                           e.stopPropagation();
                           handleDeleteAnniversary(anniversary.id);
                         }}
-                        className="delete-button"
+                        className="p-2 rounded-lg transition-colors text-red-600 hover:bg-red-100"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -829,42 +828,44 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                   </div>
 
                   {/* Card Content */}
-                  <div className="card-content">
-    <h3 className="anniversary-title">{anniversary.title}</h3>
-    <div className="anniversary-type-badge" title={getAnniversaryTypeName(anniversary)}>
+                  <div className="space-y-4">
+    <h3 className="text-xl font-bold text-gray-900 mb-2">{anniversary.title}</h3>
+    <div className="inline-block px-2.5 py-1 rounded-lg text-xs font-medium bg-gradient-to-r from-pink-50 to-pink-100 text-pink-600 border border-pink-200 max-w-[140px] whitespace-nowrap overflow-hidden text-ellipsis" title={getAnniversaryTypeName(anniversary)}>
       {getAnniversaryTypeName(anniversary)}
     </div>
-    <div className="anniversary-fields-even">
-      <div className="anniversary-date">
+    <div className="flex items-center justify-between gap-3 mb-2">
+      <div className="flex-1 flex items-center justify-center gap-2 text-gray-600 text-sm">
         <Calendar className="w-4 h-4" />
         <span>{formatDate(anniversary.date)}</span>
       </div>
-      <div className="years-badge">
+      <div className="flex-1 flex items-center justify-center px-3 py-1.5 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 rounded-full text-xs font-semibold">
         {(() => {
           const anniversaryDate = new Date(anniversary.date);
           const now = new Date();
           return getDurationString(anniversaryDate, now);
         })()}
       </div>
-      <div className="days-until">
-        <Clock className="w-4 h-4" />
-        <span className="days-count">{anniversary.daysUntil}</span>
-        <span className="days-text">days to go</span>
+      <div className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-pink-100 to-rose-100 px-3 py-1.5 rounded-full">
+        <Clock className="w-4 h-4 text-pink-600" />
+        <span className="text-2xl font-bold text-pink-600">{anniversary.daysUntil}</span>
+        <span className="text-xs text-pink-600 font-medium">days to go</span>
       </div>
     </div>
                     {/* Always show milestone info if milestoneTitle or milestoneMeaning exists */}
                     {(anniversary.milestoneTitle || anniversary.milestoneMeaning) && (
-                      <div className="milestone-info" style={{background:'#FEF9C3',borderRadius:8,padding:'8px 12px',marginTop:8,marginBottom:8}}>
-                        {anniversary.milestoneTitle && (
-                          <span style={{fontWeight:600}}>{getMilestoneTitle(anniversary)}</span>
-                        )}
-                        {anniversary.milestoneMeaning && (
-                          <span style={{float:'right',fontWeight:400}}>{getMilestoneMeaning(anniversary)}</span>
-                        )}
+                      <div className="bg-yellow-50 rounded-lg p-3 my-2 overflow-hidden">
+                        <div className="flex items-start justify-between gap-2 flex-wrap">
+                          {anniversary.milestoneTitle && (
+                            <span className="font-semibold">{getMilestoneTitle(anniversary)}</span>
+                          )}
+                          {anniversary.milestoneMeaning && (
+                            <span className="font-normal text-right">{getMilestoneMeaning(anniversary)}</span>
+                          )}
+                        </div>
                       </div>
                     )}
                     {anniversary.isNotificationEnabled && (
-                      <div className="reminder-info">
+                      <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
                         <Bell className="w-4 h-4" />
                         <span>Nhắc nhở được đặt {anniversary.reminderDays} ngày trước</span>
                       </div>
@@ -872,7 +873,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                   </div>
 
                   {/* Upcoming Glow Effect */}
-                  <div className="upcoming-glow"></div>
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-pink-400/20 to-rose-400/20 blur-xl -z-10 animate-[pulse-glow_2s_infinite]"></div>
                 </div>
               ))}
             </div>
@@ -880,45 +881,49 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         )}
 
         {/* All Anniversaries */}
-        <section className="all-anniversaries-section">
-          <div className="section-header">
-            <div className="section-title-container">
+        <section className="mb-8">
+          <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+            <div className="flex items-center gap-3">
               <Heart className="w-6 h-6 text-pink-500" />
-              <h2 className="section-title">{t('anniversary.allAnniversaries')}</h2>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('anniversary.allAnniversaries')}</h2>
             </div>
-            <div className="total-count">
+            <div className="bg-gradient-to-r from-pink-100 to-pink-50 text-pink-500 px-4 py-2 rounded-full text-sm font-semibold border border-pink-100">
               {anniversaries.length} {t('common.all')}
             </div>
           </div>
           
           {loading ? (
-            <div className="anniversaries-grid">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <AnniversaryItemSkeleton />
               <AnniversaryItemSkeleton />
               <AnniversaryItemSkeleton />
               <AnniversaryItemSkeleton />
             </div>
           ) : otherAnniversaries.length > 0 ? (
-            <div className="anniversaries-grid">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {otherAnniversaries.map((anniversary, index) => (
               <div 
                 key={anniversary.id}
-                className="anniversary-card"
+                className="bg-white rounded-2xl p-6 border-2 border-gray-200 shadow-md hover:shadow-xl transition-all duration-300 relative overflow-hidden cursor-pointer animate-[bounce-in_0.6s_ease-out] hover:-translate-y-1 hover:border-pink-200"
                 style={{ animationDelay: `${(upcomingAnniversaries.length + index) * 0.1}s` }}
                 onClick={createFloatingHearts}
               >
                 {/* Card Header */}
-                <div className="card-header">
-                  <div className={`anniversary-icon bg-gradient-to-r ${getAnniversaryColor(anniversary.type)}`}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`p-3 rounded-xl bg-gradient-to-r ${getAnniversaryColor(anniversary.type)}`}>
                     {getAnniversaryIcon(anniversary.type)}
                   </div>
-                  <div className="card-actions">
+                  <div className="flex gap-1">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleNotification(anniversary.id);
                       }}
-                      className={`notification-toggle ${anniversary.isNotificationEnabled ? 'active' : ''}`}
+                      className={`p-2 rounded-lg transition-colors ${
+                        anniversary.isNotificationEnabled 
+                          ? 'bg-pink-100 text-pink-600' 
+                          : 'text-gray-400 hover:bg-gray-100'
+                      }`}
                       title="Thông Báo"
                     >
                       <Bell className="w-4 h-4" />
@@ -928,7 +933,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                         e.stopPropagation();
                         handleSaveToCalendar(anniversary);
                       }}
-                      className="save-calendar-button"
+                      className="p-2 rounded-lg transition-colors text-blue-600 hover:bg-blue-100"
                       title="Lưu sự kiện vào calendar"
                     >
                       <Download className="w-4 h-4" />
@@ -938,7 +943,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                         e.stopPropagation();
                         handleEditAnniversary(anniversary);
                       }}
-                      className="edit-button"
+                      className="p-2 rounded-lg transition-colors text-gray-600 hover:bg-gray-100"
                       title="Chỉnh sửa"
                     >
                       <Edit3 className="w-4 h-4" />
@@ -948,7 +953,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                         e.stopPropagation();
                         handleDeleteAnniversary(anniversary.id);
                       }}
-                      className="delete-button"
+                      className="p-2 rounded-lg transition-colors text-red-600 hover:bg-red-100"
                       title="Xóa Sự Kiện"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -957,46 +962,46 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                 </div>
 
                 {/* Card Content */}
-                <div className="card-content">
-                  <h3 className="anniversary-title">{anniversary.title}</h3>
-                  <div className="anniversary-type-badge" title={getAnniversaryTypeName(anniversary)}>
+                <div className="space-y-3">
+                  <h3 className="text-xl font-bold text-gray-900 line-clamp-2">{anniversary.title}</h3>
+                  <div className="inline-block bg-gradient-to-r from-pink-100 to-rose-100 text-pink-600 px-3 py-1 rounded-full text-xs font-medium" title={getAnniversaryTypeName(anniversary)}>
                     {getAnniversaryTypeName(anniversary)}
                   </div>
-                  <div className="anniversary-date">
+                  <div className="flex items-center gap-2 text-gray-600 text-sm">
                     <Calendar className="w-4 h-4" />
                     <span>{formatDate(anniversary.date)}</span>
                   </div>
                   
-                  <div className="anniversary-details">
-                    <div className="anniversary-details-row">
-                      <div className="years-badge">
-                        {(() => {
-                          const anniversaryDate = new Date(anniversary.date);
-                          const now = new Date();
-                          return getDurationString(anniversaryDate, now);
-                        })()}
-                      </div>
-                      <div className="days-until">
-                        <Clock className="w-4 h-4" />
-                        <span className="days-count">{anniversary.daysUntil}</span>
-                        <span className="days-text">ngày nữa</span>
-                      </div>
+                  <div className="flex items-center justify-between mt-3 gap-4">
+                    <div className="bg-gradient-to-r from-pink-500 to-rose-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-md">
+                      {(() => {
+                        const anniversaryDate = new Date(anniversary.date);
+                        const now = new Date();
+                        return getDurationString(anniversaryDate, now);
+                      })()}
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-500">
+                      <Clock className="w-4 h-4" />
+                      <span className="text-lg font-bold text-pink-500">{anniversary.daysUntil}</span>
+                      <span className="text-sm">ngày nữa</span>
                     </div>
                   </div>
 
                   {/* Always show milestone info if milestoneTitle or milestoneMeaning exists */}
                   {(anniversary.milestoneTitle || anniversary.milestoneMeaning) && (
-                    <div className="milestone-info" style={{background:'#FEF9C3',borderRadius:8,padding:'8px 12px',marginTop:8,marginBottom:8}}>
-                      {anniversary.milestoneTitle && (
-                        <span style={{fontWeight:600}}>{getMilestoneTitle(anniversary)}</span>
-                      )}
-                      {anniversary.milestoneMeaning && (
-                        <span style={{float:'right',fontWeight:400}}>{getMilestoneMeaning(anniversary)}</span>
-                      )}
+                    <div className="bg-yellow-50 rounded-lg p-3 my-2 overflow-hidden">
+                      <div className="flex items-start justify-between gap-2 flex-wrap">
+                        {anniversary.milestoneTitle && (
+                          <span className="font-semibold">{getMilestoneTitle(anniversary)}</span>
+                        )}
+                        {anniversary.milestoneMeaning && (
+                          <span className="font-normal text-right">{getMilestoneMeaning(anniversary)}</span>
+                        )}
+                      </div>
                     </div>
                   )}
                   {anniversary.isNotificationEnabled && (
-                    <div className="reminder-info">
+                    <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
                       <Bell className="w-4 h-4" />
                       <span>Reminder set for {anniversary.reminderDays} day{anniversary.reminderDays !== 1 ? 's' : ''} before</span>
                     </div>
@@ -1024,10 +1029,10 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
 
       {/* Add/Edit Anniversary Modal */}
       {showAddForm && (
-        <div className="modal-overlay">
-          <div className="modal-container">
-            <div className="modal-header">
-              <h2 className="modal-title">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 animate-[fade-in_0.3s_ease-out]">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-[slideUp_0.4s_ease-out]">
+            <div className="sticky top-0 bg-gradient-to-r from-pink-500 to-rose-500 text-white p-6 rounded-t-2xl flex items-center justify-between z-10">
+              <h2 className="text-2xl font-bold">
                 {editingAnniversary ? 'Chỉnh Sửa Kỷ Niệm' : 'Thêm Kỷ Niệm Mới'}
               </h2>
               <button
@@ -1043,16 +1048,16 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                     customTypeName: ''
                   });
                 }}
-                className="modal-close"
+                className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            <div className="modal-content">
+            <div className="p-6 space-y-6">
 
-              <div className="form-group">
-                <label className="form-label">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700">
                   Tên Kỷ Niệm
                 </label>
                 <div className="relative">
@@ -1068,8 +1073,8 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
               </div>
 
 
-              <div className="form-group">
-                <label className="form-label">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700">
                   Ngày Tháng
                 </label>
                 <CustomDatePicker
@@ -1084,8 +1089,8 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
               </div>
 
 
-              <div className="form-group">
-                <label className="form-label">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700">
                   Loại Kỷ Niệm
                 </label>
                 <div className="relative">
@@ -1109,8 +1114,8 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
               </div>
 
               {newAnniversary.type === 'custom' && (
-                <div className="form-group">
-                  <label className="form-label">
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
                     Tên Loại Kỷ Niệm (Tùy Chỉnh)
                   </label>
                   <div className="relative">
@@ -1126,8 +1131,8 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                 </div>
               )}
 
-              <div className="form-group">
-                <label className="form-label">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700">
                   Nhắc Nhở Tôi
                 </label>
                 <div className="relative">
@@ -1147,21 +1152,21 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
               </div>
 
 
-              <div className="form-group">
-                <label className="checkbox-label">
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={newAnniversary.isNotificationEnabled}
                     onChange={(e) => setNewAnniversary(prev => ({ ...prev, isNotificationEnabled: e.target.checked }))}
-                    className="checkbox-input"
+                    className="w-5 h-5 rounded border-2 border-pink-200 text-pink-500 focus:ring-4 focus:ring-pink-100 transition-all"
                   />
                   <BellRing className="w-4 h-4 mr-1 inline text-pink-500" />
-                  <span className="checkbox-text">Bật Thông Báo</span>
+                  <span className="text-sm font-medium text-gray-700">Bật Thông Báo</span>
                 </label>
               </div>
             </div>
 
-            <div className="modal-actions">
+            <div className="sticky bottom-0 bg-white border-t-2 border-gray-100 p-6 rounded-b-2xl flex gap-4 justify-end">
               <button
                 onClick={() => {
                   setShowAddForm(false);
@@ -1175,7 +1180,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                     customTypeName: ''
                   });
                 }}
-                className="cancel-button"
+                className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-8 rounded-xl transition-colors"
               >
                 Hủy
               </button>
@@ -1188,9 +1193,9 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
                   }
                 }}
                 disabled={!newAnniversary.title || !newAnniversary.date}
-                className="save-button"
+                className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 disabled:from-gray-300 disabled:to-gray-400 text-white font-semibold py-3 px-8 rounded-xl transition-all shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
               >
-                {editingAnniversary ? 'Cập Nhật' : 'Thêm'} Kỷ Niệm
+                {editingAnniversary ? 'Cập Nhật' : 'Thêm'}
               </button>
             </div>
           </div>
@@ -1199,24 +1204,24 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
 
       {/* Custom Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="modal-overlay">
-          <div className="modal-container delete-confirm-modal">
-            <div className="modal-header">
-              <h2 className="modal-title">Xác Nhận Xóa</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 animate-[fade-in_0.3s_ease-out]">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-[slideUp_0.4s_ease-out]">
+            <div className="bg-gradient-to-r from-red-500 to-rose-500 text-white p-6 rounded-t-2xl">
+              <h2 className="text-2xl font-bold">Xác Nhận Xóa</h2>
             </div>
-            <div className="modal-content">
-              <p className="delete-confirm-text">Bạn có chắc chắn muốn xóa kỷ niệm này không?</p>
+            <div className="p-6">
+              <p className="text-gray-700 text-lg">Bạn có chắc chắn muốn xóa kỷ niệm này không?</p>
             </div>
-            <div className="modal-actions delete-confirm-actions">
+            <div className="bg-white border-t-2 border-gray-100 p-6 rounded-b-2xl flex gap-4">
               <button
-                className="cancel-button"
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl transition-colors disabled:opacity-50"
                 onClick={() => { setShowDeleteConfirm(false); setDeleteId(null); }}
                 disabled={loading}
               >
                 Hủy
               </button>
               <button
-                className="delete-confirm-button"
+                className="flex-1 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl disabled:opacity-50"
                 onClick={confirmDeleteAnniversary}
                 disabled={loading}
               >
@@ -1231,7 +1236,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
       {floatingHearts.map(heart => (
         <div
           key={heart.id}
-          className="floating-heart"
+          className="fixed pointer-events-none z-50 animate-[float_3s_ease-in-out_forwards]"
           style={{
             left: heart.x,
             top: heart.y,
