@@ -7,6 +7,7 @@ import { useCallback, useState } from 'react';
 import { Upload, X, Image, AlertCircle, CheckCircle } from 'lucide-react';
 import { useCloudinary } from '../../hooks/useCloudinary';
 import type { UploadOptions } from '../../apis/cloudinaryGalleryApi';
+import { compressImage, formatFileSize as formatSize } from '../../utils/imageCompression';
 
 interface ImageUploadProps {
   onUploadComplete?: (imageUrl: string, publicId: string) => void;
@@ -17,6 +18,9 @@ interface ImageUploadProps {
   maxFileSize?: number; // in MB
   className?: string;
   disabled?: boolean;
+  enableCompression?: boolean; // Enable client-side compression
+  compressionQuality?: number; // 0.1 to 1.0 (default: 0.8)
+  maxImageDimension?: number; // Max width/height (default: 1920)
 }
 
 interface UploadingFile {
@@ -39,7 +43,10 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   acceptedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
   maxFileSize = 10, // 10MB default
   className = '',
-  disabled = false
+  disabled = false,
+  enableCompression = true, // Enable by default
+  compressionQuality = 0.8,
+  maxImageDimension = 1920
 }) => {
   const { uploadImage, uploading } = useCloudinary();
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
@@ -92,7 +99,34 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       setUploadingFiles(prev => [...prev, uploadingFile]);
       
       try {
-        // Simulate progress updates
+        // Compress image if enabled
+        let fileToUpload = file;
+        if (enableCompression) {
+          const compressionResult = await compressImage(file, {
+            maxWidth: maxImageDimension,
+            maxHeight: maxImageDimension,
+            quality: compressionQuality,
+            format: 'jpeg',
+            onProgress: (progress) => {
+              // Update progress for compression phase (0-30%)
+              setUploadingFiles(prev => prev.map(f => 
+                f.id === uploadId 
+                  ? { ...f, progress: Math.floor(progress * 0.3) }
+                  : f
+              ));
+            }
+          });
+          fileToUpload = compressionResult.file;
+          
+          // Log compression stats
+          console.log(`🗜️ Compressed ${file.name}:`, {
+            original: formatSize(compressionResult.originalSize),
+            compressed: formatSize(compressionResult.compressedSize),
+            saved: `${compressionResult.compressionRatio.toFixed(1)}%`
+          });
+        }
+        
+        // Simulate progress updates for upload phase (30-90%)
         const progressInterval = setInterval(() => {
           setUploadingFiles(prev => prev.map(f => 
             f.id === uploadId 
@@ -101,7 +135,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           ));
         }, 200);
         
-        const result = await uploadImage(file, uploadOptions);
+        const result = await uploadImage(fileToUpload, uploadOptions);
         
         clearInterval(progressInterval);
         
@@ -167,14 +201,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     setUploadingFiles(prev => prev.filter(f => f.id !== id));
   }, []);
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
   return (
     <div className={`w-full ${className}`}>
       {/* Upload Area */}
@@ -225,7 +251,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
               <div key={uploadingFile.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200 sm:flex-col sm:items-start sm:gap-3">
                 <div className="flex-1 flex flex-col gap-1">
                   <span className="font-medium text-gray-700 text-sm">{uploadingFile.file.name}</span>
-                  <span className="text-xs text-gray-500">{formatFileSize(uploadingFile.file.size)}</span>
+                  <span className="text-xs text-gray-500">{formatSize(uploadingFile.file.size)}</span>
                 </div>
                 
                 <div className="flex items-center gap-2 min-w-[120px] sm:self-stretch sm:justify-between">

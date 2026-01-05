@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAuth, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { ROUTES } from './config/routes';
+import { getAuth, signInWithEmailAndPassword, signOut, RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 import app from './firebase/firebaseConfig';
 import { Heart, Mail, Lock, Eye, EyeOff, BookHeart, Calendar, Phone, X } from 'lucide-react';
 import { MoodTheme, themes } from './config/themes';
@@ -90,6 +91,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
   const [resendCountdown, setResendCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState<any>(null);
+  const [isPhoneLogin, setIsPhoneLogin] = useState(false); // Track if phone auth is for login or register
   const otpInputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
   // Country code dropdown
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
@@ -205,28 +207,31 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
           setError(t('auth.errorPhoneRequired'));
           return;
         }
+        // Phone registration doesn't need password (uses OTP)
       } else {
         if (!email) {
           setError(t('auth.errorEmailRequired'));
           return;
         }
-      }
-      // Validate password requirements
-      const passwordRequirements = [
-        { regex: /.{6,}/, message: t('auth.errorPasswordLength') },
-        { regex: /[A-Z]/, message: t('auth.errorPasswordUppercase') },
-        { regex: /[a-z]/, message: t('auth.errorPasswordLowercase') },
-        { regex: /[0-9]/, message: t('auth.errorPasswordNumber') },
-        { regex: /[^A-Za-z0-9]/, message: t('auth.errorPasswordSpecial') },
-      ];
-      for (const req of passwordRequirements) {
-        if (!req.regex.test(password)) {
-          setError(req.message);
-          return;
+        // Validate password requirements for email registration only
+        const passwordRequirements = [
+          { regex: /.{6,}/, message: t('auth.errorPasswordLength') },
+          { regex: /[A-Z]/, message: t('auth.errorPasswordUppercase') },
+          { regex: /[a-z]/, message: t('auth.errorPasswordLowercase') },
+          { regex: /[0-9]/, message: t('auth.errorPasswordNumber') },
+          { regex: /[^A-Za-z0-9]/, message: t('auth.errorPasswordSpecial') },
+        ];
+        for (const req of passwordRequirements) {
+          if (!req.regex.test(password)) {
+            setError(req.message);
+            return;
+          }
         }
       }
     } else {
-      if (!email || !password) {
+      // Login validation
+      const isPhoneNumber = !email.includes('@') && /^[\d+]/.test(email);
+      if (!email || (!isPhoneNumber && !password)) {
         setError(t('auth.errorLoginRequired'));
         return;
       }
@@ -243,46 +248,87 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
       }
       setIsLoading(false);
       if (result.success) {
-        setSuccessMsg(t('auth.successRegistered'));
-        setIsRegister(false);
+        // For phone registration, success is handled in OTP verification
+        if (registerMethod === 'phone') {
+          // OTP modal will show, don't show success message yet
+          // Success will be shown after OTP verification
+        } else {
+          // Email registration - show success and switch to login
+          setSuccessMsg(t('auth.successRegistered'));
+          setTimeout(() => {
+            setSuccessMsg(''); // Clear success message
+            setIsRegister(false); // Switch to login mode
+            setEmail('');
+            setPassword('');
+          }, 2000); // Show message for 2 seconds before switching
+        }
         setPhone('');
-        setEmail('');
-        setPassword('');
       } else {
         setError(result.message || t('auth.errorRegistrationFailed'));
       }
     } else {
       // Login
-      const result = await loginWithFirebase(email, password);
-      setIsLoading(false);
-      if (result.success) {
-        // SECURITY: Only remember email, NEVER remember password
-        if (rememberMe) {
-          SecureStorage.setRememberedEmail(email);
-        } else {
-          SecureStorage.clearRemembered();
+      setIsLoading(true);
+      
+      // Detect if input is phone number or email
+      // If contains @, it's email. If starts with + or digits, it's phone
+      const isPhoneNumber = !email.includes('@') && /^[\d+]/.test(email);
+      
+      let result;
+      if (isPhoneNumber) {
+        // Phone login - need to get phone auth first
+        setIsPhoneLogin(true); // Mark as phone login
+        const fullPhone = email.startsWith('+') ? email : `${selectedCountry.code}${email}`;
+        result = await registerWithPhoneFirebase(fullPhone);
+        // Phone login uses OTP, so we'll handle success in OTP verification
+        if (!result.success) {
+          setError(result.message || 'Failed to send OTP');
         }
-        navigate('/landing');
       } else {
-        setError(result.message || t('auth.errorLoginFailed'));
+        // Email login
+        result = await loginWithFirebase(email, password);
+        if (result.success) {
+          // SECURITY: Only remember email, NEVER remember password
+          if (rememberMe) {
+            SecureStorage.setRememberedEmail(email);
+          } else {
+            SecureStorage.clearRemembered();
+          }
+          navigate(ROUTES.LANDING);
+        } else {
+          setError(result.message || t('auth.errorLoginFailed'));
+        }
       }
+      
+      setIsLoading(false);
     }
   };
 
   // Firebase Auth register (sign up) with phone number (OTP)
   const registerWithPhoneFirebase = async (phone: string) => {
     try {
-      const { getAuth, RecaptchaVerifier, signInWithPhoneNumber } = await import('firebase/auth');
       const auth = getAuth(app);
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new RecaptchaVerifier(
-          auth,
-          'recaptcha-container',
-          {
-            size: 'invisible',
-          }
-        );
+      
+      // Clear existing verifier
+      if (window.recaptchaVerifier) {
+        try {
+          window.recaptchaVerifier.clear();
+        } catch (e) {
+          console.log('Failed to clear recaptcha:', e);
+        }
       }
+      
+      // Create new verifier with correct v10 syntax
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        size: 'invisible',
+        callback: () => {
+          console.log('reCAPTCHA solved');
+        },
+        'expired-callback': () => {
+          console.log('reCAPTCHA expired');
+        }
+      });
+      
       const appVerifier = window.recaptchaVerifier;
       const result = await signInWithPhoneNumber(auth, phone, appVerifier);
       setConfirmationResult(result);
@@ -295,6 +341,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
       setTimeout(() => otpInputRefs[0].current?.focus(), 100);
       return { success: true };
     } catch (err: any) {
+      console.error('Phone registration error:', err);
       return { success: false, message: err.message };
     }
   };
@@ -378,41 +425,56 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
     try {
       const userCredential = await confirmationResult.confirm(code);
       
-      // Check user status before allowing login (for phone auth)
+      // Check user status and create document if needed (for phone auth)
       try {
         const ENV_PREFIX = import.meta.env.VITE_ENV_PREFIX || '';
         const userDocRef = doc(db, `${ENV_PREFIX}users`, userCredential.user.uid);
         const userDoc = await getDoc(userDocRef);
-        const userData = userDoc.data();
         
-        // If user is Suspended, sign them out immediately
-        if (userData?.status === 'Suspended') {
-          const auth = getAuth(app);
-          await signOut(auth);
-          logSecurityEvent({
-            type: 'LOGIN_BLOCKED',
-            userId: userCredential.user.uid,
-            details: { reason: 'Account suspended', method: 'phone' }
-          });
-          setShowOtpModal(false);
-          setError(t('notification.accountSuspended'));
-          setIsLoading(false);
-          return;
-        }
-        
-        // If user is Removed, sign them out immediately
-        if (userData?.status === 'Removed') {
-          const auth = getAuth(app);
-          await signOut(auth);
-          logSecurityEvent({
-            type: 'LOGIN_BLOCKED',
-            userId: userCredential.user.uid,
-            details: { reason: 'Account removed', method: 'phone' }
-          });
-          setShowOtpModal(false);
-          setError(t('notification.accountRemoved'));
-          setIsLoading(false);
-          return;
+        // If user document doesn't exist, create it (new user)
+        if (!userDoc.exists()) {
+          console.log('[OTP Login] Creating new user document for phone login');
+          await createUserWithRole(
+            userCredential.user.uid,
+            {
+              email: '', // Phone auth doesn't have email initially
+              displayName: '',
+              phone: userCredential.user.phoneNumber || ''
+            },
+            'User'
+          );
+        } else {
+          const userData = userDoc.data();
+          
+          // If user is Suspended, sign them out immediately
+          if (userData?.status === 'Suspended') {
+            const auth = getAuth(app);
+            await signOut(auth);
+            logSecurityEvent({
+              type: 'LOGIN_BLOCKED',
+              userId: userCredential.user.uid,
+              details: { reason: 'Account suspended', method: 'phone' }
+            });
+            setShowOtpModal(false);
+            setError(t('notification.accountSuspended'));
+            setIsLoading(false);
+            return;
+          }
+          
+          // If user is Removed, sign them out immediately
+          if (userData?.status === 'Removed') {
+            const auth = getAuth(app);
+            await signOut(auth);
+            logSecurityEvent({
+              type: 'LOGIN_BLOCKED',
+              userId: userCredential.user.uid,
+              details: { reason: 'Account removed', method: 'phone' }
+            });
+            setShowOtpModal(false);
+            setError(t('notification.accountRemoved'));
+            setIsLoading(false);
+            return;
+          }
         }
       } catch (statusCheckError) {
         console.error('[OTP Login] Error checking user status:', statusCheckError);
@@ -421,10 +483,31 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
       }
       
       setShowOtpModal(false);
-      setSuccessMsg(t('auth.successOtpVerified'));
-      setIsRegister(false);
       setPhone('');
       setOtpCode(['', '', '', '', '', '']);
+      
+      // Log successful login
+      logSecurityEvent({
+        type: 'LOGIN_SUCCESS',
+        userId: userCredential.user.uid,
+        details: { method: 'phone' }
+      });
+      
+      // If this was phone login, navigate to landing
+      // If this was phone registration, stay on login page
+      if (isPhoneLogin) {
+        setSuccessMsg('Đăng nhập thành công!');
+        console.log('[OTP Login] Navigating to landing page...');
+        navigate(ROUTES.LANDING);
+      } else {
+        // Phone registration successful - show message and switch to login
+        setSuccessMsg(t('auth.successOtpVerified'));
+        setTimeout(() => {
+          setSuccessMsg(''); // Clear success message
+          setIsRegister(false); // Switch to login mode
+          setIsPhoneLogin(false); // Reset phone login flag
+        }, 2000); // Show message for 2 seconds before switching
+      }
     } catch (err: any) {
       setOtpError(t('auth.otpErrorInvalid'));
     } finally {
@@ -496,12 +579,12 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
   
   // Default visual effects settings
   const effectsEnabled = {
-    particles: true,
-    hearts: true,
-    transitions: true,
-    glow: true,
-    fadeIn: true,
-    slideIn: true
+    fireworks: true,
+    colorMorph: true,
+    rippleWave: true,
+    floatingBubbles: true,
+    magneticCursor: true,
+    gradientMesh: true
   };
   const animationSpeed = 50;
 
@@ -639,11 +722,11 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                     <input
                       id="email"
-                      type="email"
+                      type="text"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all outline-none"
-                      placeholder="Nhập email của bạn"
+                      placeholder="Nhập email hoặc số điện thoại"
                       required
                     />
                   </div>
@@ -658,19 +741,40 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                   <input
                     id="email"
-                    type="email"
+                    type="text"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all outline-none"
-                    placeholder={t('auth.emailPlaceholder')}
+                    placeholder="Email hoặc số điện thoại"
                     required
                   />
                 </div>
+                {/* Recaptcha container for phone login */}
+                <div id="recaptcha-container" />
               </div>
             )}
 
-            {/* Password Field */}
-            <div className="flex flex-col gap-2">
+            {/* Info box for phone login */}
+            {!isRegister && !email.includes('@') && /^[\d+]/.test(email) && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-700">
+                  📱 <strong>Đăng nhập bằng SĐT:</strong> Bạn sẽ nhận mã OTP qua tin nhắn.
+                </p>
+              </div>
+            )}
+
+            {/* Info box for phone registration */}
+            {isRegister && registerMethod === 'phone' && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-700">
+                  📱 <strong>Đăng ký bằng SĐT:</strong> Bạn sẽ nhận mã OTP để xác thực.
+                </p>
+              </div>
+            )}
+
+            {/* Password Field - Hide for phone login and phone registration */}
+            {!((!isRegister && !email.includes('@') && /^[\d+]/.test(email)) || (isRegister && registerMethod === 'phone')) && (
+              <div className="flex flex-col gap-2">
               <label htmlFor="password" className="text-sm font-medium text-gray-700">
                 Mật Khẩu
               </label>
@@ -699,8 +803,10 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                 </button>
               </div>
             </div>
+            )}
 
-            {/* Remember Me Checkbox */}
+            {/* Remember Me Checkbox - Hide for phone login */}
+            {!(!isRegister && !email.includes('@') && /^[\d+]/.test(email)) && (
             <div className="flex items-center gap-2">
               <label htmlFor="rememberMe" className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -713,6 +819,7 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
                 <span className="text-sm text-gray-700">{t('auth.rememberMe')}</span>
               </label>
             </div>
+            )}
 
 
             {/* Error & Success Message */}
@@ -736,12 +843,12 @@ function LoginPage({ currentTheme = 'happy' }: LoginPageProps) {
               {isLoading ? (
                 <>
                   <Heart className="w-5 h-5 fill-current animate-pulse" />
-                  <span>{isRegister ? t('auth.registering') : t('auth.loggingIn')}</span>
+                  <span>{isRegister ? t('auth.registering') : (!isRegister && !email.includes('@') && /^[\d+]/.test(email) ? 'Đang gửi OTP...' : t('auth.loggingIn'))}</span>
                 </>
               ) : (
                 <>
                   <Heart className="w-5 h-5 fill-current" />
-                  <span>{isRegister ? t('auth.registerButton') : t('auth.loginButton')}</span>
+                  <span>{isRegister ? t('auth.registerButton') : (!isRegister && !email.includes('@') && /^[\d+]/.test(email) ? 'Gửi mã OTP' : t('auth.loginButton'))}</span>
                   <Heart className="w-5 h-5 fill-current" />
                 </>
               )}

@@ -17,6 +17,7 @@ import { sanitizePlainText, sanitizeRichText } from './utils/sanitize';
 import { createMemory } from './services/firebaseMemoriesService';
 import { uploadToCloudinary } from './services/cloudinaryDirectService';
 import { reverseGeocode } from './services/geoService';
+import { compressImage } from './utils/imageCompression';
 
 interface CreateMemoryProps {
   onBack?: () => void;
@@ -165,61 +166,7 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
     }
   };
 
-  // Compress image before upload
-  const compressImage = (file: File): Promise<File> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d')!;
-          
-          // Max dimensions
-          const MAX_WIDTH = 1920;
-          const MAX_HEIGHT = 1920;
-          let width = img.width;
-          let height = img.height;
-          
-          // Calculate new dimensions
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height = (height * MAX_WIDTH) / width;
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width = (width * MAX_HEIGHT) / height;
-              height = MAX_HEIGHT;
-            }
-          }
-          
-          canvas.width = width;
-          canvas.height = height;
-          ctx.drawImage(img, 0, 0, width, height);
-          
-          // Convert to blob with quality 0.8
-          canvas.toBlob(
-            (blob) => {
-              if (blob) {
-                const compressedFile = new File([blob], file.name, {
-                  type: 'image/jpeg',
-                  lastModified: Date.now(),
-                });
-                resolve(compressedFile);
-              } else {
-                resolve(file);
-              }
-            },
-            'image/jpeg',
-            0.8
-          );
-        };
-        img.src = e.target?.result as string;
-      };
-      reader.readAsDataURL(file);
-    });
-  };
+  // Image compression is now handled by the imageCompression utility
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -241,8 +188,22 @@ function CreateMemory({ onBack, currentTheme }: CreateMemoryProps) {
     }
     
     for (const file of validFiles) {
-      // Compress image first
-      const compressedFile = await compressImage(file);
+      // Compress image first using utility
+      const compressionResult = await compressImage(file, {
+        maxWidth: 1920,
+        maxHeight: 1920,
+        quality: 0.8,
+        format: 'jpeg'
+      });
+      
+      const compressedFile = compressionResult.file;
+      
+      // Log compression stats
+      console.log(`🗜️ Compressed ${file.name}:`, {
+        original: `${(compressionResult.originalSize / 1024 / 1024).toFixed(2)} MB`,
+        compressed: `${(compressionResult.compressedSize / 1024 / 1024).toFixed(2)} MB`,
+        saved: `${compressionResult.compressionRatio.toFixed(1)}%`
+      });
       
       const reader = new FileReader();
       reader.onload = (e) => {

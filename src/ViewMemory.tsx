@@ -20,6 +20,9 @@ import { MapView } from './components/MapView';
 import { EditMemoryModal } from './components/EditMemoryModal';
 import { ShareMemory } from './components/ShareMemory';
 import { MemoryStatistics } from './components/MemoryStatistics';
+import { ShareMemoryButton } from './components/Couple';
+import { useCouple } from './hooks/useCouple';
+import { useSharedMemories } from './hooks/useSharedMemories';
 import { sanitizePlainText, sanitizeRichText } from './utils/sanitize';
 
 // Update Memory interface to match SavedMemory from the API
@@ -61,6 +64,8 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
   const { memoriesByYear, years, allYears, isLoading, isLoadingMore, error, hasMore, loadMore } = useInfiniteMemories(userId, loading);
   const { syncStatus, lastSyncTime, errorMessage, startSync, syncSuccess, syncError } = useSyncStatus();
   const { t } = useLanguage();
+  const { couple, shareMemory: shareCoupleMemory, unshare: unshareCoupleMemory } = useCouple(userId || undefined);
+  const { isMemoryShared, allMemories: sharedMemoriesData } = useSharedMemories(userId || undefined, couple?.coupleId);
   // Remove unused floatingHearts state
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number>(0);
@@ -194,14 +199,58 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
     };
   }, [memoriesByYear]);
 
+  // Merge own memories with shared memories
+  const allMemoriesByYear = useMemo(() => {
+    const merged = { ...memoriesByYear };
+    
+    // Add shared memories (already extracted from memoryData)
+    sharedMemoriesData.forEach(sharedMemory => {
+      const date = sharedMemory.date || sharedMemory.created_at;
+      if (!date) {
+        return;
+      }
+      
+      const year = new Date(date.toMillis ? date.toMillis() : date).getFullYear().toString();
+      
+      if (!merged[year]) {
+        merged[year] = [];
+      }
+      
+      // Add shared indicator to memory
+      merged[year].push({
+        ...sharedMemory,
+        isSharedWithMe: true,
+        sharedByPartner: true
+      } as any);
+    });
+    
+    // Sort memories within each year
+    Object.keys(merged).forEach(year => {
+      merged[year].sort((a, b) => {
+        const dateA = new Date(a.date || a.created_at || new Date()).getTime();
+        const dateB = new Date(b.date || b.created_at || new Date()).getTime();
+        return dateB - dateA; // Descending order
+      });
+    });
+    
+    return merged;
+  }, [memoriesByYear, sharedMemoriesData]);
+
+  // Get all unique years from both own and shared memories
+  const allUniqueYears = useMemo(() => {
+    const yearsSet = new Set([
+      ...years,
+      ...Object.keys(allMemoriesByYear)
+    ]);
+    return Array.from(yearsSet).sort((a, b) => parseInt(b) - parseInt(a));
+  }, [years, allMemoriesByYear]);
+
   // Filter memories based on search and year
-  // Important: Use years (visible) data, not allYears, to respect pagination
   const filteredMemoriesByYear = useMemo(() => {
-    let filtered = { ...memoriesByYear };
+    let filtered = { ...allMemoriesByYear };
 
     // Filter by year first
     if (selectedYear !== 'ALL') {
-      // Only show selected year if it exists in visible data
       filtered = { [selectedYear]: filtered[selectedYear] || [] };
     }
 
@@ -240,14 +289,13 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
     }, {} as MemoriesByYear);
 
     return filtered;
-  }, [memoriesByYear, debouncedSearch, selectedYear, dateRange, selectedLocation, selectedTags]);
+  }, [allMemoriesByYear, debouncedSearch, selectedYear, dateRange, selectedLocation, selectedTags]);
 
   // Calculate total result count
   const resultCount = useMemo(() => {
     return Object.values(filteredMemoriesByYear).reduce((sum, memories) => sum + memories.length, 0);
   }, [filteredMemoriesByYear]);
 
-  // Update allYears to match filtered results
   const filteredYears = useMemo(() => {
     return Object.keys(filteredMemoriesByYear).sort((a, b) => parseInt(b) - parseInt(a));
   }, [filteredMemoriesByYear]);
@@ -417,15 +465,15 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
           />
         )}
 
-        {/* Search and Filter Bar - Show when we have data (even if filtered results = 0) */}
-        {!isLoading && !error && years.length > 0 && (
-          <>
+        {/* Search and Filter Bar - Show when we have data (own OR shared) */}
+        {!isLoading && !error && (years.length > 0 || sharedMemoriesData.length > 0) && (
+          <div>
             <EnhancedSearchFilter
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               selectedYear={selectedYear}
               onYearChange={setSelectedYear}
-              availableYears={allYears}
+              availableYears={allUniqueYears}
               resultCount={resultCount}
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
@@ -467,7 +515,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
 
                 {/* Memories for this year */}
                 <div className="space-y-8">
-                  {filteredMemoriesByYear[year].map((memory: any, memoryIndex: number) => (
+                  {filteredMemoriesByYear[year]?.map((memory: any, memoryIndex: number) => (
                     <div 
                       key={memory.id} 
                       id={memory.id}
@@ -476,6 +524,16 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                     >
                       {/* Memory Card */}
                       <div className="bg-white rounded-3xl shadow-xl border border-pink-100 overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1">
+                        {/* Shared Memory Badge */}
+                        {memory.isSharedWithMe && (
+                          <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500 px-4 py-2">
+                            <p className="text-white text-sm font-bold flex items-center gap-2">
+                              <Heart className="w-4 h-4" fill="currentColor" />
+                              Shared by {memory.sharedInfo?.ownerName || 'Partner'}
+                            </p>
+                          </div>
+                        )}
+                        
                         {/* Date Header */}
                         <div className="relative bg-gradient-to-r from-pink-500 to-rose-500 px-6 py-4">
                           <div className="flex items-center justify-between">
@@ -487,20 +545,54 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                             
                             {/* Right: Action buttons */}
                             <div className="flex items-center gap-2 z-10">
-                              <button
-                                onClick={() => setShareModalMemory(memory)}
-                                className="p-2 bg-white/90 hover:bg-white rounded-full shadow-lg transition-all duration-200 hover:scale-110"
-                                title="Share memory"
-                              >
-                                <Share2 size={18} className="text-pink-600" />
-                              </button>
-                              <button
-                                onClick={() => setEditingMemory(memory)}
-                                className="p-2 bg-white/90 hover:bg-white rounded-full shadow-lg transition-all duration-200 hover:scale-110"
-                                title="Edit memory"
-                              >
-                                <Edit size={18} className="text-pink-600" />
-                              </button>
+                              {/* Hide share and edit buttons for shared memories */}
+                              {!memory.isSharedWithMe && (
+                                <>
+                                  {/* Couple Share Button */}
+                                  {couple && (
+                                    <ShareMemoryButton
+                                      memoryId={memory.id}
+                                      isShared={isMemoryShared(memory.id)}
+                                      partnerName={couple.partnerName}
+                                      onShare={async () => {
+                                        try {
+                                          const result = await shareCoupleMemory({ memoryId: memory.id });
+                                          if (!result.success && result.error) {
+                                            showError(result.error);
+                                          }
+                                        } catch (err) {
+                                          showError(err instanceof Error ? err.message : 'Failed to share memory');
+                                        }
+                                      }}
+                                      onUnshare={async () => {
+                                        try {
+                                          const result = await unshareCoupleMemory(memory.id);
+                                          if (!result.success && result.error) {
+                                            showError(result.error);
+                                          }
+                                        } catch (err) {
+                                          showError(err instanceof Error ? err.message : 'Failed to unshare memory');
+                                        }
+                                      }}
+                                    />
+                                  )}
+                                  
+                                  <button
+                                    onClick={() => setShareModalMemory(memory)}
+                                    className="p-2 bg-white/90 hover:bg-white rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                                    title="Share memory"
+                                  >
+                                    <Share2 size={18} className="text-pink-600" />
+                                  </button>
+                                  <button
+                                    onClick={() => setEditingMemory(memory)}
+                                    className="p-2 bg-white/90 hover:bg-white rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                                    title="Edit memory"
+                                  >
+                                    <Edit size={18} className="text-pink-600" />
+                                  </button>
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -531,21 +623,50 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                           />
 
                           {/* Images Grid */}
-                          {Array.isArray(memory.images) && memory.images.length > 0 ? (
-                            <ResponsiveGallery
-                              images={memory.images}
-                              onImageClick={(imageUrl, index) => {
-                                setAllPhotos(memory.images.map((img: any) => img.secure_url));
-                                setSelectedPhoto(imageUrl);
-                                setSelectedPhotoIndex(index);
-                              }}
-                              memoryTitle={memory.title || "Memory"}
-                            />
-                          ) : (
-                            <div className="text-center py-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
-                              <p className="text-gray-400 text-sm">📷 No images available</p>
-                            </div>
-                          )}
+                          {(() => {
+                            // Handle both string URLs and object formats
+                            const validImages = Array.isArray(memory.images) 
+                              ? memory.images
+                                  .filter((img: any) => {
+                                    // Filter valid images (strings or objects with URL)
+                                    if (typeof img === 'string') return img.length > 0;
+                                    return img?.secure_url || img?.url;
+                                  })
+                                  .map((img: any) => {
+                                    // Convert to object format if it's a string
+                                    if (typeof img === 'string') {
+                                      return {
+                                        secure_url: img,
+                                        public_id: '',
+                                        width: 0,
+                                        height: 0
+                                      };
+                                    }
+                                    // Normalize object format
+                                    return {
+                                      ...img,
+                                      secure_url: img.secure_url || img.url
+                                    };
+                                  })
+                              : [];
+                            
+                            return validImages.length > 0 ? (
+                              <ResponsiveGallery
+                                images={validImages}
+                                onImageClick={(imageUrl, index) => {
+                                  const imageUrls = validImages.map((img: any) => img.secure_url);
+                                  setAllPhotos(imageUrls);
+                                  setSelectedPhoto(imageUrl);
+                                  setSelectedPhotoIndex(index);
+                                }}
+                                memoryTitle={memory.title || "Memory"}
+                              />
+                            ) : (
+                              <div className="text-center py-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                                <p className="text-gray-400 text-sm">📷 No images available</p>
+                              </div>
+                            );
+                          })()}
                         </div>
                       </div>
                     </div>
@@ -553,6 +674,8 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                 </div>
               </div>
             ))}
+            </div>
+          )}
             
             {/* Infinite Scroll Trigger - Only show when no active search/filter */}
             {!searchQuery && selectedYear === 'ALL' && (
@@ -562,9 +685,7 @@ function ViewMemory({ onBack, currentTheme }: ViewMemoryProps) {
                 hasMore={hasMore}
               />
             )}
-            </div>
-          )}
-        </>
+          </div>
         )}
 
         {/* Lightbox Modal - only render once at the root level */}

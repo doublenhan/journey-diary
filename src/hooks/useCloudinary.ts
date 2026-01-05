@@ -12,6 +12,7 @@ import {
   generateThumbnail 
 } from '../services/cloudinaryDirectService';
 import { fetchMemories } from '../services/firebaseMemoriesService';
+import { compressImage } from '../utils/imageCompression';
 
 interface UseCloudinaryReturn {
   // State
@@ -47,7 +48,7 @@ export const useCloudinary = (): UseCloudinaryReturn => {
     setImages([]);
   }, []);
 
-  const fetchImages = useCallback(async (options: FetchOptions = {}) => {
+  const fetchImages = useCallback(async (_options: FetchOptions = {}) => {
     setLoading(true);
     setError(null);
     
@@ -71,8 +72,33 @@ export const useCloudinary = (): UseCloudinaryReturn => {
     setError(null);
     
     try {
+      // Compress image if enabled (default: true)
+      let fileToUpload = file;
+      const shouldCompress = options.enableCompression !== false; // Default to true
+      
+      if (shouldCompress) {
+        const compressionResult = await compressImage(file, {
+          maxWidth: options.maxImageDimension || 1920,
+          maxHeight: options.maxImageDimension || 1920,
+          quality: options.compressionQuality || 0.8,
+          format: 'jpeg',
+          onProgress: (progress) => {
+            // Compression takes 0-30% of progress
+            setUploadProgress(Math.floor(progress * 0.3));
+          }
+        });
+        
+        fileToUpload = compressionResult.file;
+        
+        console.log(`🗜️ Compressed before upload:`, {
+          original: `${(compressionResult.originalSize / 1024 / 1024).toFixed(2)} MB`,
+          compressed: `${(compressionResult.compressedSize / 1024 / 1024).toFixed(2)} MB`,
+          saved: `${compressionResult.compressionRatio.toFixed(1)}%`
+        });
+      }
+      
       const result = await uploadToCloudinary(
-        file,
+        fileToUpload,
         {
           folder: options.folder,
           tags: options.tags,
@@ -80,20 +106,20 @@ export const useCloudinary = (): UseCloudinaryReturn => {
           quality: 'auto',
         },
         (progress) => {
-          setUploadProgress(progress);
+          // Upload takes 30-100% of progress
+          setUploadProgress(30 + Math.floor(progress * 0.7));
         }
       );
 
       const cloudinaryImage: CloudinaryImage = {
         public_id: result.public_id,
         secure_url: result.secure_url,
-        url: result.url,
         width: result.width,
         height: result.height,
         format: result.format,
-        resource_type: result.resource_type,
         created_at: result.created_at,
-        bytes: result.bytes,
+        tags: options.tags || [],
+        folder: options.folder,
       };
 
       setImages(prev => [cloudinaryImage, ...prev]);
@@ -113,12 +139,12 @@ export const useCloudinary = (): UseCloudinaryReturn => {
     try {
       const result = await deleteFromCloudinary(publicId);
       
-      if (result.success) {
+      if (result.result === 'ok') {
         setImages(prev => prev.filter(img => img.public_id !== publicId));
         return true;
       }
       
-      throw new Error(result.error || 'Failed to delete image');
+      throw new Error('Failed to delete image');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete image';
       setError(errorMessage);
@@ -145,28 +171,29 @@ export const useCloudinary = (): UseCloudinaryReturn => {
     return generateThumbnail(publicId, size);
   }, []);
 
-  const fetchMemoriesFromCloudinary = useCallback(async (userId: string) => {
+  const fetchMemoriesFromCloudinary = useCallback(async (userId?: string) => {
     setLoading(true);
     setError(null);
     
     try {
       // Fetch memories from Firestore using the Firebase Direct service
-      const memories = await fetchMemories({ userId });
+      const memories = await fetchMemories({ userId: userId || '' });
       
       // Extract Cloudinary images from memories
-      const cloudinaryImages: CloudinaryImage[] = memories.flatMap(memory => 
-        memory.photos.map(photo => ({
-          public_id: photo.publicId,
-          secure_url: photo.url,
-          url: photo.url,
-          width: photo.width || 0,
-          height: photo.height || 0,
-          format: photo.format || 'jpg',
-          resource_type: 'image' as const,
-          created_at: memory.createdAt,
-          bytes: 0,
-        }))
-      );
+      const cloudinaryImages: CloudinaryImage[] = memories.flatMap(memory => {
+        if (typeof memory.photos === 'string') {
+          return [];
+        }
+        return (memory.photos || []).map((photo: any) => ({
+          public_id: typeof photo === 'string' ? photo : photo.publicId,
+          secure_url: typeof photo === 'string' ? photo : photo.url,
+          width: typeof photo === 'string' ? 0 : (photo.width || 0),
+          height: typeof photo === 'string' ? 0 : (photo.height || 0),
+          format: typeof photo === 'string' ? 'jpg' : (photo.format || 'jpg'),
+          created_at: memory.createdAt?.toISOString() || new Date().toISOString(),
+          tags: [],
+        }));
+      });
       
       setImages(cloudinaryImages);
       return cloudinaryImages;
@@ -177,6 +204,9 @@ export const useCloudinary = (): UseCloudinaryReturn => {
       return [];
     } finally {
       setLoading(false);
+    }
+  }, []);
+
   return {
     // State
     images,
@@ -196,6 +226,5 @@ export const useCloudinary = (): UseCloudinaryReturn => {
     fetchMemories: fetchMemoriesFromCloudinary, // Renamed for clarity
   };
 };
-
 
 export default useCloudinary;

@@ -26,9 +26,8 @@ import {
 import { db } from '../firebase/firebaseConfig';
 
 // Determine collection name based on environment
-const COLLECTION_NAME = import.meta.env.VITE_FIREBASE_ENV === 'production' 
-  ? 'memories' 
-  : 'dev_memories';
+const ENV_PREFIX = import.meta.env.VITE_ENV_PREFIX || '';
+const COLLECTION_NAME = `${ENV_PREFIX}memories`;
 
 export interface Memory {
   id: string;

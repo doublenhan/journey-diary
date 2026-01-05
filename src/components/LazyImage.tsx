@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 
 interface LazyImageProps {
   src: string;
@@ -21,7 +21,7 @@ export function LazyImage({
   width,
   height,
   transformations = 'f_auto,q_auto',
-  enableBlur = true,
+  enableBlur = false, // Permanently disabled - blur causes issues with cached images
   sizes = '100vw',
   priority = false
 }: LazyImageProps) {
@@ -31,6 +31,7 @@ export function LazyImage({
   const [imageError, setImageError] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const blurImgRef = useRef<HTMLImageElement>(null);
+  const checkedRef = useRef(false); // Track if we already checked for cached image
 
   // Apply Cloudinary transformations with WebP support
   const getOptimizedUrl = (url: string, width?: number, format?: string) => {
@@ -107,6 +108,36 @@ export function LazyImage({
     return () => observer.disconnect();
   }, [priority]);
 
+  // Check if images are already cached - runs SYNCHRONOUSLY before paint
+  useLayoutEffect(() => {
+    if (!isInView && !priority) return;
+    
+    // Check main image
+    if (imgRef.current?.complete && imgRef.current?.naturalHeight !== 0) {
+      setIsLoaded(true);
+      checkedRef.current = true;
+    }
+    
+    // Check blur image
+    if (blurImgRef.current?.complete && blurImgRef.current?.naturalHeight !== 0) {
+      setBlurLoaded(true);
+    }
+  }, [isInView, optimizedSrc, blurSrc, priority]);
+
+  // Additional async check for race conditions
+  useEffect(() => {
+    if (!isInView && !priority || checkedRef.current) return;
+    
+    const timer = setTimeout(() => {
+      if (imgRef.current?.complete && imgRef.current?.naturalHeight !== 0) {
+        setIsLoaded(true);
+        checkedRef.current = true;
+      }
+    }, 50);
+    
+    return () => clearTimeout(timer);
+  }, [isInView, optimizedSrc, priority]);
+
   // Preload priority images immediately
   useEffect(() => {
     if (priority && optimizedSrc) {
@@ -129,6 +160,25 @@ export function LazyImage({
     setIsLoaded(true); // Show error state
   };
 
+  // Handle img ref - check if already loaded (for cached images)
+  const handleImgRef = (element: HTMLImageElement | null) => {
+    imgRef.current = element;
+    
+    if (element && element.complete && element.naturalHeight !== 0) {
+      // Image is already loaded (cached)
+      setIsLoaded(true);
+    }
+  };
+
+  // Handle blur img ref
+  const handleBlurImgRef = (element: HTMLImageElement | null) => {
+    blurImgRef.current = element;
+    
+    if (element && element.complete && element.naturalHeight !== 0) {
+      setBlurLoaded(true);
+    }
+  };
+
   return (
     <div 
       className={`relative overflow-hidden rounded-xl min-h-[200px] md:min-h-[150px] ${!isLoaded ? 'bg-gradient-to-r from-gray-100/30 via-white/50 to-gray-100/30 bg-[length:200%_100%] animate-shimmer' : 'bg-transparent'} ${imageError ? 'bg-gradient-to-br from-red-50 to-red-100 animate-none' : ''} ${className}`}
@@ -140,7 +190,7 @@ export function LazyImage({
       {/* Blur placeholder (LQIP) */}
       {enableBlur && blurSrc && !imageError && (
         <img
-          ref={blurImgRef}
+          ref={handleBlurImgRef}
           src={blurSrc}
           alt=""
           className={`absolute top-0 left-0 w-full h-full object-cover blur-[20px] scale-110 rounded-xl transition-opacity duration-300 ${blurLoaded ? 'opacity-100' : 'opacity-0'} ${isLoaded ? 'opacity-0 duration-[400ms]' : ''}`}
@@ -162,7 +212,7 @@ export function LazyImage({
           )}
           {/* Fallback image */}
           <img
-            ref={imgRef}
+            ref={handleImgRef}
             src={isInView ? optimizedSrc : undefined}
             srcSet={isInView && srcSet ? srcSet : undefined}
             sizes={isInView ? sizes : undefined}

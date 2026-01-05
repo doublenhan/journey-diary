@@ -1,3 +1,74 @@
 ﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+
+    /* Floating animations for hearts */
+    @keyframes float {
+
+        0%,
+        100% {
+            transform: translateY(0px) rotate(0deg);
+        }
+
+        50% {
+            transform: translateY(-20px) rotate(5deg);
+        }
+    }
+
+    @keyframes float-delay-1 {
+
+        0%,
+        100% {
+            transform: translateY(0px) rotate(0deg);
+        }
+
+        50% {
+            transform: translateY(-15px) rotate(-5deg);
+        }
+    }
+
+    @keyframes float-delay-2 {
+
+        0%,
+        100% {
+            transform: translateY(0px) rotate(0deg);
+        }
+
+        50% {
+            transform: translateY(-25px) rotate(3deg);
+        }
+    }
+
+    @keyframes float-delay-3 {
+
+        0%,
+        100% {
+            transform: translateY(0px) rotate(0deg);
+        }
+
+        50% {
+            transform: translateY(-18px) rotate(-3deg);
+        }
+    }
+
+    .animate-float {
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .animate-float-delay-1 {
+        animation: float-delay-1 7s ease-in-out infinite;
+        animation-delay: 1s;
+    }
+
+    .animate-float-delay-2 {
+        animation: float-delay-2 8s ease-in-out infinite;
+        animation-delay: 2s;
+    }
+
+    .animate-float-delay-3 {
+        animation: float-delay-3 7.5s ease-in-out infinite;
+        animation-delay: 1.5s;
+    }
+}

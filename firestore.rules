@@ -221,6 +221,162 @@ service cloud.firestore {
     }
     
     // ===========================
+    // Couple Features Collections
+    // ===========================
+    
+    // Helper functions for couple features
+    function isCoupleParticipant(coupleData) {
+      return isAuthenticated() && (
+        request.auth.uid == coupleData.user1Id ||
+        request.auth.uid == coupleData.user2Id
+      );
+    }
+    
+    function isInvitationSender(invitationData) {
+      return isAuthenticated() && request.auth.uid == invitationData.senderId;
+    }
+    
+    function isInvitationReceiver(invitationData) {
+      return isAuthenticated() && request.auth.uid == invitationData.receiverId;
+    }
+    
+    function isInvitationParty(invitationData) {
+      return isInvitationSender(invitationData) || isInvitationReceiver(invitationData);
+    }
+    
+    // Development Couples Collection
+    match /dev_couples/{coupleId} {
+      // Allow list/query if authenticated (query will filter by user1Id or user2Id)
+      // Allow get only if user is participant
+      allow list: if isAuthenticated();
+      allow get: if isCoupleParticipant(resource.data);
+      allow create: if isAuthenticated() && (
+        request.auth.uid == request.resource.data.user1Id ||
+        request.auth.uid == request.resource.data.user2Id
+      );
+      allow update: if isCoupleParticipant(resource.data) && (
+        request.resource.data.user1Id == resource.data.user1Id &&
+        request.resource.data.user2Id == resource.data.user2Id &&
+        request.resource.data.coupleId == resource.data.coupleId
+      );
+      allow delete: if isCoupleParticipant(resource.data);
+    }
+    
+    // Couples Collection
+    match /couples/{coupleId} {
+      // Allow list/query if authenticated (query will filter by user1Id or user2Id)
+      // Allow get only if user is participant
+      allow list: if isAuthenticated();
+      allow get: if isCoupleParticipant(resource.data);
+      
+      // Create: Will be created by Cloud Function after invitation acceptance
+      // Allow users to create if they are one of the participants
+      allow create: if isAuthenticated() && (
+        request.auth.uid == request.resource.data.user1Id ||
+        request.auth.uid == request.resource.data.user2Id
+      );
+      
+      // Update: Only couple participants can update settings
+      allow update: if isCoupleParticipant(resource.data) && (
+        // Ensure user IDs don't change
+        request.resource.data.user1Id == resource.data.user1Id &&
+        request.resource.data.user2Id == resource.data.user2Id &&
+        request.resource.data.coupleId == resource.data.coupleId
+      );
+      
+      // Delete/Disconnect: Only couple participants can delete
+      allow delete: if isCoupleParticipant(resource.data);
+    }
+    
+    // Development Couple Invitations Collection
+    match /dev_coupleInvitations/{invitationId} {
+      allow read: if isInvitationParty(resource.data);
+      allow create: if isAuthenticated() && 
+        request.auth.uid == request.resource.data.senderId &&
+        request.resource.data.status == 'pending';
+      allow update: if (
+        (isInvitationReceiver(resource.data) && 
+         resource.data.status == 'pending' &&
+         request.resource.data.status in ['accepted', 'rejected']) ||
+        (isInvitationSender(resource.data) && 
+         resource.data.status == 'pending' &&
+         request.resource.data.status == 'expired')
+      );
+      allow delete: if isInvitationParty(resource.data);
+    }
+    
+    // Couple Invitations Collection
+    match /coupleInvitations/{invitationId} {
+      // Read: Sender and receiver can read their invitations
+      allow read: if isInvitationParty(resource.data);
+      
+      // Create: Any authenticated user can send invitation
+      allow create: if isAuthenticated() && 
+        request.auth.uid == request.resource.data.senderId &&
+        request.resource.data.status == 'pending';
+      
+      // Update: Receiver can accept/reject, Sender can cancel
+      allow update: if (
+        // Receiver accepting/rejecting
+        (isInvitationReceiver(resource.data) && 
+         resource.data.status == 'pending' &&
+         request.resource.data.status in ['accepted', 'rejected']) ||
+        // Sender canceling
+        (isInvitationSender(resource.data) && 
+         resource.data.status == 'pending' &&
+         request.resource.data.status == 'expired')
+      );
+      
+      // Delete: Sender can delete their sent invitation, or receiver can delete after response
+      allow delete: if isInvitationParty(resource.data);
+    }
+    
+    // Development Shared Memories Collection
+    match /dev_sharedMemories/{sharedId} {
+      // Get single document: Owner or partner can read
+      allow get: if isAuthenticated() && (
+        request.auth.uid == resource.data.ownerId ||
+        request.auth.uid == resource.data.sharedWithId
+      );
+      
+      // List/Query: Allow if authenticated (client filters by userId)
+      allow list: if isAuthenticated();
+      
+      allow create: if isAuthenticated() && 
+        request.auth.uid == request.resource.data.ownerId &&
+        request.auth.uid == request.resource.data.sharedBy;
+      allow update: if isAuthenticated() && 
+        request.auth.uid == resource.data.ownerId;
+      allow delete: if isAuthenticated() && 
+        request.auth.uid == resource.data.ownerId;
+    }
+    
+    // Shared Memories Collection
+    match /sharedMemories/{sharedId} {
+      // Get single document: Owner or partner can read
+      allow get: if isAuthenticated() && (
+        request.auth.uid == resource.data.ownerId ||
+        request.auth.uid == resource.data.sharedWithId
+      );
+      
+      // List/Query: Allow if authenticated (client filters by userId)
+      allow list: if isAuthenticated();
+      
+      // Create: Only memory owner can share
+      allow create: if isAuthenticated() && 
+        request.auth.uid == request.resource.data.ownerId &&
+        request.auth.uid == request.resource.data.sharedBy;
+      
+      // Update: Only owner can update (e.g., revoke)
+      allow update: if isAuthenticated() && 
+        request.auth.uid == resource.data.ownerId;
+      
+      // Delete: Only owner can delete (unshare)
+      allow delete: if isAuthenticated() && 
+        request.auth.uid == resource.data.ownerId;
+    }
+    
+    // ===========================
     // System Statistics Collection
     // ===========================
     

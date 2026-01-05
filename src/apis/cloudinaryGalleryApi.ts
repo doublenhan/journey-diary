@@ -26,6 +26,10 @@ export interface UploadOptions {
     crop?: 'fill' | 'fit' | 'scale' | 'crop';
     quality?: 'auto' | number;
   };
+  // Compression options
+  enableCompression?: boolean;
+  compressionQuality?: number;
+  maxImageDimension?: number;
 }
 
 export interface FetchOptions {

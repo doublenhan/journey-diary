@@ -1,8 +1,8 @@
-﻿import { useState, useEffect, useRef, lazy, Suspense, useMemo } from 'react';
+﻿import { useState, useEffect, lazy, Suspense, useMemo } from 'react';
 import {
   Heart, BookOpen, Camera, Bell, Download as Download2,
   Menu, X, Instagram, Twitter, Facebook,
-  Mail, Phone, MapPin
+  Mail, Phone, Users
 } from 'lucide-react';
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
@@ -10,17 +10,19 @@ import { useLanguage } from './hooks/useLanguage';
 import { useToastContext } from './contexts/ToastContext';
 import { useStatusGuard } from './hooks/useStatusGuard';
 import { fetchMemories } from './services/firebaseMemoriesService';
-import { MoodTheme, themes, isValidTheme } from './config/themes';
+import { MoodTheme, isValidTheme } from './config/themes';
 import { getUserTheme } from './apis/userThemeApi';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { PageTransition } from './components/PageTransition';
 import { LazyImage } from './components/LazyImage';
-import { GallerySkeleton } from './components/GallerySkeleton';
 import { ToastContainer } from './components/Toast';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { useCouple } from './hooks/useCouple';
+import { CoupleStatusBadge } from './components/Couple';
 import './styles/PageLoader.css';
 import './styles/transitions.css';
 import { Routes, Route, useNavigate } from 'react-router-dom';
+import { ROUTES } from './config/routes';
 
 // Lazy load heavy components with prefetch hints
 const CreateMemory = lazy(() => import(
@@ -59,6 +61,16 @@ const MigrationTool = lazy(() => import(
   /* webpackChunkName: "migration" */
   './pages/MigrationTool'
 ));
+
+const CoupleInvitationsPage = lazy(() => import(
+  /* webpackChunkName: "couple-invitations" */
+  './components/Couple/CoupleInvitationsPage'
+).then(module => ({ default: module.CoupleInvitationsPage })));
+
+const CoupleSettingsPage = lazy(() => import(
+  /* webpackChunkName: "couple-settings" */
+  './components/Couple/CoupleSettingsPage'
+).then(module => ({ default: module.CoupleSettingsPage })));
 
 // Loading component with heart balloon and person
 const PageLoader = () => {
@@ -139,6 +151,7 @@ const PageLoader = () => {
   );
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type FetchCloudinaryOptions = {
   folder?: string;
   tags?: string[];
@@ -159,6 +172,9 @@ function App() {
   const { t } = useLanguage();
   const { toasts, removeToast } = useToastContext();
   const { error: showError } = useToastContext();
+  
+  // Couple features
+  const { couple } = useCouple(userId || undefined);
   
   // Monitor user status in real-time and auto-logout if suspended/removed
   useStatusGuard();
@@ -283,15 +299,25 @@ function App() {
   const [timelineMemories, setTimelineMemories] = useState<any[]>([]);
   const [timelineLoading, setTimelineLoading] = useState(true);
 
-  const { memoriesByYear, years, isLoading: heroLoading, error: heroError } = useMemoriesCache(userId, loading);
+  const { memoriesByYear, years, isLoading: heroLoading } = useMemoriesCache(userId, loading);
   const heroImages = years.flatMap((y: string) => (memoriesByYear[y] || []).flatMap((mem: any) =>
     Array.isArray(mem.images) ? mem.images.map((img: any) => img.secure_url) : []));
+
+  // Preload first 3 hero images for faster display
+  useEffect(() => {
+    if (heroImages.length > 0) {
+      heroImages.slice(0, 3).forEach(src => {
+        const img = new Image();
+        img.src = src;
+      });
+    }
+  }, [heroImages]);
 
   useEffect(() => {
     if (!heroImages.length) return;
     const interval = setInterval(() => {
       setHeroIndex((prev) => (prev + 1 >= heroImages.length ? 0 : prev + 1));
-    }, 2500);
+    }, 5000); // Increased from 2500ms to 5000ms (5 seconds)
     return () => clearInterval(interval);
   }, [heroImages]);
 
@@ -393,12 +419,9 @@ function App() {
     <Suspense fallback={<PageLoader />}>
     <PageTransition>
     <Routes>
-      <Route path="/" element={<LoginPage currentTheme={currentTheme} />} />
-      <Route path="/landing" element={
-        (() => {
-          const theme = themes[currentTheme];
-          return (
-            <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-orange-50">
+      <Route path={ROUTES.LOGIN} element={<LoginPage currentTheme={currentTheme} />} />
+      <Route path={ROUTES.LANDING} element={
+        <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-orange-50">
               {/* Header */}
               <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-pink-100">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -420,6 +443,9 @@ function App() {
                       </a>
                       <a href="/view-memory" className="text-gray-700 font-medium hover:text-red-600 transition-colors">
                         {t('nav.memories')}
+                      </a>
+                      <a href="/couple/invitations" className="text-gray-700 font-medium hover:text-red-600 transition-colors flex items-center gap-2">
+                        Kết nối {couple && '💕'}
                       </a>
                       <a href="/anniversary-reminders" className="text-gray-700 font-medium hover:text-red-600 transition-colors">
                         {t('nav.anniversary')}
@@ -531,6 +557,20 @@ function App() {
                           <div className="text-pink-100 text-[10px] font-medium">Hình ảnh</div>
                         </div>
                       </div>
+                      
+                      {/* Couple Status Badge */}
+                      {couple && (
+                        <div className={`mt-3 transition-all duration-700 delay-200 ${menuMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                          <CoupleStatusBadge 
+                            couple={couple} 
+                            variant="full"
+                            onClick={() => {
+                              setMobileMenuOpen(false);
+                              setTimeout(() => navigate(ROUTES.COUPLE_SETTINGS), 400);
+                            }}
+                          />
+                        </div>
+                      )}
                     </div>
 
                     {/* Menu Links */}
@@ -539,6 +579,7 @@ function App() {
                         {[
                           { href: '/create-memory', icon: BookOpen, label: t('nav.create'), delay: '0ms', badge: '+', isBadgePlus: true },
                           { href: '/view-memory', icon: Camera, label: t('nav.memories'), delay: '100ms', badge: Object.values(memoriesByYear).reduce((acc, memories) => acc + memories.length, 0).toString() },
+                          { href: '/couple/invitations', icon: Users, label: 'Kết nối', delay: '150ms', badge: couple ? '💕' : '', isBadgeEmoji: true },
                           { href: '/anniversary-reminders', icon: Bell, label: t('nav.anniversary'), delay: '200ms', badge: years.length.toString() },
                           { href: '/setting-page', icon: Download2, label: t('nav.settings'), delay: '300ms' }
                         ].map((item) => {
@@ -592,8 +633,14 @@ function App() {
                                 
                                 {/* Badge or Indicator */}
                                 {item.badge && !isActive && (
-                                  <div className="relative z-10 min-w-[28px] h-7 px-2.5 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full flex items-center justify-center shadow-lg shadow-pink-500/30">
-                                    <span className="text-white text-sm font-bold leading-none">{item.badge}</span>
+                                  <div className={`relative z-10 min-w-[28px] h-7 px-2.5 rounded-full flex items-center justify-center shadow-lg ${
+                                    item.isBadgeEmoji 
+                                      ? 'bg-white' 
+                                      : 'bg-gradient-to-r from-pink-500 to-rose-500 shadow-pink-500/30'
+                                  }`}>
+                                    <span className={`text-sm font-bold leading-none ${
+                                      item.isBadgeEmoji ? '' : 'text-white'
+                                    }`}>{item.badge}</span>
                                   </div>
                                 )}
                                 
@@ -697,14 +744,18 @@ function App() {
                       {/* Hero Image */}
                       <div className="relative">
                         <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[600px] rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-pink-100 to-rose-100">
-                          {heroImages.length > 0 ? (
+                          {heroLoading ? (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <div className="animate-spin rounded-full h-16 w-16 border-4 border-pink-300 border-t-pink-600"></div>
+                            </div>
+                          ) : heroImages.length > 0 ? (
                             <LazyImage
                               src={heroImages[heroIndex]}
                               alt="Love Memory"
                               className="w-full h-full object-cover"
                               priority={true}
-                              transformations="f_auto,q_auto,w_800"
-                              enableBlur={true}
+                              transformations="f_auto,q_80,w_1200"
+                              enableBlur={false}
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
@@ -938,6 +989,13 @@ function App() {
                         {t('nav.memories')}
                         <Camera size={18} />
                       </a>
+                      <a 
+                        href="/couple/invitations" 
+                        className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-pink-400 to-rose-400 text-white font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white/20"
+                      >
+                        Kết nối {couple ? '💕' : '👥'}
+                        <Users size={18} />
+                      </a>
                     </div>
 
                     <p className="text-sm text-pink-100">
@@ -1017,15 +1075,15 @@ function App() {
                 </footer>
               </main>
             </div>
-          );
-        })()
       } />
-      <Route path="/create-memory" element={<CreateMemory onBack={() => window.history.back()} currentTheme={currentTheme} />} />
-      <Route path="/view-memory" element={<ViewMemory onBack={() => window.history.back()} currentTheme={currentTheme} />} />
-      <Route path="/anniversary-reminders" element={<AnniversaryReminders onBack={() => window.history.back()} currentTheme={currentTheme} />} />
-      <Route path="/setting-page" element={<SettingPage onBack={() => window.history.back()} currentTheme={currentTheme} setCurrentTheme={setCurrentTheme} />} />
+      <Route path={ROUTES.CREATE_MEMORY} element={<CreateMemory onBack={() => window.history.back()} currentTheme={currentTheme} />} />
+      <Route path={ROUTES.VIEW_MEMORY} element={<ViewMemory onBack={() => window.history.back()} currentTheme={currentTheme} />} />
+      <Route path={ROUTES.ANNIVERSARY_REMINDERS} element={<AnniversaryReminders onBack={() => window.history.back()} currentTheme={currentTheme} />} />
+      <Route path={ROUTES.SETTINGS} element={<SettingPage onBack={() => window.history.back()} currentTheme={currentTheme} setCurrentTheme={setCurrentTheme} />} />
+      <Route path={ROUTES.COUPLE_INVITATIONS} element={userId ? <CoupleInvitationsPage userId={userId} /> : null} />
+      <Route path={ROUTES.COUPLE_SETTINGS} element={userId ? <CoupleSettingsPage userId={userId} /> : null} />
       <Route 
-        path="/admin" 
+        path={ROUTES.ADMIN} 
         element={
           <ProtectedRoute requiredRole="SysAdmin">
             <AdminDashboard onBack={() => window.history.back()} />
@@ -1033,7 +1091,7 @@ function App() {
         } 
       />
       <Route 
-        path="/migration" 
+        path={ROUTES.MIGRATION} 
         element={
           <ProtectedRoute requiredRole="SysAdmin">
             <MigrationTool onBack={() => window.history.back()} />
