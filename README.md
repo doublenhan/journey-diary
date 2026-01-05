@@ -1,168 +1,192 @@
-# Love Journal - React + TypeScript Project
+# Love Journal - React + TypeScript + Firebase
 
-**Version 2.0** - A beautiful, romantic web application for couples to capture and preserve their precious memories together.
+**Version 3.0.1** - A beautiful, romantic web application for couples to capture and preserve their precious memories together.
 
-## ✨ What's New in Version 2.0
+## ✨ What's New in Version 3.0.1 (January 2026)
 
-### 🎯 Major Features
-- **Image Validation**: Smart upload validation (20MB max, 10 images per memory)
-- **Interactive Maps**: Heat map and route visualization for your memories
-- **Performance Boost**: 40% faster load times with optimized bundle size
-- **Enhanced UI**: Better icons and improved user experience
+### 💑 Couple Features
+- **Partner Linking**: Send & accept invitations to connect with your partner
+- **Memory Sharing**: Share selected memories with partner (view-only mode)
+- **Real-time Sync**: Instant updates via Firestore listeners
+- **Couple Settings**: Manage connection, auto-share preferences, and disconnect
+- **Smart Invitations**: 7-day expiration, accept/reject/cancel flows
 
-### 📊 Performance Improvements
-- Bundle size reduced from 659KB to ~400KB
-- Lazy loading for faster initial page load
-- Optimized code splitting for better caching
-- Production-ready with console logs removed
+### 🖼️ Image Enhancements
+- **Auto Compression**: Images compressed before upload (80% quality, 1920px max)
+- **Lazy Loading**: Progressive image loading for better performance
+- **Responsive Gallery**: Optimized gallery view across all devices
 
----
+### 📊 Admin Improvements
+- **Visual Charts**: Area, bar, line, and pie charts for analytics
+- **Stats Cards**: Modern stat cards with gradients and icons
+- **Real-time Monitoring**: Live updates for storage, users, and activities
+
+## 🎯 Version 3.0 Features (December 2025)
+
+### 🔐 Security & Admin
+- **System Admin Dashboard**: Real-time monitoring and analytics
+- **Role-Based Access Control**: SysAdmin/Admin/User permissions
+- **Cloud Functions**: Server-side image deletion and stats tracking
+- **Enhanced Security**: Server-side validation for all admin operations
+
+### 📊 Performance & Tracking
+- **Actual Function Call Tracking**: Precise monitoring vs estimates
+- **Optimized Bundle**: ~400KB (gzipped)
+- **Fast Operations**: 200-500ms Cloud Functions execution
+- **Efficient Queries**: Optimized Firestore indexes
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js 20.x
 - npm 10.x
+- Firebase account
+- Cloudinary account (optional for images)
 
-## 🚀 Auto-Build Configuration
+### Development Setup
 
-This project is now configured for automatic rebuilding during development:
+```bash
+# 1. Install dependencies
+npm install
 
-### Development Scripts
-- `npm run dev` - Start development server with hot reload, auto-open browser
-- `npm run dev:watch` - Development with forced refresh and better file watching
-- `npm run build:watch` - Production build in watch mode
+# 2. Setup environment variables
+cp .env.example .env.local
+# Edit .env.local with your credentials
 
-### VS Code Integration
-- **Auto-save** enabled with 1-second delay
-- **Format on save** with ESLint auto-fix
-- **Background tasks** for continuous building
-- **Problem matcher** for error highlighting
+# 3. Start development server
+npm run dev
+# Opens at http://localhost:3000
 
-### How to Use Auto-Build
+# 4. (Optional) Start Cloud Functions emulator
+cd functions
+npm install
+npm run build
+firebase emulators:start
+```
 
-1. **Start Development Server:**
-   ```bash
-   npm run dev
-   ```
-   This will:
-   - Start Vite dev server on port 3000
-   - Auto-open browser
-   - Enable hot module replacement (HMR)
-   - Watch for file changes and rebuild automatically
+### Environment Variables
 
-2. **Using VS Code Tasks:**
-   - Press `Ctrl+Shift+P` → "Tasks: Run Task" → "Auto Build Development Server"
-   - Or use `Ctrl+Shift+B` for default build task
+Create `.env.local`:
+```env
+# Firebase (Required)
+VITE_FIREBASE_API_KEY=your-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-auth-domain
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-storage-bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
+VITE_FIREBASE_APP_ID=your-app-id
 
-3. **Auto-Save Features:**
-   - Files auto-save after 1 second of inactivity
-   - Code formats automatically on save
-   - ESLint fixes applied on save
+# Cloudinary (Optional)
+VITE_CLOUDINARY_CLOUD_NAME=your-cloud-name
+VITE_CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
 
-### File Watching Features
-- **Polling-based** file watching for better Windows compatibility
-- **100ms interval** for responsive updates
-- **Excludes** node_modules and build folders for performance
-- **HMR overlay** shows build errors in browser
+# Environment Prefix (for multi-tenant)
+VITE_ENV_PREFIX=
+```
+
+### Available Scripts
+
+```bash
+# Development
+npm run dev              # Start Vite dev server with HMR
+npm run dev:watch        # Development with forced refresh
+npm run build:watch      # Production build in watch mode
+
+# Production
+npm run build            # Build for production
+npm run preview          # Preview production build
+
+# Firebase Functions
+cd functions
+npm run build            # Compile TypeScript
+npm run serve            # Start emulator
+firebase deploy --only functions  # Deploy to production
+```
 
 ## 🏗️ Project Structure
 
 ```
-src/
-├── api/                        # API services and integrations
-│   └── cloudinaryGalleryApi.ts # Cloudinary service (client-safe)
-├── components/                 # Reusable UI components
-│   └── ImageUpload/           # Image upload component
-│       ├── ImageUpload.tsx
-│       └── ImageUpload.css
-├── hooks/                     # Custom React hooks
-│   └── useCloudinary.ts       # Cloudinary operations hook
-├── styles/                    # Component-specific CSS files
-│   ├── App.css               # Landing page styles
-│   ├── CreateMemory.css      # Create memory page styles
-│   ├── ViewMemory.css        # View memory page styles
-│   ├── JourneyTracker.css    # Journey tracker styles
-│   ├── AnniversaryReminders.css # Anniversary reminders styles
-│   └── PDFExport.css         # PDF export styles
-├── App.tsx                   # Main application component
-├── CreateMemory.tsx          # Create memory page
-├── ViewMemory.tsx            # View memory page
-├── JourneyTracker.tsx        # Journey tracker page
-├── AnniversaryReminders.tsx  # Anniversary reminders page
-├── PDFExport.tsx             # PDF export page
-└── main.tsx                  # Application entry point
-
-api/                          # Backend API routes (Vercel serverless)
-└── cloudinary.ts            # Secure Cloudinary operations
+diary_2/
+├── src/
+│   ├── components/          # Reusable UI components
+│   │   ├── Couple/         # Couple features (invitations, sharing, settings)
+│   │   ├── ImageUpload/    # Image upload with compression
+│   │   ├── AdminCharts.tsx # Analytics charts
+│   │   ├── StatsCard.tsx   # Stat card component
+│   │   └── ...
+│   ├── pages/              # Page components
+│   │   └── AdminDashboard.tsx
+│   ├── hooks/              # Custom React hooks
+│   │   ├── useCouple.ts    # Couple state management
+│   │   ├── useSharedMemories.ts # Shared memories management
+│   │   └── useCloudinary.ts
+│   ├── services/           # API services
+│   │   ├── coupleService.ts        # Couple operations
+│   │   ├── firebaseMemoriesService.ts
+│   │   └── cloudinaryService.ts
+│   ├── types/              # TypeScript definitions
+│   │   ├── couple.ts       # Couple-related types
+│   │   └── ...
+│   ├── utils/              # Utility functions
+│   │   ├── imageCompression.ts
+│   │   └── ...
+│   ├── config/             # Configuration
+│   │   └── routes.ts       # Centralized routes
+│   ├── firebase/           # Firebase config
+│   │   └── firebaseConfig.ts
+│   └── translations/       # i18n translations
+│       ├── vi.ts
+│       └── en.ts
+├── functions/              # Firebase Cloud Functions
+│   └── src/
+│       └── index.ts        # Cloud Functions entry
+├── Documentation/
+│   ├── V3_Current/         # Current version docs
+│   │   ├── README.md
+│   │   ├── RELEASE_3.0.md
+│   │   ├── COUPLE_FEATURES_SCHEMA.md
+│   │   └── ...
+│   └── General/            # General documentation
+│       ├── QUICK_START_GUIDE.md
+│       ├── ENVIRONMENT_SETUP.md
+│       └── ...
+├── firestore.rules         # Firestore security rules
+├── firestore.indexes.json  # Firestore indexes
+└── package.json
 ```
 
 
-## 🏗️ Backend Service Architecture
+## 🔐 Security & Architecture
 
-### Serverless API (Vercel)
-The project uses Vercel Serverless API routes for all backend operations:
+### Firebase Security
+- **Authentication**: Email/password with Firebase Auth
+- **Firestore Rules**: Row-level security for all data
+- **Role-Based Access**: SysAdmin/Admin/User permissions
+- **Server-side Validation**: Cloud Functions verify all admin operations
 
+### Data Privacy
+- **User Isolation**: Users can only access their own data
+- **Couple Sharing**: View-only access for shared memories
+- **Clean Disconnect**: Complete data cleanup on couple disconnect
+- **Secure Tokens**: ID token verification for all sensitive operations
+
+### Cloud Functions Security
 ```
-Frontend (Vite + React)     Vercel Serverless API (api/cloudinary/*)     Cloudinary Cloud
-      ↓                                 ↓                                    ↓
-CloudinaryGalleryApi.ts  →  api/cloudinary/*.js  →  Cloudinary API
-      ↑                                 ↑                                    ↑
-Port 3000 (dev)                Serverless (Vercel)                    Cloud Storage
-```
-
-### Key Features:
-- **🔒 Secure**: API secrets only in serverless API
-- **🚀 Fast**: Direct API integration with Cloudinary
-- **🧪 Mock Mode**: Works without Cloudinary credentials
-- **📤 File Upload**: Multipart form data handling
-- **🖼️ Image Processing**: Cloudinary transformations
-- **🗑️ CRUD Operations**: Create, read, update, delete images
-
-### Scripts Available:
-```bash
-npm run dev            # Frontend only (Vite dev server)
-npm run build          # Build for production
-npm run preview        # Preview production build
+User → Firebase Auth → ID Token → Cloud Function
+     → verifyIdToken → Check Role → Execute
 ```
 
-### API Endpoints (Vercel serverless):
-- `GET /api/health` - Health check
-- `GET /api/cloudinary/config` - Public config
-- `GET /api/cloudinary/images` - Fetch images
-- `POST /api/cloudinary/upload` - Upload image
-- `DELETE /api/cloudinary/delete` - Delete image
-- `POST /api/cloudinary/memory` - Create memory (with images)
-- `GET /api/cloudinary/memories` - List memories
-
-**Note:** No need to run a separate backend server. All backend logic is handled by serverless functions in the `api/` directory and deployed automatically with Vercel.
-
-## 🔐 Security Implementation
-
-### Cloudinary Integration Security
-- **Client-side**: Only uses `CLOUD_NAME` and `API_KEY` (public credentials)
-- **Server-side**: Secure API routes handle operations requiring `API_SECRET`
-- **Environment Variables**: Proper separation of client/server credentials
-- **No sensitive data exposure**: API secrets never sent to the browser
-
-### Environment Variables Setup
-
-Create a `.env.local` file:
-```env
-# Client-side (safe to expose to browser)
-VITE_CLOUDINARY_CLOUD_NAME=your-cloud-name
-VITE_CLOUDINARY_API_KEY=your-api-key
-
-# Server-side only (keep these secret!)
-CLOUDINARY_CLOUD_NAME=your-cloud-name
-CLOUDINARY_API_KEY=your-api-key
-CLOUDINARY_API_SECRET=your-api-secret
+### Firestore Collections Structure
 ```
-
-**Important**: 
-- `VITE_` prefixed variables are exposed to the client
-- Non-prefixed variables are only available on the server
-- Never put `API_SECRET` in a `VITE_` variable!
+users/                    # User profiles
+couples/                  # Couple relationships
+coupleInvitations/        # Pending invitations
+sharedMemories/          # Shared memory references
+memories/                # User memories
+function_calls/          # Cloud Function tracking
+storage_stats/           # Storage analytics
+```
 
 ## 🎨 Styling Architecture
 
@@ -180,22 +204,104 @@ CLOUDINARY_API_SECRET=your-api-secret
 - **Accessibility**: Proper contrast ratios, keyboard navigation
 - **Performance**: Optimized animations, efficient CSS
 
-## 🚀 Features
+## 🎨 Key Features
 
-### Core Functionality
-- **Memory Creation**: Rich text editor with photo uploads
-- **Memory Gallery**: Beautiful timeline view with lightbox
-- **Journey Tracker**: Relationship milestones with achievements
-- **Anniversary Reminders**: Smart notifications for special dates
-- **PDF Export**: Professional PDF generation with multiple templates
+### 💑 Couple Features (v3.0.1)
+- **Partner Linking**: Invite and connect with your partner via email
+- **Memory Sharing**: Share selected memories (view-only access)
+- **Real-time Sync**: Instant updates via Firestore listeners
+- **Auto-share Settings**: Option to automatically share new memories
+- **Disconnect Flow**: Clean disconnection with data cleanup
 
-### Technical Features
-- **TypeScript**: Full type safety throughout the application
-- **React Hooks**: Custom hooks for state management
-- **Responsive Design**: Works perfectly on all device sizes
-- **Image Optimization**: Cloudinary transformations for performance
-- **Error Handling**: Graceful error states and user feedback
-- **Loading States**: Smooth loading indicators and progress bars
+### 📝 Memory Management
+- **Rich Text Editor**: Write detailed memories with formatting
+- **Photo Upload**: Multiple images with auto-compression
+- **Location Tracking**: Add places to your memories
+- **Tags & Categories**: Organize with custom tags
+- **Timeline View**: Beautiful chronological display
+
+### 📊 Admin Dashboard (v3.0+)
+- **User Management**: View and manage all users
+- **Storage Analytics**: Real-time storage usage monitoring
+- **Function Call Tracking**: Track Cloud Function executions
+- **Visual Charts**: Area, bar, line, and pie charts
+- **Role-Based Access**: SysAdmin/Admin/User permissions
+
+### 🗓️ Anniversary & Reminders
+- **Event Tracking**: Track important dates
+- **Calendar Export**: Save events to calendar (.ics)
+- **Recurring Events**: Annual reminders
+- **Custom Notifications**: Set reminder preferences
+
+### 🎨 Personalization
+- **Themes**: Romantic pink gradients & elegant design
+- **Responsive Design**: Works on mobile, tablet, desktop
+- **Multi-language**: Vietnamese & English support
+- **PDF Export**: Generate beautiful PDF memories
+
+## 🛠️ Tech Stack
+
+### Frontend
+- **React 18** - UI library
+- **TypeScript** - Type safety
+- **Vite** - Build tool & dev server
+- **Tailwind CSS** - Utility-first CSS
+- **Lucide Icons** - Icon library
+- **Recharts** - Chart library for admin dashboard
+
+### Backend & Services
+- **Firebase Authentication** - User authentication
+- **Firestore** - NoSQL database
+- **Firebase Cloud Functions** - Serverless backend
+- **Firebase Storage** - File storage
+- **Cloudinary** - Image optimization (optional)
+
+### Development Tools
+- **ESLint** - Code linting
+- **Prettier** - Code formatting
+- **TypeScript** - Static type checking
+- **VS Code** - Recommended IDE
+
+## 📊 Performance Metrics
+
+### Bundle Size
+- **Main Bundle**: ~400KB (gzipped)
+- **Vendor**: React, Firebase, etc.
+- **Code Splitting**: Route-based lazy loading
+
+### Cloud Functions
+- **Cold Start**: ~1-2s
+- **Warm Execution**: 200-500ms
+- **Delete Operation**: ~500ms
+- **Stats Calculation**: ~1-2s
+
+### Database
+- **Firestore Reads**: Optimized with indexes
+- **Real-time Updates**: WebSocket connections
+- **Offline Support**: Local cache enabled
+
+## 🔧 Development Best Practices
+
+### Code Quality
+- ✅ TypeScript strict mode enabled
+- ✅ ESLint for code consistency
+- ✅ Component-based architecture
+- ✅ Custom hooks for reusability
+- ✅ Centralized routing configuration
+
+### Security
+- ✅ Row-level security rules
+- ✅ Server-side validation
+- ✅ ID token verification
+- ✅ Input sanitization
+- ✅ CSRF protection
+
+### Performance
+- ✅ Image compression (80% quality)
+- ✅ Lazy loading for images
+- ✅ Code splitting by route
+- ✅ Firestore query optimization
+- ✅ Efficient re-renders with React.memo
 
 ## 🛠️ Development
 
@@ -223,99 +329,90 @@ npm run lint
 npx tsc --noEmit
 ```
 
-## 📱 Responsive Breakpoints
+## � Documentation
 
-```css
-/* Mobile First */
-@media (min-width: 640px)  { /* sm */ }
-@media (min-width: 768px)  { /* md */ }
-@media (min-width: 1024px) { /* lg */ }
-@media (min-width: 1280px) { /* xl */ }
+### For Developers
+- **[Quick Start Guide](Documentation/General/QUICK_START_GUIDE.md)** - Get started in 5 minutes
+- **[Environment Setup](Documentation/General/ENVIRONMENT_SETUP.md)** - Detailed environment configuration
+- **[Technical Architecture](Documentation/General/TECHNICAL_ARCHITECTURE.md)** - System architecture overview
+
+### For v3.0 Features
+- **[Release Notes](Documentation/V3_Current/RELEASE_3.0.md)** - Complete v3.0 release documentation
+- **[Couple Features](Documentation/V3_Current/COUPLE_FEATURES_SCHEMA.md)** - Couple linking & sharing system
+- **[Critical Notes](Documentation/V3_Current/CRITICAL_NOTES.md)** - ⚠️ Important deployment notes
+- **[Security Architecture](Documentation/V3_Current/TECHNICAL_SECURITY_ARCHITECTURE.md)** - Security implementation
+
+### For Deployment
+- **[Migration Guide](Documentation/General/MIGRATION_GUIDE.md)** - How to migrate from older versions
+- **[Firebase Admin Setup](Documentation/General/FIREBASE_ADMIN_SETUP.md)** - Setting up Firebase Admin SDK
+- **[Testing Guide](Documentation/General/TESTING_GUIDE.md)** - Testing strategies and guidelines
+
+## 🚀 Deployment
+
+### Firebase Hosting
+
+```bash
+# Build for production
+npm run build
+
+# Deploy to Firebase
+firebase deploy
+
+# Deploy functions only
+firebase deploy --only functions
+
+# Deploy hosting only
+firebase deploy --only hosting
 ```
 
-## 🎯 Best Practices Implemented
+### Environment Variables (Production)
 
-### Security
-- ✅ API secrets never exposed to client
-- ✅ Secure backend endpoints for sensitive operations
-- ✅ Proper environment variable separation
-- ✅ Input validation and sanitization
+Set these in Firebase Console → Project Settings → Service Accounts:
 
-### Performance
-- ✅ Image optimization with Cloudinary
-- ✅ Lazy loading for images
-- ✅ Efficient CSS with minimal reflows
-- ✅ Code splitting and tree shaking
-
-### Maintainability
-- ✅ Separated concerns (API, UI, styles)
-- ✅ Reusable components and hooks
-- ✅ TypeScript for type safety
-- ✅ Consistent file organization
-
-### User Experience
-- ✅ Responsive design for all devices
-- ✅ Smooth animations and transitions
-- ✅ Loading states and error handling
-- ✅ Accessible design patterns
-
-## 🔧 Customization
-
-### Adding New Pages
-1. Create component file: `src/NewPage.tsx`
-2. Create styles file: `src/styles/NewPage.css`
-3. Import styles in component: `import './styles/NewPage.css'`
-4. Add route to `App.tsx`
-
-
-### Extending Cloudinary Features
-1. Add new methods to `src/api/cloudinaryGalleryApi.ts`
-2. Tạo file mới cho endpoint backend: `api/cloudinary/your-feature.js` (mỗi route 1 file, không sửa `api/cloudinary.ts`)
-3. Extend custom hook: `src/hooks/useCloudinary.ts`
-
-## 🔥 Firebase Integration
-
-This project also uses Firebase for additional features (such as authentication, Firestore, or analytics).
-
-### Where Firebase is Used
-- `src/firebase/firebaseConfig.ts`: Initializes and exports the Firebase app instance.
-- Custom hooks or components may use Firebase for user authentication, data storage, or other services.
-
-### Environment Variables Setup
-Add your Firebase config to `.env.local`:
 ```env
-VITE_FIREBASE_API_KEY=your-firebase-api-key
-VITE_FIREBASE_AUTH_DOMAIN=your-firebase-auth-domain
-VITE_FIREBASE_PROJECT_ID=your-firebase-project-id
-VITE_FIREBASE_STORAGE_BUCKET=your-firebase-storage-bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=your-firebase-messaging-sender-id
-VITE_FIREBASE_APP_ID=your-firebase-app-id
+# Firebase Config (auto-generated)
+FIREBASE_CONFIG (automatically set by Firebase)
+
+# Cloud Functions Environment
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
 ```
 
-**Note:** All Firebase config for the web client is safe to expose (these are public keys, not secrets).
+### Pre-deployment Checklist
+- [ ] Update Firestore security rules
+- [ ] Deploy Firestore indexes
+- [ ] Test Cloud Functions locally
+- [ ] Verify environment variables
+- [ ] Run production build locally
+- [ ] Check bundle size
+- [ ] Test couple features end-to-end
+- [ ] Verify admin dashboard permissions
 
-### How to Use Firebase in Code
-- Import the initialized app from `src/firebase/firebaseConfig.ts`:
-  ```ts
-  import { app } from './firebase/firebaseConfig';
-  ```
-- Use Firebase SDKs (auth, firestore, etc.) as needed in your components or hooks.
+## 🤝 Contributing
 
-### Security Notes
-- Do **not** put any Firebase Admin SDK or service account credentials in the frontend code or `.env.local`.
-- Only use the public web config (as above) for client-side features.
+### Development Workflow
+1. Create a feature branch from `dev`
+2. Make your changes
+3. Test thoroughly
+4. Submit PR to `dev` branch
+5. After review, merge to `dev`
+6. Merge `dev` to `main` for production
 
-### Extending Firebase Features
-1. Add new logic to `src/firebase/firebaseConfig.ts` or create new hooks in `src/hooks/` for Firebase features.
-2. Use Firestore, Auth, or Storage as needed for your app's requirements.
-
-### Styling Guidelines
-- Use component-specific CSS classes
-- Follow BEM naming convention
-- Maintain consistent spacing (8px grid)
-- Use CSS custom properties for theming
-- Ensure responsive design for all components
+### Code Style
+- Follow TypeScript best practices
+- Use functional components with hooks
+- Write meaningful commit messages
+- Add JSDoc comments for complex functions
+- Keep components small and focused
 
 ## 📄 License
 
 This project is created for educational and demonstration purposes.
+
+## 🆘 Support & Contact
+
+For issues, questions, or contributions:
+- Create an issue on GitHub
+- Check [Documentation](Documentation/) folder
+- Review [Quick Start Guide](Documentation/General/QUICK_START_GUIDE.md)
