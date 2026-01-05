@@ -4,41 +4,47 @@
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <mxCell id="title" value="Love Journal - Complete Technical Architecture v3.0" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1" parent="1" vertex="1">
+                <mxCell id="title" value="Love Journal - Complete Technical Architecture v3.0.1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1" parent="1" vertex="1">
                     <mxGeometry x="560" y="20" width="800" height="40" as="geometry"/>
                 </mxCell>
                 <mxCell id="client-layer" value="CLIENT LAYER (React SPA)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1" parent="1" vertex="1">
                     <mxGeometry x="40" y="80" width="1840" height="200" as="geometry"/>
                 </mxCell>
                 <mxCell id="dashboard" value="Dashboard&#xa;(Home)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="client-layer" vertex="1">
-                    <mxGeometry x="40" y="40" width="120" height="60" as="geometry"/>
+                    <mxGeometry x="40" y="40" width="100" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="memories" value="Memories&#xa;Create/View/Edit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="client-layer" vertex="1">
-                    <mxGeometry x="200" y="40" width="120" height="60" as="geometry"/>
+                    <mxGeometry x="160" y="40" width="100" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="couple" value="Couple&#xa;Link/Share" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1" parent="client-layer" vertex="1">
+                    <mxGeometry x="280" y="40" width="100" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="mapview" value="Map View&#xa;(Leaflet)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="client-layer" vertex="1">
-                    <mxGeometry x="360" y="40" width="120" height="60" as="geometry"/>
+                    <mxGeometry x="400" y="40" width="100" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="admin" value="Admin Panel&#xa;(RBAC)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1" parent="client-layer" vertex="1">
-                    <mxGeometry x="520" y="40" width="120" height="60" as="geometry"/>
+                    <mxGeometry x="520" y="40" width="100" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="profile" value="Profile&#xa;Settings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="client-layer" vertex="1">
-                    <mxGeometry x="680" y="40" width="120" height="60" as="geometry"/>
+                    <mxGeometry x="640" y="40" width="100" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="router" value="React Router v7&#xa;(Lazy Loading)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="client-layer" vertex="1">
-                    <mxGeometry x="850" y="40" width="140" height="60" as="geometry"/>
+                    <mxGeometry x="780" y="40" width="130" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="context" value="Contexts&#xa;Auth | Admin | Toast" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="client-layer" vertex="1">
-                    <mxGeometry x="1040" y="40" width="140" height="60" as="geometry"/>
+                <mxCell id="context" value="Contexts&#xa;Auth | Admin&#xa;Toast | Couple" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="client-layer" vertex="1">
+                    <mxGeometry x="950" y="40" width="130" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="hooks" value="Custom Hooks&#xa;useInfiniteMemories&#xa;useAdmin" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="client-layer" vertex="1">
-                    <mxGeometry x="1230" y="40" width="140" height="60" as="geometry"/>
+                <mxCell id="hooks" value="Custom Hooks&#xa;useInfiniteMemories&#xa;useCoupleSync" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="client-layer" vertex="1">
+                    <mxGeometry x="1120" y="40" width="130" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="apis" value="API Layer&#xa;memoryOperations&#xa;storageUsageApi" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="client-layer" vertex="1">
-                    <mxGeometry x="1420" y="40" width="140" height="60" as="geometry"/>
+                <mxCell id="apis" value="API Layer&#xa;memoryOperations&#xa;coupleOperations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="client-layer" vertex="1">
+                    <mxGeometry x="1290" y="40" width="130" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="i18n" value="i18n&#xa;(Multi-language)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="client-layer" vertex="1">
-                    <mxGeometry x="1610" y="40" width="140" height="60" as="geometry"/>
+                <mxCell id="services" value="Services&#xa;firestoreService&#xa;imageCompression" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="client-layer" vertex="1">
+                    <mxGeometry x="1460" y="40" width="130" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="i18n" value="i18n&#xa;(Multi-language)" st (Firebase, Cloudinary, Real-time Sync)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="client-layer" vertex="1">
+                    <mxGeometry x="40" y="130" width="1720" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="services-layer" value="SERVICES CONNECTION" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="client-layer" vertex="1">
                     <mxGeometry x="40" y="130" width="1710" height="40" as="geometry"/>
@@ -64,32 +70,38 @@
                 <mxCell id="backend-layer" value="BACKEND SERVICES LAYER" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1" parent="1" vertex="1">
                     <mxGeometry x="40" y="480" width="1840" height="300" as="geometry"/>
                 </mxCell>
-                <mxCell id="firestore" value="Firebase Firestore" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1" parent="backend-layer" vertex="1">
-                    <mxGeometry x="40" y="40" width="540" height="40" as="geometry"/>
+                <mxCell id="firestore" value="Firebase Firestore" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fonpartnerId (NEW)&#xa;• createdAt" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;" parent="backend-layer" vertex="1">
+                    <mxGeometry x="40" y="100" width="140" height="160" as="geometry"/>
                 </mxCell>
-                <mxCell id="users-collection" value="dev_users / users&#xa;&#xa;• email&#xa;• role (SysAdmin/Admin/User)&#xa;• status (Active/Suspended)&#xa;• createdAt" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;" parent="backend-layer" vertex="1">
-                    <mxGeometry x="40" y="100" width="160" height="160" as="geometry"/>
+                <mxCell id="memories-collection" value="dev_memories / memories&#xa;&#xa;• title, content&#xa;• photos[] (Cloudinary URLs)&#xa;• location (lat/lng)&#xa;• mood, weather&#xa;• userId&#xa;• sharedWith[] (NEW)&#xa;• createdAt" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;" parent="backend-layer" vertex="1">
+                    <mxGeometry x="200" y="100" width="140" height="160" as="geometry"/>
                 </mxCell>
-                <mxCell id="memories-collection" value="dev_memories / memories&#xa;&#xa;• title, content&#xa;• photos[] (Cloudinary URLs)&#xa;• location (lat/lng)&#xa;• mood, weather&#xa;• userId&#xa;• createdAt" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;" parent="backend-layer" vertex="1">
-                    <mxGeometry x="230" y="100" width="180" height="160" as="geometry"/>
+                <mxCell id="invitations-collection" value="couple_invitations&#xa;(NEW v3.0.1)&#xa;&#xa;• senderId&#xa;• recipientEmail&#xa;• status (pending/&#xa;  accepted/rejected)&#xa;• createdAt" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;fontStyle=1" parent="backend-layer" vertex="1">
+                    <mxGeometry x="360" y="100" width="140" height="160" as="geometry"/>
                 </mxCell>
                 <mxCell id="stats-collection" value="system_stats&#xa;&#xa;storage:&#xa;• firebase, cloudinary&#xa;• cloudFunctions&#xa;• actualInvocations&#xa;&#xa;function_calls:&#xa;• Daily tracking&#xa;• Total counts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;verticalAlign=top;fontStyle=1" parent="backend-layer" vertex="1">
-                    <mxGeometry x="440" y="100" width="140" height="160" as="geometry"/>
+                    <mxGeometry x="520" y="100" width="180" height="160" as="geometry"/>
                 </mxCell>
-                <mxCell id="cloud-functions" value="Cloud Functions (v2)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontStyle=1" parent="backend-layer" vertex="1">
-                    <mxGeometry x="640" y="40" width="540" height="40" as="geometry"/>
+                <mxCell id="stats-collection" value="system_stats&#xa;&#xa;storage:&#xa;• firebase, cloudinary&#xa;• cloudFunctions&#xa;• actualInvocations&#xa;&#xa;function_calls:&#xa;• Daily tracking&#xa;• Total counts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;verticalAlign=top;fontStyle=1" parent="backend-layer" vertex="1">
+                    <mxGeometry x="720" y="40" width="540" height="40" as="geometry"/>
                 </mxCell>
                 <mxCell id="delete-function" value="deleteCloudinaryImage&#xa;(onRequest)&#xa;&#xa;• Verify token&#xa;• Extract publicId&#xa;• Call Cloudinary API&#xa;• Track invocation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;" parent="backend-layer" vertex="1">
-                    <mxGeometry x="640" y="100" width="160" height="160" as="geometry"/>
+                    <mxGeometry x="720" y="100" width="150" height="160" as="geometry"/>
                 </mxCell>
                 <mxCell id="calculate-function" value="calculateStorageStats&#xa;(onSchedule)&#xa;&#xa;• Every 1 hour&#xa;• Count resources&#xa;• Read function_calls&#xa;• Save to stats" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;" parent="backend-layer" vertex="1">
-                    <mxGeometry x="830" y="100" width="160" height="160" as="geometry"/>
+                    <mxGeometry x="890" y="100" width="150" height="160" as="geometry"/>
                 </mxCell>
                 <mxCell id="update-function" value="updateStorageStats&#xa;(onRequest)&#xa;&#xa;• Verify admin role&#xa;• Auto-detect env&#xa;  (dev_users || users)&#xa;• Calculate stats&#xa;• Return response" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;verticalAlign=top;fontStyle=1" parent="backend-layer" vertex="1">
-                    <mxGeometry x="1020" y="100" width="160" height="160" as="geometry"/>
+                    <mxGeometry x="1060" y="100" width="15" height="160" as="geometry"/>
                 </mxCell>
-                <mxCell id="env-vars" value="Environment Variables&#xa;&#xa;• CLOUDINARY_CLOUD_NAME&#xa;• CLOUDINARY_API_KEY&#xa;• CLOUDINARY_API_SECRET&#xa;&#xa;(defineString)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;align=left;verticalAlign=top;" parent="backend-layer" vertex="1">
-                    <mxGeometry x="1240" y="100" width="180" height="160" as="geometry"/>
+                <mxCell id="update-function" value="updateStorageStats&#xa;(onRequest)&#xa;&#xa;• Verify admin role&#xa;• Auto-detect env&#xa;  (dev_users || users)&#xa;• Calculate stats&#xa;• Return response" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;verticalAlign=top;fontStyle=1" parent="backend-layer" vertex="1">
+                    <mxGeometry x="1030" y="100" width="150" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="tracking" value="Function Call Tracking&#xa;&#xa;trackFunctionCall()&#xa;&#xa;• Increment counter&#xa;• Update by date&#xa;• Transaction-based&#xa;• Non-blocking" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;" parent="backend-layer" vertex="1">
+                    <mxGeometry x="1400" y="100" width="150" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="realtime-sync" value="Real-time Sync&#xa;(NEW v3.0.1)&#xa;&#xa;• onSnapshot listeners&#xa;• Partner updates&#xa;• Shared memories&#xa;• Auto-cleanup" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;fontStyle=1" parent="backend-layer" vertex="1">
+                    <mxGeometry x="1570" y="100" width="150" height="160" as="geometry"/>
                 </mxCell>
                 <mxCell id="tracking" value="Function Call Tracking&#xa;&#xa;trackFunctionCall()&#xa;&#xa;• Increment counter&#xa;• Update by date&#xa;• Transaction-based&#xa;• Non-blocking" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;" parent="backend-layer" vertex="1">
                     <mxGeometry x="1460" y="100" width="160" height="160" as="geometry"/>
@@ -97,23 +109,26 @@
                 <mxCell id="external-layer" value="EXTERNAL SERVICES" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=14;fontStyle=1" parent="1" vertex="1">
                     <mxGeometry x="40" y="800" width="1840" height="260" as="geometry"/>
                 </mxCell>
-                <mxCell id="cloudinary" value="Cloudinary (Image CDN)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;fontStyle=1" parent="external-layer" vertex="1">
-                    <mxGeometry x="40" y="40" width="540" height="40" as="geometry"/>
+                <mxCell id="cloudinary" value="Cloudinary (Image CDv3.0)&#xa;&#xa;Delete Cloudinary FIRST&#xa;→ If success → Delete Firestore&#xa;→ If fail → Keep data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;verticalAlign=top;fontStyle=1" parent="external-layer" vertex="1">
+                    <mxGeometry x="230" y="100" width="150" height="110" as="geometry"/>
                 </mxCell>
-                <mxCell id="cloudinary-upload" value="Upload Widget&#xa;&#xa;Client → Widget&#xa;→ Upload to CDN&#xa;→ Return URL&#xa;→ Save to Firestore" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;" parent="external-layer" vertex="1">
-                    <mxGeometry x="40" y="100" width="160" height="110" as="geometry"/>
-                </mxCell>
-                <mxCell id="cloudinary-delete" value="Delete Flow (NEW v3.0)&#xa;&#xa;Delete Cloudinary FIRST&#xa;→ If success → Delete Firestore&#xa;→ If fail → Keep data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;verticalAlign=top;fontStyle=1" parent="external-layer" vertex="1">
-                    <mxGeometry x="230" y="100" width="180" height="110" as="geometry"/>
+                <mxCell id="image-compression" value="Image Compression&#xa;(NEW v3.0.1)&#xa;&#xa;• Auto-compress before upload&#xa;• 80% quality&#xa;• 1920px max&#xa;• Client-side" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;fontStyle=1" parent="external-layer" vertex="1">
+                    <mxGeometry x="400" y="100" width="150" height="110" as="geometry"/>
                 </mxCell>
                 <mxCell id="cloudinary-info" value="Storage Limits&#xa;&#xa;• 25GB total&#xa;• 750 images&#xa;• Transformations: 25k/month" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;align=left;verticalAlign=top;" parent="external-layer" vertex="1">
-                    <mxGeometry x="440" y="100" width="140" height="110" as="geometry"/>
+                    <mxGeometry x="570" y="100" width="12" height="110" as="geometry"/>
                 </mxCell>
-                <mxCell id="osm" value="OpenStreetMap / Leaflet" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1" parent="external-layer" vertex="1">
-                    <mxGeometry x="640" y="40" width="540" height="40" as="geometry"/>
+                <mxCell id="cloudinary-delete" value="Delete Flow (NEW v3.0)&#xa;&#xa;Delete Cloudinary FIRST&#xa;→ If success → Delete Firestore&#xa;→ If fail → Keep data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;verticalAlign=top;fontStyle=1" parent="external-layer" vertex="1">
+                    <mxGeometry x="740" y="40" width="540" height="40" as="geometry"/>
                 </mxCell>
                 <mxCell id="map-tiles" value="Tile Server&#xa;&#xa;OpenStreetMap tiles&#xa;Free, no API key&#xa;Global coverage" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;" parent="external-layer" vertex="1">
-                    <mxGeometry x="640" y="100" width="140" height="110" as="geometry"/>
+                    <mxGeometry x="740" y="100" width="130" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="geocoding" value="Geocoding&#xa;&#xa;Nominatim API&#xa;Address → Coordinates&#xa;Reverse geocoding" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;" parent="external-layer" vertex="1">
+                    <mxGeometry x="890" y="100" width="130" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="map-features" value="Features&#xa;&#xa;• Markers&#xa;• Heat Map&#xa;• Route Visualization&#xa;• Custom icons" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;" parent="external-layer" vertex="1">
+                    <mxGeometry x="1040" y="100" width="130" height="110" as="geometry"/>
                 </mxCell>
                 <mxCell id="geocoding" value="Geocoding&#xa;&#xa;Nominatim API&#xa;Address → Coordinates&#xa;Reverse geocoding" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;" parent="external-layer" vertex="1">
                     <mxGeometry x="810" y="100" width="140" height="110" as="geometry"/>
@@ -178,20 +193,23 @@
                 <mxCell id="tech2" value="Backend: Firebase Functions v2 (Node.js 20)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="tech-box" vertex="1">
                     <mxGeometry x="20" y="65" width="280" height="20" as="geometry"/>
                 </mxCell>
-                <mxCell id="tech3" value="Database: Firestore (NoSQL)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="tech-box" vertex="1">
-                    <mxGeometry x="320" y="40" width="280" height="20" as="geometry"/>
-                </mxCell>
-                <mxCell id="tech4" value="CDN: Cloudinary v2.7.0 + Upload Widget" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="tech-box" vertex="1">
-                    <mxGeometry x="320" y="65" width="280" height="20" as="geometry"/>
-                </mxCell>
-                <mxCell id="features-box" value="KEY FEATURES v3.0" style="swimlane;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;fontStyle=1" parent="1" vertex="1">
+                <mxCell id="tech3" value="Database: Firestore (NoS.1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;fontStyle=1" parent="1" vertex="1">
                     <mxGeometry x="1320" y="1080" width="560" height="120" as="geometry"/>
                 </mxCell>
-                <mxCell id="feat1" value="✓ System Admin Dashboard with real-time monitoring" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="features-box" vertex="1">
-                    <mxGeometry x="20" y="35" width="520" height="15" as="geometry"/>
+                <mxCell id="feat1" value="✓ Couple Features: Partner linking, invitations, memory sharing" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="features-box" vertex="1">
+                    <mxGeometry x="20" y="30" width="520" height="14" as="geometry"/>
                 </mxCell>
-                <mxCell id="feat2" value="✓ Role-Based Access Control (SysAdmin/Admin/User)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="features-box" vertex="1">
-                    <mxGeometry x="20" y="52" width="520" height="15" as="geometry"/>
+                <mxCell id="feat2" value="✓ Real-time sync with Firestore listeners for partner updates" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="features-box" vertex="1">
+                    <mxGeometry x="20" y="46" width="520" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="feat3" value="✓ Auto image compression (80% quality, 1920px max) before upload" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="features-box" vertex="1">
+                    <mxGeometry x="20" y="62" width="520" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="feat4" value="✓ Admin Dashboard with Recharts visualization + RBAC" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="features-box" vertex="1">
+                    <mxGeometry x="20" y="78" width="520" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="feat5" value="✓ Function call tracking, storage stats, multi-environment support" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="features-box" vertex="1">
+                    <mxGeometry x="20" y="94" width="520" height="14" as="geometry"/>
                 </mxCell>
                 <mxCell id="feat3" value="✓ Actual function call tracking (not estimates)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="features-box" vertex="1">
                     <mxGeometry x="20" y="69" width="520" height="15" as="geometry"/>
