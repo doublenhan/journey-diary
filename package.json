@@ -9,6 +9,7 @@
     "dev:watch": "vite --host --open --force",
     "vercel-build": "vite build",
     "build": "vite build",
+    "build:clean": "rm -rf dist node_modules/.vite && vite build",
     "build:watch": "vite build --watch",
     "lint": "eslint .",
     "preview": "vite preview"

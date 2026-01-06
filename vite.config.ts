@@ -4,11 +4,15 @@ import react from '@vitejs/plugin-react';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react({
-    // Fix React forwardRef bundling issue
     jsxRuntime: 'automatic',
   })],
   resolve: {
-    dedupe: ['react', 'react-dom'], // Prevent duplicate React instances
+    dedupe: ['react', 'react-dom'],
+    alias: {
+      // Force single React instance
+      'react': 'react',
+      'react-dom': 'react-dom'
+    }
   },
   server: {
     host: true, // Allows access from network
@@ -33,14 +37,10 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Vendor chunks - split by library
+          // DON'T split React into separate chunk - keep in vendor
           if (id.includes('node_modules')) {
             // Firebase chunk
             if (id.includes('firebase')) return 'vendor-firebase';
-            
-            // React ecosystem
-            if (id.includes('react') || id.includes('react-dom')) return 'vendor-react';
-            if (id.includes('react-router')) return 'vendor-router';
             
             // Map libraries
             if (id.includes('leaflet') || id.includes('react-leaflet')) return 'vendor-map';

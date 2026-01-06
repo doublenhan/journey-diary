@@ -1,0 +1,5 @@
+# Force Vercel to ignore cache
+.vercel
+.vite
+node_modules/.vite
+dist
