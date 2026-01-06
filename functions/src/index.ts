@@ -1,4 +1,5 @@
 import * as functions from 'firebase-functions';
+import * as functionsV1 from 'firebase-functions/v1';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { onRequest } from 'firebase-functions/v2/https';
 import { defineSecret } from 'firebase-functions/params';
@@ -880,3 +881,187 @@ export const updateStorageStats = onRequest({
     });
   }
 });
+
+/**
+ * Send notification when couple invitation is created (PRODUCTION)
+ */
+export const onCoupleInvitationCreated = functionsV1.firestore
+  .document('coupleInvitations/{invitationId}')
+  .onCreate(async (snap, context) => {
+    try {
+      await trackFunctionCall('onCoupleInvitationCreated');
+      
+      const invitation = snap.data();
+      const { receiverId, senderId, senderName, senderAvatar, status } = invitation;
+      
+      if (status !== 'pending') {
+        console.log('Skipping notification - invitation not pending');
+        return null;
+      }
+      
+      const db = admin.firestore();
+      const ENV_PREFIX = '';
+      
+      // Create notification for receiver
+      const notificationRef = db.collection(`${ENV_PREFIX}notifications`).doc();
+      await notificationRef.set({
+        userId: receiverId,
+        type: 'couple_invitation',
+        title: 'New Couple Invitation',
+        message: `${senderName || 'Someone'} wants to connect with you as a couple`,
+        data: {
+          invitationId: context.params.invitationId,
+          senderId,
+          senderName,
+          senderAvatar
+        },
+        read: false,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+      
+      console.log(`Notification created for user ${receiverId} about invitation from ${senderId}`);
+      return null;
+    } catch (error) {
+      console.error('Error creating couple invitation notification:', error);
+      return null;
+    }
+  });
+
+/**
+ * Send notification when couple invitation is created (DEVELOPMENT)
+ */
+export const onDevCoupleInvitationCreated = functionsV1.firestore
+  .document('dev_coupleInvitations/{invitationId}')
+  .onCreate(async (snap, context) => {
+    try {
+      await trackFunctionCall('onDevCoupleInvitationCreated');
+      
+      const invitation = snap.data();
+      const { receiverId, senderId, senderName, senderAvatar, status } = invitation;
+      
+      if (status !== 'pending') {
+        console.log('Skipping notification - invitation not pending');
+        return null;
+      }
+      
+      const db = admin.firestore();
+      const ENV_PREFIX = 'dev_';
+      
+      // Create notification for receiver
+      const notificationRef = db.collection(`${ENV_PREFIX}notifications`).doc();
+      await notificationRef.set({
+        userId: receiverId,
+        type: 'couple_invitation',
+        title: 'New Couple Invitation',
+        message: `${senderName || 'Someone'} wants to connect with you as a couple`,
+        data: {
+          invitationId: context.params.invitationId,
+          senderId,
+          senderName,
+          senderAvatar
+        },
+        read: false,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+      
+      console.log(`[DEV] Notification created for user ${receiverId} about invitation from ${senderId}`);
+      return null;
+    } catch (error) {
+      console.error('Error creating dev couple invitation notification:', error);
+      return null;
+    }
+  });
+
+/**
+ * Send notification when couple invitation is accepted (PRODUCTION)
+ */
+export const onCoupleInvitationAccepted = functionsV1.firestore
+  .document('coupleInvitations/{invitationId}')
+  .onUpdate(async (change, context) => {
+    try {
+      const before = change.before.data();
+      const after = change.after.data();
+      
+      // Only notify if status changed to accepted
+      if (before.status === 'pending' && after.status === 'accepted') {
+        await trackFunctionCall('onCoupleInvitationAccepted');
+        
+        const { senderId, receiverId, receiverName, receiverAvatar } = after;
+        const db = admin.firestore();
+        const ENV_PREFIX = '';
+        
+        // Create notification for sender (original inviter)
+        const notificationRef = db.collection(`${ENV_PREFIX}notifications`).doc();
+        await notificationRef.set({
+          userId: senderId,
+          type: 'couple_accepted',
+          title: 'Couple Invitation Accepted',
+          message: `${receiverName || 'Your partner'} accepted your couple invitation!`,
+          data: {
+            invitationId: context.params.invitationId,
+            partnerId: receiverId,
+            partnerName: receiverName,
+            partnerAvatar: receiverAvatar
+          },
+          read: false,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        
+        console.log(`Notification created for user ${senderId} - invitation accepted by ${receiverId}`);
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error creating couple acceptance notification:', error);
+      return null;
+    }
+  });
+
+/**
+ * Send notification when couple invitation is accepted (DEVELOPMENT)
+ */
+export const onDevCoupleInvitationAccepted = functionsV1.firestore
+  .document('dev_coupleInvitations/{invitationId}')
+  .onUpdate(async (change, context) => {
+    try {
+      const before = change.before.data();
+      const after = change.after.data();
+      
+      // Only notify if status changed to accepted
+      if (before.status === 'pending' && after.status === 'accepted') {
+        await trackFunctionCall('onDevCoupleInvitationAccepted');
+        
+        const { senderId, receiverId, receiverName, receiverAvatar } = after;
+        const db = admin.firestore();
+        const ENV_PREFIX = 'dev_';
+        
+        // Create notification for sender (original inviter)
+        const notificationRef = db.collection(`${ENV_PREFIX}notifications`).doc();
+        await notificationRef.set({
+          userId: senderId,
+          type: 'couple_accepted',
+          title: 'Couple Invitation Accepted',
+          message: `${receiverName || 'Your partner'} accepted your couple invitation!`,
+          data: {
+            invitationId: context.params.invitationId,
+            partnerId: receiverId,
+            partnerName: receiverName,
+            partnerAvatar: receiverAvatar
+          },
+          read: false,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        
+        console.log(`[DEV] Notification created for user ${senderId} - invitation accepted by ${receiverId}`);
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error creating dev couple acceptance notification:', error);
+      return null;
+    }
+  });

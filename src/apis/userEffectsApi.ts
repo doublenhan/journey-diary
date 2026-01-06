@@ -2,22 +2,22 @@
 import { db, getCollectionName } from '../firebase/firebaseConfig';
 
 export interface EffectsSettings {
-  particles: boolean;
-  hearts: boolean;
-  transitions: boolean;
-  glow: boolean;
-  fadeIn: boolean;
-  slideIn: boolean;
+  fireworks: boolean;
+  colorMorph: boolean;
+  rippleWave: boolean;
+  floatingBubbles: boolean;
+  magneticCursor: boolean;
+  gradientMesh: boolean;
   animationSpeed: number;
 }
 
 const DEFAULT_EFFECTS: EffectsSettings = {
-  particles: false,
-  hearts: false,
-  transitions: false,
-  glow: false,
-  fadeIn: false,
-  slideIn: false,
+  fireworks: false,
+  colorMorph: false,
+  rippleWave: false,
+  floatingBubbles: false,
+  magneticCursor: false,
+  gradientMesh: false,
   animationSpeed: 0.5
 };
 

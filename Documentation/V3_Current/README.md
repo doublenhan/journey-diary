@@ -1,7 +1,7 @@
 # Love Journal - Release 3.0 Documentation
 
-**Version**: 3.0  
-**Release Date**: December 24, 2025  
+**Version**: 3.0.1 (Couple Features Update)  
+**Release Date**: January 4, 2026  
 **Status**: ✅ Production Ready
 
 ---
@@ -11,9 +11,12 @@
 ### 🚀 Start Here
 1. **[RELEASE_3.0.md](RELEASE_3.0.md)** - Complete release notes, features, breaking changes
 2. **[CRITICAL_NOTES.md](CRITICAL_NOTES.md)** - ⚠️ Must-read before deployment
+3. **[COUPLE_FEATURES_SCHEMA.md](COUPLE_FEATURES_SCHEMA.md)** - Couple linking & sharing features
 
 ### 🏗️ Technical Reference
-3. **[TECHNICAL_SECURITY_ARCHITECTURE.md](TECHNICAL_SECURITY_ARCHITECTURE.md)** - Architecture diagrams, security flows
+4. **[TECHNICAL_SECURITY_ARCHITECTURE.md](TECHNICAL_SECURITY_ARCHITECTURE.md)** - Architecture diagrams, security flows
+5. **[HYBRID_CRON_TRACKING_COMPLETE.md](HYBRID_CRON_TRACKING_COMPLETE.md)** - Cron job tracking system
+6. **[PERFORMANCE_MONITORING_SETUP.md](PERFORMANCE_MONITORING_SETUP.md)** - Performance monitoring guide
 
 ### 📋 For Deployment
 - Read: [CRITICAL_NOTES.md](CRITICAL_NOTES.md) - Security checklist
@@ -22,9 +25,16 @@
 
 ---
 
-## 🎯 Release 3.0 Highlights
+## 🎯 Release 3.0.1 Highlights
 
-### What's New
+### What's New (January 2026)
+- ✅ **Couple Linking System** - Send & accept partner invitations
+- ✅ **Memory Sharing** - Share memories with partner (view-only)
+- ✅ **Real-time Updates** - Firestore listeners for instant sync
+- ✅ **Image Compression** - Automatic compression before upload
+- ✅ **Admin Charts** - Visual analytics for system monitoring
+
+### Release 3.0 Features (December 2025)
 - ✅ **System Admin Dashboard** với real-time monitoring
 - ✅ **Role-Based Access Control** (SysAdmin/Admin/User)
 - ✅ **Cloud Functions Integration** cho image deletion và stats

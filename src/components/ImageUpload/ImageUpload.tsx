@@ -7,7 +7,7 @@ import { useCallback, useState } from 'react';
 import { Upload, X, Image, AlertCircle, CheckCircle } from 'lucide-react';
 import { useCloudinary } from '../../hooks/useCloudinary';
 import type { UploadOptions } from '../../apis/cloudinaryGalleryApi';
-import './ImageUpload.css';
+import { compressImage, formatFileSize as formatSize } from '../../utils/imageCompression';
 
 interface ImageUploadProps {
   onUploadComplete?: (imageUrl: string, publicId: string) => void;
@@ -18,6 +18,9 @@ interface ImageUploadProps {
   maxFileSize?: number; // in MB
   className?: string;
   disabled?: boolean;
+  enableCompression?: boolean; // Enable client-side compression
+  compressionQuality?: number; // 0.1 to 1.0 (default: 0.8)
+  maxImageDimension?: number; // Max width/height (default: 1920)
 }
 
 interface UploadingFile {
@@ -40,7 +43,10 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   acceptedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
   maxFileSize = 10, // 10MB default
   className = '',
-  disabled = false
+  disabled = false,
+  enableCompression = true, // Enable by default
+  compressionQuality = 0.8,
+  maxImageDimension = 1920
 }) => {
   const { uploadImage, uploading } = useCloudinary();
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
@@ -93,7 +99,34 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       setUploadingFiles(prev => [...prev, uploadingFile]);
       
       try {
-        // Simulate progress updates
+        // Compress image if enabled
+        let fileToUpload = file;
+        if (enableCompression) {
+          const compressionResult = await compressImage(file, {
+            maxWidth: maxImageDimension,
+            maxHeight: maxImageDimension,
+            quality: compressionQuality,
+            format: 'jpeg',
+            onProgress: (progress) => {
+              // Update progress for compression phase (0-30%)
+              setUploadingFiles(prev => prev.map(f => 
+                f.id === uploadId 
+                  ? { ...f, progress: Math.floor(progress * 0.3) }
+                  : f
+              ));
+            }
+          });
+          fileToUpload = compressionResult.file;
+          
+          // Log compression stats
+          console.log(`🗜️ Compressed ${file.name}:`, {
+            original: formatSize(compressionResult.originalSize),
+            compressed: formatSize(compressionResult.compressedSize),
+            saved: `${compressionResult.compressionRatio.toFixed(1)}%`
+          });
+        }
+        
+        // Simulate progress updates for upload phase (30-90%)
         const progressInterval = setInterval(() => {
           setUploadingFiles(prev => prev.map(f => 
             f.id === uploadId 
@@ -102,7 +135,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           ));
         }, 200);
         
-        const result = await uploadImage(file, uploadOptions);
+        const result = await uploadImage(fileToUpload, uploadOptions);
         
         clearInterval(progressInterval);
         
@@ -168,19 +201,15 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     setUploadingFiles(prev => prev.filter(f => f.id !== id));
   }, []);
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
   return (
-    <div className={`image-upload ${className}`}>
+    <div className={`w-full ${className}`}>
       {/* Upload Area */}
       <div
-        className={`upload-dropzone ${dragActive ? 'drag-active' : ''} ${disabled ? 'disabled' : ''}`}
+        className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer relative ${
+          dragActive ? 'border-pink-500 bg-pink-50 scale-105' : 'border-gray-300 bg-gray-50'
+        } ${
+          disabled ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'hover:border-pink-300 hover:bg-pink-50'
+        }`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -190,17 +219,19 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           multiple
           accept={acceptedTypes.join(',')}
           onChange={handleFileInput}
-          className="upload-input"
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
           disabled={disabled}
         />
         
-        <div className="upload-content">
-          <Upload className="upload-icon" />
-          <div className="upload-text">
-            <p className="upload-primary">
+        <div className="flex flex-col items-center gap-4 pointer-events-none">
+          <Upload className={`w-12 h-12 transition-colors duration-200 ${
+            disabled ? 'text-gray-400' : dragActive ? 'text-pink-500' : 'text-gray-400 group-hover:text-pink-500'
+          }`} />
+          <div className="flex flex-col gap-2">
+            <p className="font-semibold text-gray-700 m-0">
               {dragActive ? 'Drop files here' : 'Click to upload or drag and drop'}
             </p>
-            <p className="upload-secondary">
+            <p className="text-sm text-gray-500 m-0">
               {acceptedTypes.map(type => type.split('/')[1]).join(', ').toUpperCase()} up to {maxFileSize}MB
             </p>
           </div>
@@ -209,42 +240,42 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 
       {/* Uploading Files */}
       {uploadingFiles.length > 0 && (
-        <div className="uploading-files">
-          <h4 className="uploading-title">
+        <div className="mt-6 p-6 bg-white rounded-xl border border-gray-200">
+          <h4 className="flex items-center gap-2 text-base font-semibold text-gray-700 m-0 mb-4">
             <Image className="w-5 h-5" />
             Uploading Files
           </h4>
           
-          <div className="uploading-list">
+          <div className="flex flex-col gap-4">
             {uploadingFiles.map((uploadingFile) => (
-              <div key={uploadingFile.id} className="uploading-item">
-                <div className="file-info">
-                  <span className="file-name">{uploadingFile.file.name}</span>
-                  <span className="file-size">{formatFileSize(uploadingFile.file.size)}</span>
+              <div key={uploadingFile.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200 sm:flex-col sm:items-start sm:gap-3">
+                <div className="flex-1 flex flex-col gap-1">
+                  <span className="font-medium text-gray-700 text-sm">{uploadingFile.file.name}</span>
+                  <span className="text-xs text-gray-500">{formatSize(uploadingFile.file.size)}</span>
                 </div>
                 
-                <div className="upload-status">
+                <div className="flex items-center gap-2 min-w-[120px] sm:self-stretch sm:justify-between">
                   {uploadingFile.status === 'uploading' && (
                     <>
-                      <div className="progress-bar">
+                      <div className="w-20 h-1 bg-gray-200 rounded-sm overflow-hidden sm:flex-1 sm:w-auto">
                         <div 
-                          className="progress-fill"
+                          className="h-full bg-gradient-to-r from-pink-500 to-red-500 rounded-sm transition-all duration-300"
                           style={{ width: `${uploadingFile.progress}%` }}
                         />
                       </div>
-                      <span className="progress-text">{uploadingFile.progress}%</span>
+                      <span className="text-xs text-gray-500 font-medium min-w-[30px]">{uploadingFile.progress}%</span>
                     </>
                   )}
                   
                   {uploadingFile.status === 'success' && (
-                    <div className="status-success">
+                    <div className="flex items-center gap-1 text-green-500 text-sm font-medium">
                       <CheckCircle className="w-5 h-5" />
                       <span>Uploaded</span>
                     </div>
                   )}
                   
                   {uploadingFile.status === 'error' && (
-                    <div className="status-error">
+                    <div className="flex items-center gap-1 text-red-500 text-sm font-medium">
                       <AlertCircle className="w-5 h-5" />
                       <span>{uploadingFile.error}</span>
                     </div>
@@ -253,7 +284,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 
                 <button
                   onClick={() => removeUploadingFile(uploadingFile.id)}
-                  className="remove-button"
+                  className="p-1 rounded border-none bg-gray-100 text-gray-500 cursor-pointer transition-all duration-200 flex items-center justify-center hover:bg-red-100 hover:text-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={uploadingFile.status === 'uploading'}
                 >
                   <X className="w-4 h-4" />

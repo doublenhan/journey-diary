@@ -1,8 +1,8 @@
-﻿import { useState, useEffect, useRef, lazy, Suspense, useMemo } from 'react';
+﻿import { useState, useEffect, lazy, Suspense, useMemo } from 'react';
 import {
   Heart, BookOpen, Camera, Bell, Download as Download2,
   Menu, X, Instagram, Twitter, Facebook,
-  Mail, Phone, MapPin
+  Mail, Phone, Users
 } from 'lucide-react';
 import { useMemoriesCache } from './hooks/useMemoriesCache';
 import { useCurrentUserId } from './hooks/useCurrentUserId';
@@ -10,19 +10,19 @@ import { useLanguage } from './hooks/useLanguage';
 import { useToastContext } from './contexts/ToastContext';
 import { useStatusGuard } from './hooks/useStatusGuard';
 import { fetchMemories } from './services/firebaseMemoriesService';
-import { MoodTheme, themes, isValidTheme } from './config/themes';
+import { MoodTheme, isValidTheme } from './config/themes';
 import { getUserTheme } from './apis/userThemeApi';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { PageTransition } from './components/PageTransition';
 import { LazyImage } from './components/LazyImage';
-import { GallerySkeleton } from './components/GallerySkeleton';
 import { ToastContainer } from './components/Toast';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import './styles/App.css';
+import { useCouple } from './hooks/useCouple';
+import { CoupleStatusBadge } from './components/Couple';
 import './styles/PageLoader.css';
 import './styles/transitions.css';
-import './styles/Toast.css';
 import { Routes, Route, useNavigate } from 'react-router-dom';
+import { ROUTES } from './config/routes';
 
 // Lazy load heavy components with prefetch hints
 const CreateMemory = lazy(() => import(
@@ -61,6 +61,16 @@ const MigrationTool = lazy(() => import(
   /* webpackChunkName: "migration" */
   './pages/MigrationTool'
 ));
+
+const CoupleInvitationsPage = lazy(() => import(
+  /* webpackChunkName: "couple-invitations" */
+  './components/Couple/CoupleInvitationsPage'
+).then(module => ({ default: module.CoupleInvitationsPage })));
+
+const CoupleSettingsPage = lazy(() => import(
+  /* webpackChunkName: "couple-settings" */
+  './components/Couple/CoupleSettingsPage'
+).then(module => ({ default: module.CoupleSettingsPage })));
 
 // Loading component with heart balloon and person
 const PageLoader = () => {
@@ -141,6 +151,7 @@ const PageLoader = () => {
   );
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type FetchCloudinaryOptions = {
   folder?: string;
   tags?: string[];
@@ -161,6 +172,9 @@ function App() {
   const { t } = useLanguage();
   const { toasts, removeToast } = useToastContext();
   const { error: showError } = useToastContext();
+  
+  // Couple features
+  const { couple } = useCouple(userId || undefined);
   
   // Monitor user status in real-time and auto-logout if suspended/removed
   useStatusGuard();
@@ -279,31 +293,31 @@ function App() {
 
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [galleryLoading, setGalleryLoading] = useState(true);
-  const [carouselIndex, setCarouselIndex] = useState(0);
   const [heroIndex, setHeroIndex] = useState(0);
-  const getImagesPerPage = () => {
-    if (window.innerWidth <= 600) return 1;
-    if (window.innerWidth <= 900) return 2;
-    return 3;
-  };
-  const [imagesPerPage, setImagesPerPage] = useState(getImagesPerPage());
+  
+  // Timeline state - 5 random memories for storytelling
+  const [timelineMemories, setTimelineMemories] = useState<any[]>([]);
+  const [timelineLoading, setTimelineLoading] = useState(true);
 
-  useEffect(() => {
-    const handleResize = () => setImagesPerPage(getImagesPerPage());
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-  const carouselRef = useRef<HTMLDivElement>(null);
-
-  const { memoriesByYear, years, isLoading: heroLoading, error: heroError } = useMemoriesCache(userId, loading);
+  const { memoriesByYear, years, isLoading: heroLoading } = useMemoriesCache(userId, loading);
   const heroImages = years.flatMap((y: string) => (memoriesByYear[y] || []).flatMap((mem: any) =>
     Array.isArray(mem.images) ? mem.images.map((img: any) => img.secure_url) : []));
+
+  // Preload first 3 hero images for faster display
+  useEffect(() => {
+    if (heroImages.length > 0) {
+      heroImages.slice(0, 3).forEach(src => {
+        const img = new Image();
+        img.src = src;
+      });
+    }
+  }, [heroImages]);
 
   useEffect(() => {
     if (!heroImages.length) return;
     const interval = setInterval(() => {
       setHeroIndex((prev) => (prev + 1 >= heroImages.length ? 0 : prev + 1));
-    }, 2500);
+    }, 5000); // Increased from 2500ms to 5000ms (5 seconds)
     return () => clearInterval(interval);
   }, [heroImages]);
 
@@ -349,14 +363,54 @@ function App() {
     fetchImages();
   }, [userId]);
 
+  // Fetch timeline memories - 5 random curated moments
   useEffect(() => {
-    if (!galleryImages.length) return;
-    const maxIndex = Math.max(0, Math.ceil(galleryImages.length / imagesPerPage) - 1);
-    const interval = setInterval(() => {
-      setCarouselIndex((prev) => (prev + 1 > maxIndex ? 0 : prev + 1));
-    }, 2500);
-    return () => clearInterval(interval);
-  }, [galleryImages, imagesPerPage]);
+    async function fetchTimelineMemories() {
+      if (!userId) {
+        setTimelineLoading(false);
+        return;
+      }
+      
+      try {
+        setTimelineLoading(true);
+        // Fetch more memories to have a good selection pool
+        const memories = await fetchMemories({ 
+          userId, 
+          limit: 20
+        });
+        
+        // Filter memories that have at least one photo and a description
+        const memoriesWithPhotos = memories.filter(mem => 
+          mem.photos && mem.photos.length > 0 && mem.description
+        );
+        
+        // Randomly select 5 memories
+        const shuffled = [...memoriesWithPhotos].sort(() => Math.random() - 0.5);
+        const selected = shuffled.slice(0, 5);
+        
+        // Format timeline data
+        const timelineData = selected.map(mem => ({
+          id: mem.id,
+          date: mem.date,
+          image: mem.photos[0].startsWith('http') 
+            ? mem.photos[0]
+            : `https://res.cloudinary.com/dhelefhv1/image/upload/${mem.photos[0]}`,
+          caption: mem.description.length > 100 
+            ? mem.description.substring(0, 100) + '...'
+            : mem.description,
+          mood: mem.mood || 'romantic'
+        }));
+        
+        setTimelineMemories(timelineData);
+      } catch (e) {
+        console.error('Failed to fetch timeline memories:', e);
+        setTimelineMemories([]);
+      } finally {
+        setTimelineLoading(false);
+      }
+    }
+    fetchTimelineMemories();
+  }, [userId]);
 
   return (
     <>
@@ -365,244 +419,671 @@ function App() {
     <Suspense fallback={<PageLoader />}>
     <PageTransition>
     <Routes>
-      <Route path="/" element={<LoginPage currentTheme={currentTheme} />} />
-      <Route path="/landing" element={
-        (() => {
-          const theme = themes[currentTheme];
-          return (
-            <div className="landing-page" style={{ background: theme.background, color: theme.textPrimary }}>
-              <header className="header">
-                <div className="header-container">
-                  <div className="header-content">
-                    <div className="logo">
-                      <Heart className="logo-icon" />
-                      <span className="logo-text">{t('landing.heroHighlight')}</span>
+      <Route path={ROUTES.LOGIN} element={<LoginPage currentTheme={currentTheme} />} />
+      <Route path={ROUTES.LANDING} element={
+        <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-orange-50">
+              {/* Header */}
+              <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-pink-100">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="flex justify-between items-center h-16">
+                    {/* Logo */}
+                    <div className="flex items-center gap-2">
+                      <div className="bg-gradient-to-r from-pink-500 to-rose-500 p-2 rounded-xl">
+                        <Heart className="w-6 h-6 text-white" fill="white" />
+                      </div>
+                      <span className="text-xl font-bold bg-gradient-to-r from-red-600 to-rose-500 bg-clip-text text-transparent">
+                        {t('landing.heroHighlight')}
+                      </span>
                     </div>
-                    <nav className="nav-desktop">
-                      <a href="/create-memory" className="nav-link">{t('nav.create')}</a>
-                      <a href="/view-memory" className="nav-link">{t('nav.memories')}</a>
-                      <a href="/anniversary-reminders" className="nav-link">{t('nav.anniversary')}</a>
-                      <a href="/setting-page" className="nav-link">{t('nav.settings')}</a>
+
+                    {/* Desktop Navigation */}
+                    <nav className="hidden md:flex items-center gap-8">
+                      <a href="/create-memory" className="text-gray-700 font-medium hover:text-red-600 transition-colors">
+                        {t('nav.create')}
+                      </a>
+                      <a href="/view-memory" className="text-gray-700 font-medium hover:text-red-600 transition-colors">
+                        {t('nav.memories')}
+                      </a>
+                      <a href="/couple/invitations" className="text-gray-700 font-medium hover:text-red-600 transition-colors flex items-center gap-2">
+                        Kết nối {couple && '💕'}
+                      </a>
+                      <a href="/anniversary-reminders" className="text-gray-700 font-medium hover:text-red-600 transition-colors">
+                        {t('nav.anniversary')}
+                      </a>
+                      <a href="/setting-page" className="text-gray-700 font-medium hover:text-red-600 transition-colors">
+                        {t('nav.settings')}
+                      </a>
                     </nav>
-                    <button className="mobile-menu-button" onClick={() => setMobileMenuOpen(true)} aria-label="Open menu">
+
+                    {/* Mobile Menu Button */}
+                    <button 
+                      className="md:hidden flex items-center justify-center w-10 h-10 text-gray-700 hover:text-red-600 transition-all hover:scale-110"
+                      onClick={() => setMobileMenuOpen(true)} 
+                      aria-label="Open menu"
+                    >
                       <Menu size={28} />
                     </button>
                   </div>
                 </div>
-                {mobileMenuOpen && (
-                  <>
-                    {/* Backdrop Overlay */}
-                    <div 
-                      className={`mobile-menu-backdrop ${menuMounted ? 'mobile-menu-backdrop-visible' : ''}`}
-                      onClick={() => setMobileMenuOpen(false)}
-                      aria-label="Close menu"
-                    />
-                    <div className={`mobile-menu ${menuMounted ? 'mobile-menu-mounted' : ''}`}>
-                      <div className="mobile-menu-content">
+              </header>
+
+              {/* Mobile Menu - Outside header to avoid stacking context issues */}
+              {mobileMenuOpen && (
+                <>
+                  {/* Animated Backdrop with blur */}
+                  <div 
+                    className={`fixed inset-0 bg-gradient-to-br from-black/70 via-rose-900/40 to-black/70 backdrop-blur-md z-[60] transition-all duration-700 ${menuMounted ? 'opacity-100' : 'opacity-0'}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    aria-label="Close menu"
+                  >
+                    {/* Animated gradient orbs */}
+                    <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
+                    <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-rose-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }} />
+                  </div>
+                  
+                  {/* Menu Panel */}
+                  <div className={`fixed top-0 right-0 w-[360px] max-w-[90vw] h-full bg-gradient-to-b from-white via-white to-pink-50/30 shadow-[-15px_0_60px_rgba(236,72,153,0.2)] z-[70] overflow-y-auto transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${menuMounted ? 'translate-x-0' : 'translate-x-full'}`}>
+                    {/* Animated Decorative Background Pattern */}
+                    <div className="absolute top-0 right-0 w-full h-56 bg-gradient-to-br from-pink-500 via-rose-500 to-pink-600 overflow-hidden">
+                      {/* Floating animated orbs */}
+                      <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/10 rounded-full blur-3xl animate-float" />
+                      <div className="absolute top-24 -left-12 w-36 h-36 bg-white/10 rounded-full blur-2xl animate-float-delayed" />
+                      <div className="absolute top-8 right-20 w-20 h-20 bg-white/20 rounded-full blur-xl animate-pulse" />
+                      
+                      {/* Animated gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent animate-shimmer" />
+                      
+                      {/* Sparkles effect */}
+                      <div className="absolute top-10 right-16 w-2 h-2 bg-white rounded-full animate-ping" style={{ animationDuration: '3s' }} />
+                      <div className="absolute top-28 right-32 w-1.5 h-1.5 bg-white/70 rounded-full animate-ping" style={{ animationDuration: '2.5s', animationDelay: '1s' }} />
+                      <div className="absolute top-20 left-20 w-1 h-1 bg-white/50 rounded-full animate-ping" style={{ animationDuration: '2s', animationDelay: '0.5s' }} />
+                      
+                      {/* Wave decoration at bottom */}
+                      <div className="absolute bottom-0 left-0 right-0">
+                        <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-8">
+                          <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" className="fill-white/10"></path>
+                          <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" className="fill-white/10"></path>
+                          <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" className="fill-white/20"></path>
+                        </svg>
+                      </div>
+                    </div>
+
+                    {/* Header */}
+                    <div className="relative z-10 p-6 pb-8">
+                      <div className={`flex items-start justify-between mb-8 transition-all duration-700 ${menuMounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+                        <div className="flex items-center gap-3">
+                          <div className="relative group">
+                            <div className="absolute inset-0 bg-gradient-to-br from-pink-400 to-rose-500 rounded-2xl blur-md opacity-60 group-hover:opacity-100 transition-opacity" />
+                            <div className="relative w-14 h-14 bg-white rounded-2xl shadow-xl flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+                              <Heart className="w-8 h-8 text-pink-500 animate-pulse" fill="currentColor" style={{ animationDuration: '2s' }} />
+                            </div>
+                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 border-3 border-white rounded-full shadow-lg">
+                              <div className="absolute inset-0 bg-green-400 rounded-full animate-ping" />
+                            </div>
+                          </div>
+                          <div>
+                            <h2 className="text-white font-bold text-xl leading-tight drop-shadow-lg">{t('landing.heroHighlight')}</h2>
+                            <p className="text-pink-100 text-xs font-medium mt-0.5 flex items-center gap-1">
+                              <span className="inline-block w-1.5 h-1.5 bg-pink-200 rounded-full animate-pulse" />
+                              Lưu giữ khoảnh khắc yêu thương
+                            </p>
+                          </div>
+                        </div>
                         <button 
-                          className="mobile-menu-button" 
+                          className="p-3 hover:bg-white/20 rounded-xl transition-all duration-300 active:scale-90 backdrop-blur-sm hover:rotate-90 group" 
                           onClick={() => setMobileMenuOpen(false)} 
                           aria-label="Close menu"
                         >
-                          <X size={28} />
+                          <X size={22} className="text-white group-hover:scale-110 transition-transform" strokeWidth={2.5} />
                         </button>
-                        <a 
-                          href="/create-memory" 
-                          className={`mobile-menu-link ${window.location.pathname === '/create-memory' ? 'active' : ''}`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setTimeout(() => window.location.href = '/create-memory', 300);
-                            setMobileMenuOpen(false);
-                          }}
-                        >
-                        <span className="mobile-menu-link-row">
-                          <BookOpen size={20} className="mobile-menu-link-icon" />
-                          {t('nav.create')}
-                        </span>
-                      </a>
-                      <a 
-                        href="/view-memory" 
-                        className={`mobile-menu-link ${window.location.pathname === '/view-memory' ? 'active' : ''}`}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setTimeout(() => window.location.href = '/view-memory', 300);
-                          setMobileMenuOpen(false);
-                        }}
-                      >
-                        <span className="mobile-menu-link-row">
-                          <Camera size={20} className="mobile-menu-link-icon" />
-                          {t('nav.memories')}
-                        </span>
-                      </a>
-                      <a 
-                        href="/anniversary-reminders" 
-                        className={`mobile-menu-link ${window.location.pathname === '/anniversary-reminders' ? 'active' : ''}`}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setTimeout(() => window.location.href = '/anniversary-reminders', 300);
-                          setMobileMenuOpen(false);
-                        }}
-                      >
-                        <span className="mobile-menu-link-row">
-                          <Bell size={20} className="mobile-menu-link-icon" />
-                          {t('nav.anniversary')}
-                        </span>
-                      </a>
-                      <a 
-                        href="/setting-page" 
-                        className={`mobile-menu-link ${window.location.pathname === '/setting-page' ? 'active' : ''}`}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setTimeout(() => window.location.href = '/setting-page', 300);
-                          setMobileMenuOpen(false);
-                        }}
-                      >
-                        <span className="mobile-menu-link-row">
-                          <Download2 size={20} className="mobile-menu-link-icon" />
-                          {t('nav.settings')}
-                        </span>
-                      </a>
-                    </div>
-                  </div>
-                  </>
-                )}
-              </header>
-              <main>
-                <section className="hero-section">
-                  <div className="hero-container">
-                    <div className="hero-grid">
-                      <div className="hero-content">
-                        <h1 className="hero-title">
-                          {t('landing.heroTitle')} <br /> <span className="hero-title-highlight">{t('landing.heroHighlight')}</span>
-                        </h1>
-                        <p className="hero-description">
-                          {t('landing.heroSubtitle')}
-                        </p>
-                        <div className="hero-buttons">
-                          <a href="/create-memory" className="hero-button-primary">{t('landing.getStarted')}</a>
-                          <a href="/view-memory" className="hero-button-secondary">{t('nav.memories')}</a>
+                      </div>
+                      
+                      {/* User Stats */}
+                      <div className={`flex gap-2 transition-all duration-700 delay-100 ${menuMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                        <div className="flex-1 bg-white/20 backdrop-blur-md rounded-xl p-3 border border-white/30 text-center">
+                          <div className="text-white text-2xl font-bold">{years.length}</div>
+                          <div className="text-pink-100 text-[10px] font-medium">Năm</div>
+                        </div>
+                        <div className="flex-1 bg-white/20 backdrop-blur-md rounded-xl p-3 border border-white/30 text-center">
+                          <div className="text-white text-2xl font-bold">
+                            {Object.values(memoriesByYear).reduce((acc, memories) => acc + memories.length, 0)}
+                          </div>
+                          <div className="text-pink-100 text-[10px] font-medium">Kỷ niệm</div>
+                        </div>
+                        <div className="flex-1 bg-white/20 backdrop-blur-md rounded-xl p-3 border border-white/30 text-center">
+                          <div className="text-white text-2xl font-bold">
+                            {Object.values(memoriesByYear).flat().reduce((acc, m) => acc + (m.images?.length || 0), 0)}
+                          </div>
+                          <div className="text-pink-100 text-[10px] font-medium">Hình ảnh</div>
                         </div>
                       </div>
-                      <div className="hero-image-container">
-                        <div className="hero-image-wrapper">
-                          <LazyImage
-                            src={heroImages.length > 0 ? heroImages[heroIndex] : "https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=400"}
-                            alt="Love Memory"
-                            className="hero-image hero-image-consistent"
-                            priority={true}
-                            transformations="f_auto,q_auto,w_800"
-                            enableBlur={true}
+                      
+                      {/* Couple Status Badge */}
+                      {couple && (
+                        <div className={`mt-3 transition-all duration-700 delay-200 ${menuMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                          <CoupleStatusBadge 
+                            couple={couple} 
+                            variant="full"
+                            onClick={() => {
+                              setMobileMenuOpen(false);
+                              setTimeout(() => navigate(ROUTES.COUPLE_SETTINGS), 400);
+                            }}
                           />
                         </div>
-                        <div className="hero-decoration-1"></div>
-                        <div className="hero-decoration-2"></div>
+                      )}
+                    </div>
+
+                    {/* Menu Links */}
+                    <nav className="relative z-10 px-6 py-4">
+                      <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl shadow-gray-200/60 p-3 space-y-2 border border-gray-100/50">
+                        {[
+                          { href: '/create-memory', icon: BookOpen, label: t('nav.create'), delay: '0ms', badge: '+', isBadgePlus: true },
+                          { href: '/view-memory', icon: Camera, label: t('nav.memories'), delay: '100ms', badge: Object.values(memoriesByYear).reduce((acc, memories) => acc + memories.length, 0).toString() },
+                          { href: '/couple/invitations', icon: Users, label: 'Kết nối', delay: '150ms', badge: couple ? '💕' : '', isBadgeEmoji: true },
+                          { href: '/anniversary-reminders', icon: Bell, label: t('nav.anniversary'), delay: '200ms', badge: years.length.toString() },
+                          { href: '/setting-page', icon: Download2, label: t('nav.settings'), delay: '300ms' }
+                        ].map((item) => {
+                          const Icon = item.icon;
+                          const isActive = window.location.pathname === item.href;
+                          return (
+                            <a 
+                              key={item.href}
+                              href={item.href}
+                              style={{ animationDelay: item.delay }}
+                              className={`group relative flex items-center gap-4 px-4 py-4 rounded-2xl font-semibold transition-all duration-500 overflow-hidden ${
+                                menuMounted ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
+                              } ${
+                                isActive
+                                  ? 'bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 text-white shadow-xl shadow-pink-500/50 scale-[1.03]' 
+                                  : 'text-gray-700 hover:bg-gradient-to-r hover:from-pink-50 hover:via-rose-50 hover:to-pink-50 active:scale-[0.97] hover:shadow-lg hover:shadow-pink-200/50'
+                              }`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setTimeout(() => window.location.href = item.href, 400);
+                                setMobileMenuOpen(false);
+                              }}
+                            >
+                              {/* Ripple effect overlay */}
+                              <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-all duration-500 rounded-2xl" />
+                              
+                              {/* Animated border glow for active item */}
+                              {isActive && (
+                                <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-pink-400 via-rose-400 to-pink-400 opacity-75 blur-sm animate-pulse" style={{ animationDuration: '3s' }} />
+                              )}
+                              
+                              <div className="relative flex items-center gap-4 w-full">
+                                <div className={`relative p-3 rounded-2xl transition-all duration-500 ${
+                                  isActive
+                                    ? 'bg-white/25 shadow-inner scale-110 rotate-12' 
+                                    : 'bg-gradient-to-br from-pink-100 via-rose-100 to-pink-100 group-hover:scale-125 group-hover:rotate-12 shadow-lg shadow-pink-200/50'
+                                }`}>
+                                  {/* Icon glow */}
+                                  {isActive && (
+                                    <div className="absolute inset-0 bg-white/30 rounded-2xl blur-md" />
+                                  )}
+                                  <Icon 
+                                    size={22} 
+                                    className={`relative transition-all duration-500 ${
+                                      isActive ? 'text-white' : 'text-pink-600 group-hover:text-pink-700'
+                                    }`} 
+                                    strokeWidth={2.5} 
+                                  />
+                                </div>
+                                <span className="flex-1 tracking-wide relative z-10">{item.label}</span>
+                                
+                                {/* Badge or Indicator */}
+                                {item.badge && !isActive && (
+                                  <div className={`relative z-10 min-w-[28px] h-7 px-2.5 rounded-full flex items-center justify-center shadow-lg ${
+                                    item.isBadgeEmoji 
+                                      ? 'bg-white' 
+                                      : 'bg-gradient-to-r from-pink-500 to-rose-500 shadow-pink-500/30'
+                                  }`}>
+                                    <span className={`text-sm font-bold leading-none ${
+                                      item.isBadgeEmoji ? '' : 'text-white'
+                                    }`}>{item.badge}</span>
+                                  </div>
+                                )}
+                                
+                                {isActive ? (
+                                  <div className="flex items-center gap-1.5 relative z-10">
+                                    <div className="w-2 h-2 rounded-full bg-white animate-bounce" style={{ animationDuration: '1s' }} />
+                                    <div className="w-2 h-2 rounded-full bg-white/70 animate-bounce" style={{ animationDuration: '1s', animationDelay: '0.15s' }} />
+                                    <div className="w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDuration: '1s', animationDelay: '0.3s' }} />
+                                  </div>
+                                ) : (
+                                  <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 relative z-10">
+                                    <div className="w-2 h-2 rounded-full bg-gradient-to-r from-pink-400 to-rose-400 group-hover:scale-150 transition-transform" />
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Shine effect on hover */}
+                              <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12" />
+                            </a>
+                          );
+                        })}
+                      </div>
+                      
+                      {/* Decorative divider */}
+                      <div className="flex items-center gap-3 my-6 px-4">
+                        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
+                        <div className="flex gap-1">
+                          <div className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-pulse" />
+                          <div className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" style={{ animationDelay: '0.3s' }} />
+                          <div className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-pulse" style={{ animationDelay: '0.6s' }} />
+                        </div>
+                        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
+                      </div>
+                    </nav>
+
+                    {/* Footer */}
+                    <div className={`relative z-10 mt-auto pt-4 pb-6 px-6 transition-all duration-700 delay-300 ${menuMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                      <div className="relative bg-gradient-to-br from-pink-50 via-rose-50 to-pink-100 rounded-3xl p-5 border border-pink-200/50 shadow-xl shadow-pink-200/40 overflow-hidden group hover:shadow-2xl hover:shadow-pink-300/50 transition-all duration-500">
+                        {/* Animated background gradient */}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-pink-100/50 via-transparent to-rose-100/50 animate-shimmer" />
+                        
+                        <div className="relative flex items-center gap-4">
+                          <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-br from-pink-400 to-rose-500 rounded-2xl blur-md opacity-60 group-hover:opacity-100 transition-opacity" />
+                            <div className="relative w-12 h-12 bg-gradient-to-br from-pink-400 via-rose-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl shadow-pink-500/40 group-hover:scale-110 transition-transform duration-500">
+                              <Heart className="w-6 h-6 text-white animate-pulse" fill="currentColor" style={{ animationDuration: '2s' }} />
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-rose-600">Made with Love</p>
+                            <p className="text-xs text-gray-500 mt-0.5 font-medium">Version 3.0.0 • Premium</p>
+                          </div>
+                          <div className="relative">
+                            <div className="w-2 h-2 rounded-full bg-green-400 shadow-lg shadow-green-400/50" />
+                            <div className="absolute inset-0 w-2 h-2 rounded-full bg-green-400 animate-ping" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Main Content */}
+              <main>
+                {/* Hero Section */}
+                <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8">
+                  <div className="max-w-7xl mx-auto">
+                    <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+                      {/* Hero Content */}
+                      <div className="text-center lg:text-left space-y-6 lg:pr-8">
+                        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
+                          {t('landing.heroTitle')}
+                          <br />
+                          <span className="bg-gradient-to-r from-pink-500 to-rose-600 bg-clip-text text-transparent">
+                            {t('landing.heroHighlight')}
+                          </span>
+                        </h1>
+                        
+                        <p className="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                          {t('landing.heroSubtitle')}
+                        </p>
+
+                        {/* CTA Buttons */}
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
+                          <a 
+                            href="/create-memory" 
+                            className="inline-flex items-center justify-center px-8 py-4 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                          >
+                            {t('landing.getStarted')}
+                          </a>
+                          <a 
+                            href="/view-memory" 
+                            className="inline-flex items-center justify-center px-8 py-4 rounded-full border-2 border-pink-300 text-gray-700 font-semibold hover:bg-pink-50 hover:border-pink-400 transition-all duration-300"
+                          >
+                            {t('nav.memories')}
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* Hero Image */}
+                      <div className="relative">
+                        <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[600px] rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-pink-100 to-rose-100">
+                          {heroLoading ? (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <div className="animate-spin rounded-full h-16 w-16 border-4 border-pink-300 border-t-pink-600"></div>
+                            </div>
+                          ) : heroImages.length > 0 ? (
+                            <LazyImage
+                              src={heroImages[heroIndex]}
+                              alt="Love Memory"
+                              className="w-full h-full object-cover"
+                              priority={true}
+                              transformations="f_auto,q_80,w_1200"
+                              enableBlur={false}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <div className="text-center">
+                                <Heart className="w-24 h-24 text-pink-300 mx-auto mb-4" />
+                                <p className="text-gray-500 text-lg">{t('landing.noMemories')}</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        {/* Decorative Elements */}
+                        <div className="absolute -top-4 -left-4 w-24 h-24 bg-pink-200 rounded-full blur-3xl opacity-60 animate-pulse" />
+                        <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-rose-200 rounded-full blur-3xl opacity-60 animate-pulse" style={{ animationDelay: '1s' }} />
                       </div>
                     </div>
                   </div>
                 </section>
-                <section className="features-section">
-                  <div className="features-container">
-                    <div className="features-header">
-                      <h2 className="features-title">
-                        <span className="features-title-highlight">{t('landing.featuresTitle')}</span>
+
+                {/* Features Section */}
+                <section className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-white">
+                  <div className="max-w-7xl mx-auto">
+                    {/* Section Header */}
+                    <div className="text-center mb-12 lg:mb-16">
+                      <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+                        <span className="bg-gradient-to-r from-pink-500 to-rose-600 bg-clip-text text-transparent">
+                          {t('landing.featuresTitle')}
+                        </span>
                       </h2>
-                      <p className="features-description">
+                      <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                         {t('landing.featuresTitle')}
                       </p>
                     </div>
-                    <div className="features-grid">
+
+                    {/* Features Grid */}
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
                       {features.map((feature, idx) => (
-                        <div className="feature-card" key={idx}>
-                          <div className="feature-icon">{feature.icon}</div>
-                          <div className="feature-title">{feature.title}</div>
-                          <div className="feature-description">{feature.description}</div>
+                        <div 
+                          key={idx}
+                          className="group relative p-6 bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2"
+                        >
+                          {/* Icon */}
+                          <div className="w-14 h-14 mb-4 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300">
+                            {feature.icon}
+                          </div>
+                          
+                          {/* Title */}
+                          <h3 className="text-xl font-bold text-gray-900 mb-2">
+                            {feature.title}
+                          </h3>
+                          
+                          {/* Description */}
+                          <p className="text-gray-600 leading-relaxed">
+                            {feature.description}
+                          </p>
+
+                          {/* Decorative dot */}
+                          <div className="absolute top-4 right-4 w-2 h-2 bg-rose-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                       ))}
                     </div>
                   </div>
                 </section>
-                <section className="gallery-section" style={{ background: 'white', color: '#111827' }}>
-                  <div className="gallery-container">
-                    {galleryLoading ? (
-                      <GallerySkeleton />
+
+                {/* Beautiful Memories Timeline Section */}
+                <section className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-cream-50 via-pink-50 to-orange-50">
+                  <div className="max-w-5xl mx-auto">
+                    {/* Section Header */}
+                    <div className="text-center mb-16">
+                      <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+                        <span className="bg-gradient-to-r from-pink-500 to-rose-600 bg-clip-text text-transparent">
+                          {t('landing.timelineTitle')}
+                        </span>
+                      </h2>
+                      <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                        {t('landing.timelineSubtitle')}
+                      </p>
+                    </div>
+
+                    {timelineLoading ? (
+                      <div className="text-center py-12">
+                        <div className="inline-block w-12 h-12 border-4 border-pink-200 border-t-pink-500 rounded-full animate-spin" />
+                      </div>
+                    ) : timelineMemories.length === 0 ? (
+                      <div className="text-center py-12">
+                        <p className="text-gray-400 text-lg">{t('landing.noMemories')}</p>
+                      </div>
                     ) : (
                       <>
-                        <div className="gallery-header">
-                          <h2 className="gallery-title" style={{ color: '#111827' }}>
-                            <span className="gallery-title-highlight" style={{ color: '#dc2626' }}>{t('landing.galleryTitle')}</span>
-                          </h2>
-                          <p className="gallery-description" style={{ color: '#4b5563' }}>
-                            {t('landing.gallerySubtitle')}
-                          </p>
+                        {/* Timeline Container */}
+                        <div className="relative">
+                          {/* Vertical Line - Desktop */}
+                          <div className="hidden lg:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-pink-200 via-rose-300 to-pink-200 transform -translate-x-1/2" />
+                          
+                          {/* Vertical Line - Mobile */}
+                          <div className="lg:hidden absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-pink-200 via-rose-300 to-pink-200" />
+
+                          {/* Timeline Items */}
+                          <div className="space-y-12 lg:space-y-16">
+                            {timelineMemories.map((memory, idx) => {
+                              const isLeft = idx % 2 === 0;
+                              const formattedDate = new Date(memory.date).toLocaleDateString('en-US', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric'
+                              });
+
+                              return (
+                                <div key={memory.id} className="relative">
+                                  {/* Desktop Layout - Alternating Left/Right */}
+                                  <div className={`hidden lg:grid lg:grid-cols-2 lg:gap-12 items-center ${isLeft ? '' : 'lg:grid-flow-dense'}`}>
+                                    {/* Content Side */}
+                                    <div className={`${isLeft ? 'lg:text-right lg:pr-8' : 'lg:col-start-2 lg:text-left lg:pl-8'} opacity-0 animate-fade-in-up`} style={{ animationDelay: `${idx * 100}ms`, animationFillMode: 'forwards' }}>
+                                      {/* Date Badge */}
+                                      <div className={`inline-block px-4 py-2 rounded-full bg-gradient-to-r from-pink-100 to-rose-100 text-rose-700 font-semibold text-sm mb-4 shadow-sm`}>
+                                        {formattedDate}
+                                      </div>
+                                      
+                                      {/* Caption */}
+                                      <p className="text-gray-700 leading-relaxed italic">
+                                        "{memory.caption}"
+                                      </p>
+                                    </div>
+
+                                    {/* Image Side */}
+                                    <div className={`${isLeft ? 'lg:col-start-2' : 'lg:col-start-1'} opacity-0 animate-fade-in-up`} style={{ animationDelay: `${idx * 100 + 50}ms`, animationFillMode: 'forwards' }}>
+                                      <div className="group relative aspect-[4/3] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500">
+                                        <img
+                                          src={memory.image}
+                                          alt={`Memory from ${formattedDate}`}
+                                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                        />
+                                        {/* Subtle overlay on hover */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                      </div>
+                                    </div>
+
+                                    {/* Timeline Dot */}
+                                    <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                      <div className="w-4 h-4 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-4 border-white shadow-lg" />
+                                    </div>
+                                  </div>
+
+                                  {/* Mobile Layout - Single Column */}
+                                  <div className="lg:hidden flex gap-6">
+                                    {/* Timeline Dot - Mobile */}
+                                    <div className="flex-shrink-0">
+                                      <div className="w-4 h-4 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-4 border-white shadow-lg mt-2" />
+                                    </div>
+
+                                    {/* Content - Mobile */}
+                                    <div className="flex-1 opacity-0 animate-fade-in-up" style={{ animationDelay: `${idx * 100}ms`, animationFillMode: 'forwards' }}>
+                                      {/* Date Badge */}
+                                      <div className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-pink-100 to-rose-100 text-rose-700 font-semibold text-sm mb-4 shadow-sm">
+                                        {formattedDate}
+                                      </div>
+                                      
+                                      {/* Image */}
+                                      <div className="group relative aspect-[4/3] rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-500 mb-4">
+                                        <img
+                                          src={memory.image}
+                                          alt={`Memory from ${formattedDate}`}
+                                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                        />
+                                      </div>
+
+                                      {/* Caption */}
+                                      <p className="text-gray-700 leading-relaxed italic">
+                                        "{memory.caption}"
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          {/* End Dot */}
+                          <div className="relative mt-12 flex justify-center lg:justify-center">
+                            <div className="w-3 h-3 rounded-full bg-gradient-to-br from-pink-300 to-rose-400 shadow-md" />
+                          </div>
                         </div>
-                        <div className="gallery-carousel-wrapper">
-                      <div
-                        className="gallery-carousel"
-                        ref={carouselRef}
-                        style={{
-                          display: 'flex',
-                          transition: 'transform 0.7s cubic-bezier(0.4,0,0.2,1)',
-                          transform: `translateX(-${carouselIndex * (100 / imagesPerPage)}%)`,
-                          willChange: 'transform',
-                        }}
-                      >
-                        {galleryImages.length === 0 ? (
-                          <div style={{width:'100%',textAlign:'center',padding:'2rem',color:'#aaa'}}>{t('landing.emptyState')}</div>
-                        ) : (
-                          galleryImages.slice(0, 6).map((img, idx) => (
-                            <div
-                              className="gallery-item"
-                              key={idx}
+
+                        {/* CTA at Bottom */}
+                        <div className="text-center mt-16">
+                          <a 
+                            href="/view-memory" 
+                            className="inline-flex items-center gap-2 px-8 py-4 rounded-full border-2 border-pink-300 text-gray-700 font-semibold hover:bg-pink-50 hover:border-pink-400 hover:shadow-lg transition-all duration-300 group"
+                          >
+                            <span>{t('landing.viewFullJourney')}</span>
+                            <svg 
+                              className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              viewBox="0 0 24 24"
                             >
-                              <LazyImage
-                                src={img}
-                                alt="Memory"
-                                className="gallery-image"
-                                transformations="f_auto,q_auto,w_600"
-                                enableBlur={true}
-                              />
-                              <div className="gallery-overlay"></div>
-                              <Heart className="gallery-heart" />
-                            </div>
-                          ))
-                        )}
-                      </div>
-                      <div className="gallery-carousel-dots">
-                        {Array.from({length: Math.max(1, Math.ceil(galleryImages.length / imagesPerPage))}).map((_, idx) => (
-                          <span
-                            key={idx}
-                            className={idx === carouselIndex ? 'dot active' : 'dot'}
-                            onClick={() => setCarouselIndex(idx)}
-                          />
-                        ))}
-                      </div>
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                            </svg>
+                          </a>
+                          <p className="text-sm text-gray-500 mt-4">
+                            {t('landing.exploreAllMemories')}
+                          </p>
                         </div>
                       </>
                     )}
                   </div>
                 </section>
-                <section className="cta-section">
-                  <div className="cta-container">
-                    <h2 className="cta-title">{t('landing.ctaTitle')}</h2>
-                    <p className="cta-description">{t('landing.ctaSubtitle')}</p>
-                    <div className="cta-buttons">
-                      <a href="/create-memory" className="cta-button">{t('nav.create')} <BookOpen size={18} /></a>
-                      <a href="/view-memory" className="cta-button">{t('nav.memories')} <Camera size={18} /></a>
+
+                {/* CTA Section */}
+                <section className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-pink-500 via-rose-500 to-pink-600">
+                  <div className="max-w-4xl mx-auto text-center">
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
+                      {t('landing.ctaTitle')}
+                    </h2>
+                    <p className="text-lg sm:text-xl text-pink-100 mb-8 max-w-2xl mx-auto">
+                      {t('landing.ctaSubtitle')}
+                    </p>
+
+                    {/* CTA Buttons */}
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+                      <a 
+                        href="/create-memory" 
+                        className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-white text-rose-600 font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
+                      >
+                        {t('nav.create')}
+                        <BookOpen size={18} />
+                      </a>
+                      <a 
+                        href="/view-memory" 
+                        className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full border-2 border-white text-white font-semibold hover:bg-white hover:text-rose-600 transition-all duration-300"
+                      >
+                        {t('nav.memories')}
+                        <Camera size={18} />
+                      </a>
+                      <a 
+                        href="/couple/invitations" 
+                        className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-pink-400 to-rose-400 text-white font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white/20"
+                      >
+                        Kết nối {couple ? '💕' : '👥'}
+                        <Users size={18} />
+                      </a>
                     </div>
-                    <div className="cta-note">{t('landing.ctaButton')}</div>
+
+                    <p className="text-sm text-pink-100">
+                      {t('landing.ctaButton')}
+                    </p>
                   </div>
                 </section>
+
+                {/* Footer */}
+                <footer className="bg-gray-900 text-gray-300 py-12 px-4 sm:px-6 lg:px-8">
+                  <div className="max-w-7xl mx-auto">
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+                      {/* Brand */}
+                      <div>
+                        <div className="flex items-center gap-2 mb-4">
+                          <Heart className="w-6 h-6 text-pink-500" fill="currentColor" />
+                          <span className="text-lg font-bold text-white">{t('landing.heroHighlight')}</span>
+                        </div>
+                        <p className="text-sm text-gray-400">
+                          Lưu giữ những khoảnh khắc yêu thương của bạn mãi mãi.
+                        </p>
+                      </div>
+
+                      {/* Quick Links */}
+                      <div>
+                        <h3 className="text-white font-semibold mb-4">Quick Links</h3>
+                        <div className="space-y-2">
+                          <a href="/create-memory" className="block text-sm hover:text-pink-400 transition-colors">
+                            {t('nav.create')}
+                          </a>
+                          <a href="/view-memory" className="block text-sm hover:text-pink-400 transition-colors">
+                            {t('nav.memories')}
+                          </a>
+                          <a href="/anniversary-reminders" className="block text-sm hover:text-pink-400 transition-colors">
+                            {t('nav.anniversary')}
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* Contact */}
+                      <div>
+                        <h3 className="text-white font-semibold mb-4">Contact</h3>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-center gap-2">
+                            <Mail size={16} className="text-pink-500" />
+                            <span>support@lovememory.com</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Phone size={16} className="text-pink-500" />
+                            <span>+84 123 456 789</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Social */}
+                      <div>
+                        <h3 className="text-white font-semibold mb-4">Follow Us</h3>
+                        <div className="flex gap-3">
+                          <a href="#" className="w-10 h-10 rounded-full bg-gray-800 hover:bg-pink-500 flex items-center justify-center transition-colors">
+                            <Facebook size={18} />
+                          </a>
+                          <a href="#" className="w-10 h-10 rounded-full bg-gray-800 hover:bg-pink-500 flex items-center justify-center transition-colors">
+                            <Instagram size={18} />
+                          </a>
+                          <a href="#" className="w-10 h-10 rounded-full bg-gray-800 hover:bg-pink-500 flex items-center justify-center transition-colors">
+                            <Twitter size={18} />
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Copyright */}
+                    <div className="pt-8 border-t border-gray-800 text-center text-sm text-gray-500">
+                      © 2025 Love Memory. All rights reserved.
+                    </div>
+                  </div>
+                </footer>
               </main>
             </div>
-          );
-        })()
       } />
-      <Route path="/create-memory" element={<CreateMemory onBack={() => window.history.back()} currentTheme={currentTheme} />} />
-      <Route path="/view-memory" element={<ViewMemory onBack={() => window.history.back()} currentTheme={currentTheme} />} />
-      <Route path="/anniversary-reminders" element={<AnniversaryReminders onBack={() => window.history.back()} currentTheme={currentTheme} />} />
-      <Route path="/setting-page" element={<SettingPage onBack={() => window.history.back()} currentTheme={currentTheme} setCurrentTheme={setCurrentTheme} />} />
+      <Route path={ROUTES.CREATE_MEMORY} element={<CreateMemory onBack={() => window.history.back()} currentTheme={currentTheme} />} />
+      <Route path={ROUTES.VIEW_MEMORY} element={<ViewMemory onBack={() => window.history.back()} currentTheme={currentTheme} />} />
+      <Route path={ROUTES.ANNIVERSARY_REMINDERS} element={<AnniversaryReminders onBack={() => window.history.back()} currentTheme={currentTheme} />} />
+      <Route path={ROUTES.SETTINGS} element={<SettingPage onBack={() => window.history.back()} currentTheme={currentTheme} setCurrentTheme={setCurrentTheme} />} />
+      <Route path={ROUTES.COUPLE_INVITATIONS} element={userId ? <CoupleInvitationsPage userId={userId} /> : null} />
+      <Route path={ROUTES.COUPLE_SETTINGS} element={userId ? <CoupleSettingsPage userId={userId} /> : null} />
       <Route 
-        path="/admin" 
+        path={ROUTES.ADMIN} 
         element={
           <ProtectedRoute requiredRole="SysAdmin">
             <AdminDashboard onBack={() => window.history.back()} />
@@ -610,7 +1091,7 @@ function App() {
         } 
       />
       <Route 
-        path="/migration" 
+        path={ROUTES.MIGRATION} 
         element={
           <ProtectedRoute requiredRole="SysAdmin">
             <MigrationTool onBack={() => window.history.back()} />

@@ -1,15 +1,14 @@
 ﻿import React from 'react';
-import '../styles/LoadingSkeleton.css';
 
 export const MemoryCardSkeleton: React.FC = () => {
   return (
-    <div className="memory-card-skeleton skeleton-animate">
-      <div className="skeleton-image"></div>
-      <div className="skeleton-content">
-        <div className="skeleton-title"></div>
-        <div className="skeleton-date"></div>
-        <div className="skeleton-text"></div>
-        <div className="skeleton-text short"></div>
+    <div className="rounded-xl overflow-hidden mb-6 shadow-md relative bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 bg-[length:200%_100%] animate-skeleton-shimmer">
+      <div className="w-full h-[200px] bg-gray-200"></div>
+      <div className="p-5">
+        <div className="h-6 w-3/5 rounded mb-3 bg-gray-200"></div>
+        <div className="h-4 w-2/5 rounded mb-4 bg-gray-200"></div>
+        <div className="h-3.5 w-full rounded mb-2 bg-gray-200"></div>
+        <div className="h-3.5 w-[70%] rounded bg-gray-200"></div>
       </div>
     </div>
   );
@@ -17,15 +16,15 @@ export const MemoryCardSkeleton: React.FC = () => {
 
 export const AnniversaryItemSkeleton: React.FC = () => {
   return (
-    <div className="anniversary-item-skeleton skeleton-animate">
-      <div className="skeleton-icon"></div>
-      <div className="skeleton-content">
-        <div className="skeleton-title"></div>
-        <div className="skeleton-date"></div>
+    <div className="flex items-center gap-4 p-4 rounded-lg mb-3 bg-white shadow-sm">
+      <div className="w-12 h-12 rounded-full bg-gray-200 flex-shrink-0 relative overflow-hidden bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 bg-[length:200%_100%] animate-skeleton-shimmer"></div>
+      <div className="flex-1">
+        <div className="h-6 w-1/2 rounded mb-2 bg-gray-200 relative overflow-hidden bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 bg-[length:200%_100%] animate-skeleton-shimmer"></div>
+        <div className="h-4 w-[35%] rounded bg-gray-200 relative overflow-hidden bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 bg-[length:200%_100%] animate-skeleton-shimmer"></div>
       </div>
-      <div className="skeleton-actions">
-        <div className="skeleton-button"></div>
-        <div className="skeleton-button"></div>
+      <div className="flex gap-2">
+        <div className="w-8 h-8 rounded-md bg-gray-200 relative overflow-hidden bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 bg-[length:200%_100%] animate-skeleton-shimmer"></div>
+        <div className="w-8 h-8 rounded-md bg-gray-200 relative overflow-hidden bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 bg-[length:200%_100%] animate-skeleton-shimmer"></div>
       </div>
     </div>
   );
@@ -33,10 +32,10 @@ export const AnniversaryItemSkeleton: React.FC = () => {
 
 export const GalleryGridSkeleton: React.FC<{ count?: number }> = ({ count = 6 }) => {
   return (
-    <div className="gallery-grid-skeleton">
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4 py-5">
       {Array.from({ length: count }).map((_, index) => (
-        <div key={index} className="gallery-item-skeleton skeleton-animate">
-          <div className="skeleton-image square"></div>
+        <div key={index} className="rounded-lg overflow-hidden aspect-square relative bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 bg-[length:200%_100%] animate-skeleton-shimmer">
+          <div className="w-full h-full bg-gray-200"></div>
         </div>
       ))}
     </div>
@@ -45,8 +44,8 @@ export const GalleryGridSkeleton: React.FC<{ count?: number }> = ({ count = 6 })
 
 export const YearSectionSkeleton: React.FC = () => {
   return (
-    <div className="year-section-skeleton">
-      <div className="skeleton-year-header skeleton-animate"></div>
+    <div className="mb-10">
+      <div className="h-9 w-[120px] rounded-lg mb-5 bg-gray-200 relative overflow-hidden bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 bg-[length:200%_100%] animate-skeleton-shimmer"></div>
       <GalleryGridSkeleton count={4} />
     </div>
   );
@@ -54,54 +53,14 @@ export const YearSectionSkeleton: React.FC = () => {
 
 export const DashboardSkeleton: React.FC = () => {
   return (
-    <div className="dashboard-skeleton" style={{ marginBottom: '2rem' }}>
-      <div style={{
-        height: '28px',
-        width: '280px',
-        borderRadius: '8px',
-        background: 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)',
-        backgroundSize: '200% 100%',
-        marginBottom: '1rem',
-        animation: 'shimmer 1.5s infinite'
-      }}></div>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-        gap: '1rem'
-      }}>
+    <div className="mb-8">
+      <div className="h-7 w-[280px] rounded-lg bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 bg-[length:200%_100%] animate-shimmer mb-4"></div>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-4">
         {Array.from({ length: 4 }).map((_, index) => (
-          <div key={index} style={{
-            background: 'white',
-            borderRadius: '0.75rem',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #fce7f3',
-            padding: '1rem',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '0.5rem'
-          }}>
-            <div className="skeleton-animate" style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              background: 'linear-gradient(90deg, #fce7f3 25%, #fbcfe8 50%, #fce7f3 75%)',
-              backgroundSize: '200% 100%'
-            }}></div>
-            <div className="skeleton-animate" style={{
-              width: '60px',
-              height: '32px',
-              borderRadius: '6px',
-              background: 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)',
-              backgroundSize: '200% 100%'
-            }}></div>
-            <div className="skeleton-animate" style={{
-              width: '80px',
-              height: '16px',
-              borderRadius: '4px',
-              background: 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)',
-              backgroundSize: '200% 100%'
-            }}></div>
+          <div key={index} className="bg-white rounded-xl shadow-sm border border-pink-100 p-4 flex flex-col items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-pink-50 via-pink-200 to-pink-50 bg-[length:200%_100%] animate-skeleton-shimmer"></div>
+            <div className="w-[60px] h-8 rounded-md bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 bg-[length:200%_100%] animate-skeleton-shimmer"></div>
+            <div className="w-20 h-4 rounded bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 bg-[length:200%_100%] animate-skeleton-shimmer"></div>
           </div>
         ))}
       </div>

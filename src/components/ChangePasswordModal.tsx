@@ -3,7 +3,6 @@ import { Lock, X, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
 import { getAuth, reauthenticateWithCredential, EmailAuthProvider, updatePassword } from 'firebase/auth';
 import { useLanguage } from '../hooks/useLanguage';
 import { validatePassword, passwordsMatch } from '../utils/passwordValidation';
-import '../styles/ChangePasswordModal.css';
 
 interface ChangePasswordModalProps {
   isOpen: boolean;

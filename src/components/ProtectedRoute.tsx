@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { Navigate } from 'react-router-dom';
+import { ROUTES } from '../config/routes';
 import { useAdmin } from '../contexts/AdminContext';
 
 interface ProtectedRouteProps {
@@ -26,7 +27,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (!currentUserRole) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={ROUTES.LOGIN} replace />;
   }
 
   if (requiredRole === 'SysAdmin' && currentUserRole !== 'SysAdmin') {

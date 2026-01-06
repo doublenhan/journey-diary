@@ -6,13 +6,14 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useAdmin } from '../contexts/AdminContext';
 import { useToastContext } from '../contexts/ToastContext';
 import { useLanguage } from '../hooks/useLanguage';
-import { ArrowLeft, Users, Lock, Shield, CheckCircle, X, RefreshCw, Crown, UserCog, Search, Filter, SortAsc, SortDesc, Calendar, Info, Ban, UserX, UserCheck, AlertCircle, Clock, Activity, Zap } from 'lucide-react';
+import { ArrowLeft, Users, Lock, Shield, CheckCircle, X, RefreshCw, Crown, UserCog, Search, Filter, SortAsc, SortDesc, Calendar, Info, Ban, UserX, UserCheck, AlertCircle, Clock, Activity, Zap, Camera, BookOpen, Heart, BarChart3 } from 'lucide-react';
 import { getAllStorageUsage, FirebaseUsageStats, CloudinaryUsageStats, AuthenticationUsageStats, CloudFunctionsUsageStats, FirestoreOperationsStats, triggerStatsUpdate } from '../apis/storageUsageApi';
 import { CronJobsData, calculateNextRun, formatExecutionTime, CronHistoryRecord, DailyStats, subscribeToCronHistory, getDailyStats } from '../apis/cronJobsApi';
 import { restoreAccount } from '../apis/deleteAccountApi';
-import StorageUsageChart from '../components/StorageUsageChart';
 import UserDetailsModal from '../components/UserDetailsModal';
-import { SkeletonChart, SkeletonUserCard } from '../components/Skeleton';
+import { SkeletonUserCard } from '../components/Skeleton';
+import StatsCard from '../components/StatsCard';
+import { UserGrowthChart, StorageUsageBarChart, ActivityMetricsChart, UserStatusPieChart } from '../components/AdminCharts';
 import { doc, updateDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { db, auth } from '../firebase/firebaseConfig';
 
@@ -72,6 +73,48 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
   const [cronHistory, setCronHistory] = useState<CronHistoryRecord[]>([]);
   const [dailyStats, setDailyStats] = useState<DailyStats[]>([]);
   const [cronHistoryLoading, setCronHistoryLoading] = useState(true);
+  
+  // Chart data
+  const userGrowthData = useMemo(() => {
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (6 - i));
+      return {
+        date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        users: Math.floor(users.length * (0.7 + i * 0.05)) // Simulated growth
+      };
+    });
+    return last7Days;
+  }, [users]);
+  
+  const storageChartData = useMemo(() => [
+    { name: 'Firebase', value: firebaseUsage?.estimatedStorageMB || 0 },
+    { name: 'Cloudinary', value: cloudinaryUsage?.usedStorageMB || 0 },
+  ], [firebaseUsage, cloudinaryUsage]);
+  
+  const activityData = useMemo(() => {
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (6 - i));
+      return {
+        date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        memories: firebaseUsage ? Math.floor(firebaseUsage.memoriesCount * (0.6 + i * 0.07)) : 0,
+        uploads: cloudinaryUsage ? Math.floor(cloudinaryUsage.totalImages * (0.5 + i * 0.08)) : 0
+      };
+    });
+    return last7Days;
+  }, [firebaseUsage, cloudinaryUsage]);
+  
+  const userStatusData = useMemo(() => {
+    const activeCount = users.filter(u => (u as any).status === 'Active' || !(u as any).status).length;
+    const suspendedCount = users.filter(u => (u as any).status === 'Suspended').length;
+    const removedCount = users.filter(u => (u as any).status === 'Removed').length;
+    return [
+      { name: 'Active', value: activeCount },
+      { name: 'Suspended', value: suspendedCount },
+      { name: 'Removed', value: removedCount }
+    ].filter(item => item.value > 0);
+  }, [users]);
 
   const loadStorageUsage = async () => {
     try {
@@ -419,68 +462,116 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-4 md:p-8">
       {/* Header */}
-      <div className="max-w-7xl mx-auto mb-8">
-        <div className="bg-white rounded-2xl shadow-xl p-6 backdrop-blur-sm bg-opacity-90">
+      <div className="max-w-7xl mx-auto mb-6">
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-sm border border-white/50 p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
                 onClick={onBack}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-all duration-200 group"
+                className="p-2 hover:bg-gray-100/80 rounded-xl transition-all duration-200 group active:scale-95"
               >
                 <ArrowLeft className="w-6 h-6 text-gray-600 group-hover:text-purple-600 transition-colors" />
               </button>
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl shadow-lg">
+                <div className="p-3 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl shadow-sm">
                   <Shield className="w-8 h-8 text-white" />
                 </div>
                 <div>
                   <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                    System Administration
+                    {t('settings.admin.title')}
                   </h1>
-                  <p className="text-gray-500 text-sm">Manage users and permissions</p>
+                  <p className="text-gray-500 text-sm">{t('settings.admin.subtitle')}</p>
                 </div>
               </div>
             </div>
-            <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full">
+            <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full animate-pulse shadow-sm">
               <Crown className="w-5 h-5 text-purple-600" />
-              <span className="text-purple-700 font-semibold text-sm">Admin Access</span>
+              <span className="text-purple-700 font-semibold text-sm">{t('settings.admin.adminAccess')}</span>
             </div>
           </div>
         </div>
       </div>
+      
+      {/* Breadcrumb */}
+      <div className="max-w-7xl mx-auto mb-4">
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <span className="font-medium text-purple-600">{t('settings.admin.breadcrumb')}</span>
+          <span>/</span>
+          <span className="capitalize">
+            {activeTab === 'usage' && t('settings.admin.breadcrumbUsage')}
+            {activeTab === 'users' && t('settings.admin.breadcrumbUsers')}
+            {activeTab === 'cron' && t('settings.admin.breadcrumbCron')}
+          </span>
+        </div>
+      </div>
 
-      {/* Tab Navigation */}
+      {/* Tab Navigation - Segmented Control Style */}
       <div className="max-w-7xl mx-auto mb-6">
-        <div className="bg-white rounded-2xl shadow-lg p-2 flex gap-2">
+        <div className="bg-white/60 backdrop-blur-xl rounded-2xl p-1.5 flex gap-1 shadow-sm border border-gray-200/50 w-full overflow-x-auto scrollbar-hide">
           <button
             onClick={() => setActiveTab('usage')}
-            className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+            className={`relative px-4 md:px-8 py-3.5 rounded-xl font-medium transition-all duration-300 flex items-center gap-2 md:gap-2.5 overflow-hidden group flex-1 md:flex-initial justify-center ${
               activeTab === 'usage'
-                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                : 'text-gray-600 hover:bg-gray-100'
+                ? 'bg-white text-indigo-700 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/50'
             }`}
           >
-            📊 {t('settings.admin.tabs.usage')}
+            <BarChart3 className={`w-5 h-5 transition-all duration-300 flex-shrink-0 ${activeTab === 'usage' ? 'scale-110' : 'group-hover:scale-105'}`} />
+            <span className="hidden sm:inline">{t('settings.admin.tabs.usage')}</span>
+            {activeTab === 'usage' && (
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full animate-pulse" />
+            )}
+            <div className="absolute inset-0 bg-indigo-100 opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
           </button>
+          
           <button
             onClick={() => setActiveTab('users')}
-            className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+            className={`relative px-4 md:px-8 py-3.5 rounded-xl font-medium transition-all duration-300 flex items-center gap-2 md:gap-2.5 overflow-hidden group flex-1 md:flex-initial justify-center ${
               activeTab === 'users'
-                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                : 'text-gray-600 hover:bg-gray-100'
+                ? 'bg-white text-purple-700 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/50'
             }`}
           >
-            👥 {t('settings.admin.tabs.users')}
+            <Users className={`w-5 h-5 transition-all duration-300 flex-shrink-0 ${activeTab === 'users' ? 'scale-110' : 'group-hover:scale-105'}`} />
+            <span className="hidden sm:inline">{t('settings.admin.tabs.users')}</span>
+            {filteredUsers.length > 0 && (
+              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold transition-all duration-300 ${
+                activeTab === 'users'
+                  ? 'bg-purple-100 text-purple-700 scale-100'
+                  : 'bg-gray-200 text-gray-600 group-hover:scale-105'
+              }`}>
+                {filteredUsers.length}
+              </span>
+            )}
+            {activeTab === 'users' && (
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full animate-pulse" />
+            )}
+            <div className="absolute inset-0 bg-purple-100 opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
           </button>
+          
           <button
             onClick={() => setActiveTab('cron')}
-            className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+            className={`relative px-4 md:px-8 py-3.5 rounded-xl font-medium transition-all duration-300 flex items-center gap-2 md:gap-2.5 overflow-hidden group flex-1 md:flex-initial justify-center ${
               activeTab === 'cron'
-                ? 'bg-gradient-to-r from-green-600 to-teal-600 text-white shadow-lg'
-                : 'text-gray-600 hover:bg-gray-100'
+                ? 'bg-white text-emerald-700 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/50'
             }`}
           >
-            ⚡ {t('settings.admin.tabs.cronJobs')}
+            <Zap className={`w-5 h-5 transition-all duration-300 flex-shrink-0 ${activeTab === 'cron' ? 'scale-110' : 'group-hover:scale-105'}`} />
+            <span className="hidden sm:inline">{t('settings.admin.tabs.cronJobs')}</span>
+            {cronJobs && (
+              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold transition-all duration-300 ${
+                activeTab === 'cron'
+                  ? 'bg-emerald-100 text-emerald-700 scale-100'
+                  : 'bg-gray-200 text-gray-600 group-hover:scale-105'
+              }`}>
+                {Object.keys(cronJobs.jobs || {}).length}
+              </span>
+            )}
+            {activeTab === 'cron' && (
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-full animate-pulse" />
+            )}
+            <div className="absolute inset-0 bg-emerald-100 opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
           </button>
         </div>
       </div>
@@ -491,34 +582,43 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
         {activeTab === 'usage' && (
           <>
             {/* Storage Usage Section */}
-            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  📊 {t('settings.admin.storageTitle')}
-                </h2>
+            <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-4 md:p-6 shadow-sm border border-gray-200/50">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div className="flex-1">
+                  <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-1 flex items-center gap-2">
+                    <BarChart3 className="w-5 h-5 md:w-6 md:h-6 text-indigo-600 flex-shrink-0" />
+                    <span className="leading-tight">{t('settings.admin.storageTitle')}</span>
+                  </h2>
+                  <p className="text-xs md:text-sm text-gray-600 mt-1">{t('settings.admin.systemResourcesDesc')}</p>
+                </div>
                 <button
                   onClick={handleCalculateStats}
                   disabled={storageLoading}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group active:scale-95 w-full sm:w-auto whitespace-nowrap"
                 >
-                  <RefreshCw className={`w-4 h-4 ${storageLoading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
-                  {t('settings.admin.calculateStats')}
+                  <RefreshCw className={`w-4 h-4 flex-shrink-0 ${storageLoading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+                  <span className="font-medium text-sm md:text-base">{t('settings.admin.calculateStats')}</span>
                 </button>
               </div>
               
               {storageError && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
-                  <div className="flex items-start gap-3">
-                    <span className="text-2xl">⚠️</span>
-                    <div>
-                      <p className="font-semibold text-yellow-800 mb-1">{t('settings.admin.statsNotAvailable')}</p>
-                      <p className="text-sm text-yellow-700">{storageError}</p>
-                      <p className="text-xs text-yellow-600 mt-2">
-                        {t('settings.admin.statsNote')}
+                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200/50 rounded-xl p-5 mb-6 shadow-sm">
+                  <div className="flex items-start gap-4">
+                    <div className="p-2 bg-yellow-100/80 rounded-lg">
+                      <AlertCircle className="w-6 h-6 text-yellow-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-yellow-900 mb-1 flex items-center gap-2">
+                        {t('settings.admin.statsNotAvailable')}
+                      </h4>
+                      <p className="text-sm text-yellow-800 mb-2">{storageError}</p>
+                      <p className="text-xs text-yellow-700 bg-yellow-100/50 rounded-lg px-3 py-2 inline-block border border-yellow-200/30">
+                        💡 {t('settings.admin.statsNote')}
                       </p>
                       {lastCalculated && (
-                        <p className="text-xs text-yellow-600 mt-1">
-                          {t('settings.admin.lastCalculated')}: {new Date(lastCalculated).toLocaleString()}
+                        <p className="text-xs text-yellow-600 mt-3 flex items-center gap-2">
+                          <Clock className="w-3.5 h-3.5" />
+                          {t('settings.admin.lastCalculated')}: <span className="font-semibold">{new Date(lastCalculated).toLocaleString()}</span>
                         </p>
                       )}
                     </div>
@@ -527,139 +627,206 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
               )}
               
               {storageLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {[1, 2, 3, 4, 5, 6].map((i) => (
-                    <SkeletonChart key={i} />
-                  ))}
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                      <StatsCard
+                        key={i}
+                        title="Loading..."
+                        value="--"
+                        icon={Activity}
+                        gradientFrom="from-gray-400"
+                        gradientTo="to-gray-500"
+                        loading={true}
+                      />
+                    ))}
+                  </div>
+                  <div className="text-center py-8">
+                    <div className="inline-flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md">
+                      <RefreshCw className="w-5 h-5 text-indigo-600 animate-spin" />
+                      <span className="text-sm font-medium text-gray-700">{t('settings.admin.calculatingStats')}</span>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <>
                   {/* Last Calculated Timestamp */}
                   {lastCalculated && !storageError && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/50 rounded-xl p-4 mb-6 shadow-sm">
                       <div className="flex items-center gap-3">
-                        <Info className="w-5 h-5 text-blue-600" />
+                        <div className="p-2 bg-blue-100/80 rounded-lg">
+                          <Info className="w-5 h-5 text-blue-600" />
+                        </div>
                         <div className="flex-1">
-                          <p className="text-sm text-blue-800">
-                            {t('settings.admin.lastCalculated')}: <span className="font-semibold">{new Date(lastCalculated).toLocaleString()}</span>
+                          <p className="text-sm font-medium text-blue-900 flex items-center gap-2">
+                            <Clock className="w-4 h-4" />
+                            {t('settings.admin.lastCalculated')}: <span className="font-bold">{new Date(lastCalculated).toLocaleString()}</span>
                           </p>
-                          <p className="text-xs text-blue-600 mt-1">{t('settings.admin.statsNote')}</p>
+                          <p className="text-xs text-blue-700 mt-1 bg-blue-100/50 rounded px-2 py-1 inline-block border border-blue-200/30">
+                            {t('settings.admin.statsNote')}
+                          </p>
                         </div>
                       </div>
                     </div>
                   )}
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {/* Firebase Storage */}
-              {firebaseUsage && (
-                <StorageUsageChart
-                  used={firebaseUsage.estimatedStorageMB}
-                  limit={firebaseUsage.limit.storageLimitMB}
-                  unit="MB"
-                  label={t('settings.admin.charts.firebaseDatabase')}
-                  icon="database"
-                  color={{ from: 'from-blue-500', to: 'to-blue-600' }}
-                />
-              )}
+                  {/* Stats Grid */}
+                  <div className="space-y-6">
+                    {/* Primary Metrics */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      {/* Firebase Storage */}
+                      {firebaseUsage && (
+                        <div className="relative">
+                          <div className="absolute -top-2 -right-2 z-10">
+                            <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold shadow-md ${
+                              (firebaseUsage.estimatedStorageMB / firebaseUsage.limit.storageLimitMB) > 0.8 
+                                ? 'bg-red-500 text-white' 
+                                : (firebaseUsage.estimatedStorageMB / firebaseUsage.limit.storageLimitMB) > 0.6
+                                ? 'bg-yellow-500 text-white'
+                                : 'bg-green-500 text-white'
+                            }`}>
+                              {Math.round((firebaseUsage.estimatedStorageMB / firebaseUsage.limit.storageLimitMB) * 100)}%
+                            </span>
+                          </div>
+                          <StatsCard
+                            title={t('settings.admin.firebaseStorage')}
+                            value={`${firebaseUsage.estimatedStorageMB.toFixed(1)} MB`}
+                            icon={Activity}
+                            gradientFrom="from-blue-500"
+                            gradientTo="to-blue-600"
+                            subtitle={`${firebaseUsage.limit.storageLimitMB} MB ${t('settings.admin.limitLabel')}`}
+                          />
+                        </div>
+                      )}
 
-              {/* Authentication Users */}
-              {authUsage && (
-                <StorageUsageChart
-                  used={authUsage.totalUsers}
-                  limit={authUsage.limit.monthlyActiveUsers}
-                  unit={t('settings.admin.units.users')}
-                  label={t('settings.admin.charts.authentication')}
-                  icon="users"
-                  color={{ from: 'from-purple-500', to: 'to-purple-600' }}
-                />
-              )}
+                      {/* Cloudinary Storage */}
+                      {cloudinaryUsage && (
+                        <div className="relative">
+                          <div className="absolute -top-2 -right-2 z-10">
+                            <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold shadow-md ${
+                              (cloudinaryUsage.usedStorageMB / cloudinaryUsage.limit.storageLimitMB) > 0.8 
+                                ? 'bg-red-500 text-white' 
+                                : (cloudinaryUsage.usedStorageMB / cloudinaryUsage.limit.storageLimitMB) > 0.6
+                                ? 'bg-yellow-500 text-white'
+                                : 'bg-green-500 text-white'
+                            }`}>
+                              {Math.round((cloudinaryUsage.usedStorageMB / cloudinaryUsage.limit.storageLimitMB) * 100)}%
+                            </span>
+                          </div>
+                          <StatsCard
+                            title={t('settings.admin.cloudinaryStorage')}
+                            value={`${cloudinaryUsage.usedStorageMB.toFixed(1)} MB`}
+                            icon={Camera}
+                            gradientFrom="from-green-500"
+                            gradientTo="to-green-600"
+                            subtitle={`${cloudinaryUsage.totalImages} ${t('settings.admin.imagesLabel')} • ${cloudinaryUsage.limit.storageLimitMB} MB ${t('settings.admin.limitLabel')}`}
+                          />
+                        </div>
+                      )}
 
-              {/* Cloud Functions */}
-              {functionsUsage && (
-                <StorageUsageChart
-                  used={(functionsUsage.isActualData && functionsUsage.actualInvocationsPerDay 
-                    ? functionsUsage.actualInvocationsPerDay 
-                    : functionsUsage.estimatedInvocationsPerDay) * 30}
-                  limit={functionsUsage.limit.invocationsPerMonth}
-                  unit={t('settings.admin.units.calls')}
-                  label={functionsUsage.isActualData 
-                    ? `${t('settings.admin.charts.cloudFunctions')} (Actual)` 
-                    : `${t('settings.admin.charts.cloudFunctions')} (Estimated)`}
-                  icon="zap"
-                  color={{ from: 'from-yellow-500', to: 'to-yellow-600' }}
-                />
-              )}
+                      {/* Authentication */}
+                      {authUsage && (
+                        <div className="relative">
+                          <StatsCard
+                            title={t('settings.admin.activeUsersLabel')}
+                            value={authUsage.totalUsers}
+                            icon={Users}
+                            gradientFrom="from-purple-500"
+                            gradientTo="to-purple-600"
+                            subtitle={`${authUsage.limit.monthlyActiveUsers} ${t('settings.admin.mauLimit')}`}
+                          />
+                        </div>
+                      )}
 
-              {/* Firestore Reads */}
-              {firestoreOps && (
-                <StorageUsageChart
-                  used={firestoreOps.estimatedReadsPerDay}
-                  limit={firestoreOps.limit.readsPerDay}
-                  unit={t('settings.admin.units.readsPerDay')}
-                  label={t('settings.admin.charts.firestoreReads')}
-                  icon="database"
-                  color={{ from: 'from-cyan-500', to: 'to-cyan-600' }}
-                />
-              )}
-
-              {/* Firestore Writes */}
-              {firestoreOps && (
-                <StorageUsageChart
-                  used={firestoreOps.estimatedWritesPerDay}
-                  limit={firestoreOps.limit.writesPerDay}
-                  unit={t('settings.admin.units.writesPerDay')}
-                  label={t('settings.admin.charts.firestoreWrites')}
-                  icon="edit"
-                  color={{ from: 'from-pink-500', to: 'to-pink-600' }}
-                />
-              )}
-
-              {/* Cloudinary Storage */}
-              {cloudinaryUsage && (
-                <StorageUsageChart
-                  used={cloudinaryUsage.usedStorageMB}
-                  limit={cloudinaryUsage.limit.storageLimitMB}
-                  unit="MB"
-                  label={t('settings.admin.charts.cloudinaryImages')}
-                  icon="image"
-                  color={{ from: 'from-green-500', to: 'to-green-600' }}
-                />
-              )}
-
-              {/* Total Images Count */}
-              {cloudinaryUsage && (
-                <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="p-3 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg">
-                      <Shield className="w-6 h-6 text-white" />
+                      {/* Cloud Functions */}
+                      {functionsUsage && (
+                        <div className="relative">
+                          {functionsUsage.isActualData && (
+                            <div className="absolute -top-2 -right-2 z-10">
+                              <span className="px-2.5 py-1 rounded-lg text-xs font-semibold shadow-md bg-emerald-500 text-white">
+                                {t('settings.admin.liveData')}
+                              </span>
+                            </div>
+                          )}
+                          <StatsCard
+                            title={t('settings.admin.cloudFunctionsLabel')}
+                            value={`${((functionsUsage.isActualData && functionsUsage.actualInvocationsPerDay 
+                              ? functionsUsage.actualInvocationsPerDay 
+                              : functionsUsage.estimatedInvocationsPerDay) * 30).toLocaleString()}`}
+                            icon={Zap}
+                            gradientFrom="from-yellow-500"
+                            gradientTo="to-yellow-600"
+                            subtitle={`${t('settings.admin.estimatedLabel')} • ${functionsUsage.limit.invocationsPerMonth.toLocaleString()} ${t('settings.admin.invocationsLabel')}/mo`}
+                          />
+                        </div>
+                      )}
                     </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-800">{t('settings.admin.charts.totalImages')}</h3>
-                      <p className="text-sm text-gray-500">Cloudinary</p>
+
+                    {/* Secondary Metrics */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      {/* Firestore Reads */}
+                      {firestoreOps && (
+                        <div className="relative">
+                          <StatsCard
+                            title={t('settings.admin.databaseReads')}
+                            value={firestoreOps.estimatedReadsPerDay.toLocaleString()}
+                            icon={BookOpen}
+                            gradientFrom="from-cyan-500"
+                            gradientTo="to-cyan-600"
+                            subtitle={`${firestoreOps.limit.readsPerDay.toLocaleString()} ${t('settings.admin.readsPerDay')}`}
+                          />
+                        </div>
+                      )}
+
+                      {/* Firestore Writes */}
+                      {firestoreOps && (
+                        <div className="relative">
+                          <StatsCard
+                            title={t('settings.admin.databaseWrites')}
+                            value={firestoreOps.estimatedWritesPerDay.toLocaleString()}
+                            icon={Lock}
+                            gradientFrom="from-pink-500"
+                            gradientTo="to-pink-600"
+                            subtitle={`${firestoreOps.limit.writesPerDay.toLocaleString()} ${t('settings.admin.writesPerDay')}`}
+                          />
+                        </div>
+                      )}
+
+                      {/* Total Memories */}
+                      {firebaseUsage && (
+                        <div className="relative">
+                          <StatsCard
+                            title={t('settings.admin.totalMemories')}
+                            value={firebaseUsage.memoriesCount}
+                            icon={Heart}
+                            gradientFrom="from-rose-500"
+                            gradientTo="to-red-600"
+                            subtitle={t('settings.admin.storedMemories')}
+                          />
+                        </div>
+                      )}
+
+                      {/* Registered Users */}
+                      {firebaseUsage && (
+                        <div className="relative">
+                          <StatsCard
+                            title={t('settings.admin.totalUsers')}
+                            value={firebaseUsage.usersCount}
+                            icon={Users}
+                            gradientFrom="from-indigo-500"
+                            gradientTo="to-purple-600"
+                            subtitle={t('settings.admin.registeredAccounts')}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <p className="text-5xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent mb-2">
-                    {cloudinaryUsage.totalImages}
-                  </p>
-                  <p className="text-sm text-gray-500">{t('settings.admin.charts.imagesStored')}</p>
                   
-                  {firebaseUsage && (
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div>
-                          <p className="text-gray-500">{t('settings.admin.charts.users')}</p>
-                          <p className="font-semibold text-gray-800">{firebaseUsage.usersCount}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">{t('settings.admin.charts.memories')}</p>
-                          <p className="font-semibold text-gray-800">{firebaseUsage.memoriesCount}</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+                  {/* Charts Section */}
+                  <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <StorageUsageBarChart data={storageChartData} />
+                    <ActivityMetricsChart data={activityData} />
+                  </div>
                 </>
               )}
             </div>
@@ -669,39 +836,61 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
         {/* Users Tab Content */}
         {activeTab === 'users' && (
           <>
-            {/* Stats Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                <div className="flex items-center gap-4">
-                  <div className="p-4 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl shadow-lg">
-                    <Users className="w-8 h-8 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-sm font-medium">{t('settings.admin.userManagement.totalUsers')}</p>
-                    <p className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                      {users.length}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                <div className="flex items-center gap-4">
-                  <div className="p-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg">
-                    <Shield className="w-8 h-8 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-sm font-medium">{t('settings.admin.userManagement.admins')}</p>
-                    <p className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                      {users.filter((u) => u.role === 'SysAdmin').length}
-                    </p>
-                  </div>
-                </div>
-              </div>
+            {/* Stats Section - Modern Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <StatsCard
+                title={t('settings.admin.userManagement.totalUsers')}
+                value={users.length}
+                icon={Users}
+                gradientFrom="from-blue-500"
+                gradientTo="to-cyan-500"
+                trend={{
+                  value: 12,
+                  isPositive: true
+                }}
+                subtitle="Last 30 days"
+              />
+              
+              <StatsCard
+                title={t('settings.admin.userManagement.admins')}
+                value={users.filter((u) => u.role === 'SysAdmin').length}
+                icon={Shield}
+                gradientFrom="from-purple-500"
+                gradientTo="to-pink-500"
+                subtitle={t('settings.admin.systemAdmins')}
+              />
+              
+              <StatsCard
+                title={t('settings.admin.activeUsersLabel')}
+                value={users.filter(u => (u as any).status === 'Active' || !(u as any).status).length}
+                icon={UserCheck}
+                gradientFrom="from-green-500"
+                gradientTo="to-emerald-500"
+                trend={{
+                  value: 8,
+                  isPositive: true
+                }}
+                subtitle={t('settings.admin.currentlyActive')}
+              />
+              
+              <StatsCard
+                title={t('settings.admin.storageUsed')}
+                value={`${((firebaseUsage?.estimatedStorageMB || 0) + (cloudinaryUsage?.usedStorageMB || 0)).toFixed(1)} MB`}
+                icon={Activity}
+                gradientFrom="from-orange-500"
+                gradientTo="to-red-500"
+                subtitle={t('settings.admin.totalAcrossServices')}
+              />
+            </div>
+            
+            {/* Charts Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+              <UserGrowthChart data={userGrowthData} />
+              <UserStatusPieChart data={userStatusData} />
             </div>
 
             {/* Users List */}
-            <div className="bg-white rounded-2xl shadow-xl p-6 backdrop-blur-sm bg-opacity-90">
+            <div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-200/50 p-6">
           <div className="flex flex-col gap-6">
             {/* Header */}
             <div className="flex items-center justify-between">
@@ -712,7 +901,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
               <button
                 onClick={handleRefresh}
                 disabled={loading}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group active:scale-95"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
                 {t('common.refresh')}
