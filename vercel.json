@@ -1,8 +1,9 @@
 {
   "version": 2,
-  "installCommand": "npm install",
-  "buildCommand": "npm run build",
+  "installCommand": "npm install --force",
+  "buildCommand": "rm -rf node_modules/.vite && npm run build",
   "outputDirectory": "dist",
+  "cleanUrls": true,
   "headers": [
     {
       "source": "/(.*)",
