@@ -36,6 +36,14 @@ try {
 }
 export const performance = perf;
 
+// Initialize App Check for rate limiting and bot protection
+// Import is async to avoid blocking main bundle
+import('./appCheck').then(({ initAppCheck }) => {
+  initAppCheck();
+}).catch(err => {
+  console.warn('⚠️ App Check module failed to load:', err);
+});
+
 // Environment prefix for collections (empty for production, 'dev_' for development)
 export const ENV_PREFIX = import.meta.env.VITE_ENV_PREFIX || '';
 
