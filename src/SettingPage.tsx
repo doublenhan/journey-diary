@@ -754,29 +754,30 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
       {/* Beautiful Mobile Menu */}
       {isMobileMenuOpen && (
         <>
-          {/* Animated Backdrop */}
+          {/* Animated Backdrop - Optimized */}
           <div 
-            className={`fixed inset-0 bg-gradient-to-br from-black/70 via-rose-900/40 to-black/70 backdrop-blur-md z-[60] transition-all duration-700 lg:hidden ${menuMounted ? 'opacity-100' : 'opacity-0'}`}
+            className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] transition-opacity duration-300 lg:hidden ${menuMounted ? 'opacity-100' : 'opacity-0'}`}
+            style={{ willChange: 'opacity' }}
             onClick={() => setIsMobileMenuOpen(false)}
             aria-label="Close menu"
           >
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
-            <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-rose-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }} />
+            {/* Removed heavy blur effects for better mobile performance */}
           </div>
           
-          {/* Menu Panel */}
-          <div className={`fixed top-0 right-0 w-[360px] max-w-[90vw] h-full bg-gradient-to-b from-white via-white to-pink-50/30 shadow-[-15px_0_60px_rgba(236,72,153,0.2)] z-[70] overflow-y-auto transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] lg:hidden ${menuMounted ? 'translate-x-0' : 'translate-x-full'}`}>
-            {/* Animated Decorative Background Pattern */}
+          {/* Menu Panel - GPU Accelerated */}
+          <div 
+            className={`fixed top-0 right-0 w-[360px] max-w-[90vw] h-full bg-gradient-to-b from-white via-white to-pink-50/30 shadow-[-15px_0_60px_rgba(236,72,153,0.2)] z-[70] overflow-y-auto transition-transform duration-300 ease-out lg:hidden ${menuMounted ? 'translate-x-0' : 'translate-x-full'}`}
+            style={{ willChange: 'transform' }}>
+            {/* Animated Decorative Background Pattern - Simplified */}
             <div className="absolute top-0 right-0 w-full h-56 bg-gradient-to-br from-pink-500 via-rose-500 to-pink-600 overflow-hidden">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/10 rounded-full blur-3xl animate-float" />
-              <div className="absolute top-24 -left-12 w-36 h-36 bg-white/10 rounded-full blur-2xl animate-float-delayed" />
-              <div className="absolute top-8 right-20 w-20 h-20 bg-white/20 rounded-full blur-xl animate-pulse" />
+              {/* Simplified blur effects - only show on desktop for performance */}
+              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/10 rounded-full hidden sm:block" style={{ filter: 'blur(60px)' }} />
+              <div className="absolute top-8 right-20 w-20 h-20 bg-white/20 rounded-full" style={{ filter: 'blur(30px)' }} />
               
-              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent animate-shimmer" />
-              
-              <div className="absolute top-10 right-16 w-2 h-2 bg-white rounded-full animate-ping" style={{ animationDuration: '3s' }} />
-              <div className="absolute top-28 right-32 w-1.5 h-1.5 bg-white/70 rounded-full animate-ping" style={{ animationDuration: '2.5s', animationDelay: '1s' }} />
-              <div className="absolute top-20 left-20 w-1 h-1 bg-white/50 rounded-full animate-ping" style={{ animationDuration: '2s', animationDelay: '0.5s' }} />
+              {/* Lightweight sparkles */}
+              <div className="absolute top-10 right-16 w-2 h-2 bg-white rounded-full opacity-80" />
+              <div className="absolute top-28 right-32 w-1.5 h-1.5 bg-white/70 rounded-full" />
+              <div className="absolute top-20 left-20 w-1 h-1 bg-white/50 rounded-full" />
               
               {/* Wave decoration */}
               <div className="absolute bottom-0 left-0 right-0">
@@ -790,7 +791,7 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
 
             {/* Header */}
             <div className="relative z-10 p-6 pb-6">
-              <div className={`flex items-start justify-between mb-6 transition-all duration-700 ${menuMounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+              <div className={`flex items-start justify-between mb-6 transition-transform duration-200 ${menuMounted ? 'translate-y-0' : '-translate-y-4'}`} style={{ willChange: 'transform' }}>
                 <div className="flex items-center gap-3">
                   <div className="relative group">
                     <div className="absolute inset-0 bg-gradient-to-br from-pink-400 to-rose-500 rounded-2xl blur-md opacity-60 group-hover:opacity-100 transition-opacity" />
@@ -827,9 +828,12 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
                   return (
                     <button
                       key={item.id}
-                      style={{ animationDelay: `${index * 100}ms` }}
-                      className={`group w-full relative flex items-center gap-4 px-4 py-4 rounded-2xl font-semibold transition-all duration-500 overflow-hidden ${
-                        menuMounted ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
+                      style={{ 
+                        transitionDelay: `${index * 50}ms`,
+                        willChange: 'transform'
+                      }}
+                      className={`group w-full relative flex items-center gap-4 px-4 py-4 rounded-2xl font-semibold transition-transform duration-200 overflow-hidden ${
+                        menuMounted ? 'translate-x-0' : 'translate-x-8'
                       } ${
                         isActive
                           ? 'bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 text-white shadow-xl shadow-pink-500/50 scale-[1.03]' 
@@ -895,7 +899,7 @@ function SettingPage({ onBack, currentTheme, setCurrentTheme }: SettingPageProps
             </nav>
 
             {/* Footer */}
-            <div className={`relative z-10 mt-auto pt-4 pb-6 px-6 transition-all duration-700 delay-300 ${menuMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            <div className={`relative z-10 mt-auto pt-4 pb-6 px-6 transition-transform duration-200 ${menuMounted ? 'translate-y-0' : 'translate-y-4'}`} style={{ willChange: 'transform', transitionDelay: '100ms' }}>
               {onBack && (
                 <button 
                   onClick={() => {

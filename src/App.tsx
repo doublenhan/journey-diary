@@ -470,33 +470,28 @@ function App() {
               {/* Mobile Menu - Outside header to avoid stacking context issues */}
               {mobileMenuOpen && (
                 <>
-                  {/* Animated Backdrop with blur */}
+                  {/* Animated Backdrop - Optimized */}
                   <div 
-                    className={`fixed inset-0 bg-gradient-to-br from-black/70 via-rose-900/40 to-black/70 backdrop-blur-md z-[60] transition-all duration-700 ${menuMounted ? 'opacity-100' : 'opacity-0'}`}
+                    className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] transition-opacity duration-300 ${menuMounted ? 'opacity-100' : 'opacity-0'}`}
+                    style={{ willChange: 'opacity' }}
                     onClick={() => setMobileMenuOpen(false)}
                     aria-label="Close menu"
-                  >
-                    {/* Animated gradient orbs */}
-                    <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
-                    <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-rose-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }} />
-                  </div>
+                  />
                   
-                  {/* Menu Panel */}
-                  <div className={`fixed top-0 right-0 w-[360px] max-w-[90vw] h-full bg-gradient-to-b from-white via-white to-pink-50/30 shadow-[-15px_0_60px_rgba(236,72,153,0.2)] z-[70] overflow-y-auto transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${menuMounted ? 'translate-x-0' : 'translate-x-full'}`}>
-                    {/* Animated Decorative Background Pattern */}
+                  {/* Menu Panel - GPU Accelerated */}
+                  <div 
+                    className={`fixed top-0 right-0 w-[360px] max-w-[90vw] h-full bg-gradient-to-b from-white via-white to-pink-50/30 shadow-[-15px_0_60px_rgba(236,72,153,0.2)] z-[70] overflow-y-auto transition-transform duration-300 ease-out ${menuMounted ? 'translate-x-0' : 'translate-x-full'}`}
+                    style={{ willChange: 'transform' }}>
+                    {/* Animated Decorative Background Pattern - Simplified */}
                     <div className="absolute top-0 right-0 w-full h-56 bg-gradient-to-br from-pink-500 via-rose-500 to-pink-600 overflow-hidden">
-                      {/* Floating animated orbs */}
-                      <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/10 rounded-full blur-3xl animate-float" />
-                      <div className="absolute top-24 -left-12 w-36 h-36 bg-white/10 rounded-full blur-2xl animate-float-delayed" />
-                      <div className="absolute top-8 right-20 w-20 h-20 bg-white/20 rounded-full blur-xl animate-pulse" />
+                      {/* Simplified effects for mobile performance */}
+                      <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/10 rounded-full hidden sm:block" style={{ filter: 'blur(60px)' }} />
+                      <div className="absolute top-8 right-20 w-20 h-20 bg-white/20 rounded-full" style={{ filter: 'blur(30px)' }} />
                       
-                      {/* Animated gradient overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent animate-shimmer" />
-                      
-                      {/* Sparkles effect */}
-                      <div className="absolute top-10 right-16 w-2 h-2 bg-white rounded-full animate-ping" style={{ animationDuration: '3s' }} />
-                      <div className="absolute top-28 right-32 w-1.5 h-1.5 bg-white/70 rounded-full animate-ping" style={{ animationDuration: '2.5s', animationDelay: '1s' }} />
-                      <div className="absolute top-20 left-20 w-1 h-1 bg-white/50 rounded-full animate-ping" style={{ animationDuration: '2s', animationDelay: '0.5s' }} />
+                      {/* Static sparkles - no animation */}
+                      <div className="absolute top-10 right-16 w-2 h-2 bg-white rounded-full opacity-80" />
+                      <div className="absolute top-28 right-32 w-1.5 h-1.5 bg-white/70 rounded-full" />
+                      <div className="absolute top-20 left-20 w-1 h-1 bg-white/50 rounded-full" />
                       
                       {/* Wave decoration at bottom */}
                       <div className="absolute bottom-0 left-0 right-0">
@@ -510,7 +505,7 @@ function App() {
 
                     {/* Header */}
                     <div className="relative z-10 p-6 pb-8">
-                      <div className={`flex items-start justify-between mb-8 transition-all duration-700 ${menuMounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+                      <div className={`flex items-start justify-between mb-8 transition-transform duration-200 ${menuMounted ? 'translate-y-0' : '-translate-y-4'}`} style={{ willChange: 'transform' }}>
                         <div className="flex items-center gap-3">
                           <div className="relative group">
                             <div className="absolute inset-0 bg-gradient-to-br from-pink-400 to-rose-500 rounded-2xl blur-md opacity-60 group-hover:opacity-100 transition-opacity" />
