@@ -73,80 +73,80 @@ export function CoupleInvitationsPage({ userId }: CoupleInvitationsPageProps) {
 
       <div className="relative z-10 min-h-screen">
         {/* Back Button */}
-        <div className="px-8 pt-8 pb-4">
+        <div className="px-4 sm:px-8 pt-6 sm:pt-8 pb-3 sm:pb-4">
           <button
             onClick={() => navigate(-1)}
-            className="group flex items-center gap-2.5 px-5 py-2.5 bg-white/70 backdrop-blur-xl hover:bg-white/90 rounded-2xl transition-all duration-300 shadow-lg shadow-violet-500/10 hover:shadow-xl hover:shadow-violet-500/20 border border-white/50"
+            className="group flex items-center gap-2 sm:gap-2.5 px-4 sm:px-5 py-2 sm:py-2.5 bg-white/70 backdrop-blur-xl hover:bg-white/90 rounded-xl sm:rounded-2xl transition-all duration-300 shadow-lg shadow-violet-500/10 hover:shadow-xl hover:shadow-violet-500/20 border border-white/50"
           >
             <ArrowLeft className="w-4 h-4 text-violet-700 group-hover:-translate-x-1 transition-transform duration-300" strokeWidth={2.5} />
-            <span className="text-violet-700 font-bold text-sm">{t('couple.invitations.back')}</span>
+            <span className="text-violet-700 font-bold text-xs sm:text-sm">{t('couple.invitations.back')}</span>
           </button>
         </div>
 
-        {/* Hero Header - Premium Design */}
-        <div className="mx-8 mt-4 mb-8">
-          <div className="relative overflow-hidden rounded-3xl bg-white/80 backdrop-blur-2xl border border-white/60 shadow-2xl shadow-violet-500/10">
+        {/* Hero Header - Mobile Optimized */}
+        <div className="mx-4 sm:mx-8 mt-3 sm:mt-4 mb-6 sm:mb-8">
+          <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-white/80 backdrop-blur-2xl border border-white/60 shadow-2xl shadow-violet-500/10">
             {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-fuchsia-500/5 to-pink-500/5"></div>
             
-            {/* Decorative Elements */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-violet-400/10 to-transparent rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-pink-400/10 to-transparent rounded-full blur-3xl"></div>
+            {/* Decorative Elements - Hide on mobile for performance */}
+            <div className="hidden sm:block absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-violet-400/10 to-transparent rounded-full blur-3xl"></div>
+            <div className="hidden sm:block absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-pink-400/10 to-transparent rounded-full blur-3xl"></div>
 
-            <div className="relative px-10 py-12">
-              <div className="flex items-start justify-between">
+            <div className="relative px-4 sm:px-10 py-6 sm:py-12">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 sm:gap-0">
                 {/* Left: Icon & Title */}
-                <div className="flex items-start gap-6">
-                  {/* Icon with Badge */}
-                  <div className="relative">
-                    <div className="absolute -inset-3 bg-gradient-to-br from-violet-500/20 via-fuchsia-500/20 to-pink-500/20 rounded-3xl blur-xl"></div>
-                    <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 p-0.5 shadow-xl">
-                      <div className="w-full h-full rounded-3xl bg-white flex items-center justify-center">
-                        <Heart className="w-12 h-12 text-fuchsia-500" fill="currentColor" />
+                <div className="flex items-start gap-3 sm:gap-6">
+                  {/* Icon with Badge - Smaller on mobile */}
+                  <div className="relative flex-shrink-0">
+                    <div className="absolute -inset-2 sm:-inset-3 bg-gradient-to-br from-violet-500/20 via-fuchsia-500/20 to-pink-500/20 rounded-2xl sm:rounded-3xl blur-xl"></div>
+                    <div className="relative w-16 h-16 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 p-0.5 shadow-xl">
+                      <div className="w-full h-full rounded-2xl sm:rounded-3xl bg-white flex items-center justify-center">
+                        <Heart className="w-8 h-8 sm:w-12 sm:h-12 text-fuchsia-500" fill="currentColor" />
                       </div>
                     </div>
                     {couple && (
-                      <div className="absolute -top-1 -right-1 w-8 h-8 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center shadow-lg border-3 border-white ring-2 ring-emerald-200">
-                        <Check className="w-5 h-5 text-white" strokeWidth={3} />
+                      <div className="absolute -top-1 -right-1 w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center shadow-lg border-2 sm:border-3 border-white ring-2 ring-emerald-200">
+                        <Check className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" strokeWidth={3} />
                       </div>
                     )}
                   </div>
 
                   {/* Title & Description */}
-                  <div className="pt-1">
-                    <h1 className="text-4xl font-black bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 bg-clip-text text-transparent mb-2 tracking-tight">
+                  <div className="pt-0.5 sm:pt-1 flex-1 min-w-0">
+                    <h1 className="text-2xl sm:text-4xl font-black bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 bg-clip-text text-transparent mb-1 sm:mb-2 tracking-tight leading-tight">
                       {t('couple.invitations.title')}
                     </h1>
-                    <p className="text-gray-500 text-base font-medium max-w-md">
+                    <p className="text-gray-500 text-xs sm:text-base font-medium max-w-md line-clamp-2 sm:line-clamp-none">
                       {t('couple.invitations.subtitle')}
                     </p>
                   </div>
                 </div>
 
-                {/* Right: Action Buttons */}
-                <div className="flex items-center gap-3">
+                {/* Right: Action Buttons - Stack on mobile */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                   <button
                     onClick={() => navigate('/couple/settings')}
-                    className="group flex items-center gap-2.5 px-5 py-3 bg-gray-100 hover:bg-gray-200 rounded-2xl transition-all duration-300 shadow-sm hover:shadow-md"
+                    className="group flex items-center justify-center sm:justify-start gap-2 sm:gap-2.5 px-4 sm:px-5 py-2.5 sm:py-3 bg-gray-100 hover:bg-gray-200 active:scale-[0.98] rounded-xl sm:rounded-2xl transition-all duration-300 shadow-sm hover:shadow-md"
                   >
-                    <Settings className="w-4.5 h-4.5 text-gray-600 group-hover:rotate-90 transition-transform duration-300" strokeWidth={2.5} />
-                    <span className="text-gray-700 font-bold text-sm">{t('couple.invitations.settings')}</span>
+                    <Settings className="w-4 sm:w-4.5 h-4 sm:h-4.5 text-gray-600 group-hover:rotate-90 transition-transform duration-300" strokeWidth={2.5} />
+                    <span className="text-gray-700 font-bold text-xs sm:text-sm">{t('couple.invitations.settings')}</span>
                   </button>
                   
                   <button
                     onClick={() => setShowSendModal(true)}
                     disabled={!!couple}
-                    className={`group relative overflow-hidden flex items-center gap-2.5 px-6 py-3 text-white rounded-2xl transition-all duration-300 font-bold shadow-xl ${
+                    className={`group relative overflow-hidden flex items-center justify-center sm:justify-start gap-2 sm:gap-2.5 px-5 sm:px-6 py-2.5 sm:py-3 text-white rounded-xl sm:rounded-2xl transition-all duration-300 font-bold shadow-xl ${
                       couple 
                         ? 'bg-gray-400 cursor-not-allowed opacity-60' 
-                        : 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 hover:from-violet-700 hover:via-fuchsia-700 hover:to-pink-700 shadow-violet-500/30 hover:shadow-2xl hover:shadow-fuchsia-500/40 hover:scale-105'
+                        : 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 hover:from-violet-700 hover:via-fuchsia-700 hover:to-pink-700 shadow-violet-500/30 hover:shadow-2xl hover:shadow-fuchsia-500/40 active:scale-[0.98] sm:hover:scale-105'
                     }`}
                   >
                     {!couple && (
                       <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                     )}
-                    <Plus className={`relative w-5 h-5 text-white ${!couple ? 'group-hover:rotate-90' : ''} transition-transform duration-300`} strokeWidth={2.5} />
-                    <span className="relative text-sm">{t('couple.invitations.sendInvitation')}</span>
+                    <Plus className={`relative w-4 sm:w-5 h-4 sm:h-5 text-white ${!couple ? 'group-hover:rotate-90' : ''} transition-transform duration-300`} strokeWidth={2.5} />
+                    <span className="relative text-xs sm:text-sm">{t('couple.invitations.sendInvitation')}</span>
                   </button>
                 </div>
               </div>

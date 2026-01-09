@@ -105,11 +105,13 @@ export async function getRecentCronHistory(jobName?: string): Promise<CronHistor
 
 /**
  * Get daily aggregated stats (last 7 days)
+ * Returns stats sorted DESC (newest first)
  */
 export async function getDailyStats(jobName?: string): Promise<DailyStats[]> {
   try {
     const last7Days: string[] = [];
-    for (let i = 6; i >= 0; i--) {
+    // Changed to DESC: 0 (today) → 6 (6 days ago)
+    for (let i = 0; i <= 6; i++) {
       const date = new Date();
       date.setDate(date.getDate() - i);
       last7Days.push(date.toISOString().split('T')[0]);

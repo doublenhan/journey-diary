@@ -505,31 +505,31 @@ const ProfileInformation: React.FC<ProfileInformationProps> = ({ theme, onSyncSt
                 </div>
               </form>
 
-              {/* Danger Zone */}
+              {/* Danger Zone - Mobile Optimized */}
               <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border-2 border-red-300 overflow-hidden">
-                <div className="px-8 py-5 border-b-2 border-red-200 bg-gradient-to-r from-red-50 to-orange-50/50">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center shadow-lg">
-                      <AlertTriangle className="w-5 h-5 text-white" />
+                <div className="px-4 sm:px-8 py-4 sm:py-5 border-b-2 border-red-200 bg-gradient-to-r from-red-50 to-orange-50/50">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center shadow-lg flex-shrink-0">
+                      <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-red-700">Danger Zone</h3>
-                      <p className="text-xs text-red-600 mt-0.5">Irreversible actions - proceed with extreme caution</p>
+                    <div className="min-w-0">
+                      <h3 className="text-base sm:text-lg font-bold text-red-700">Danger Zone</h3>
+                      <p className="text-[10px] sm:text-xs text-red-600 mt-0.5 truncate">Irreversible actions - proceed with extreme caution</p>
                     </div>
                   </div>
                 </div>
                 
-                <div className="p-8">
-                  <div className="flex items-start justify-between gap-6">
-                    <div className="flex-1">
-                      <h4 className="text-base font-bold text-gray-900 mb-2">Delete Account</h4>
-                      <p className="text-sm text-gray-600 leading-relaxed">
+                <div className="p-4 sm:p-8">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 sm:gap-6">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm sm:text-base font-bold text-gray-900 mb-2">Delete Account</h4>
+                      <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                         Permanently delete your account and all associated data. This action cannot be undone and will remove all your memories, settings, and personal information.
                       </p>
                     </div>
                     <button
                       onClick={() => setShowDeleteAccountModal(true)}
-                      className="px-5 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white text-sm font-bold transition-all duration-200 flex items-center gap-2 flex-shrink-0 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                      className="w-full sm:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 active:scale-[0.98] text-white text-sm font-bold transition-all duration-200 flex items-center justify-center gap-2 sm:flex-shrink-0 shadow-lg hover:shadow-xl sm:transform sm:hover:-translate-y-0.5"
                     >
                       <AlertTriangle className="w-4 h-4" />
                       Delete Account

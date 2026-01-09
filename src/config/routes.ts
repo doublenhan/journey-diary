@@ -21,6 +21,11 @@ export const ROUTES = {
   // Admin routes
   ADMIN: '/admin',
   MIGRATION: '/migration',
+
+  // Legal routes
+  PRIVACY_POLICY: '/privacy-policy',
+  TERMS_OF_SERVICE: '/terms-of-service',
+  COOKIES_POLICY: '/cookies-policy',
 } as const;
 
 // Type for route values

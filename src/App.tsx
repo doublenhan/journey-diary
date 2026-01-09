@@ -72,6 +72,21 @@ const CoupleSettingsPage = lazy(() => import(
   './components/Couple/CoupleSettingsPage'
 ).then(module => ({ default: module.CoupleSettingsPage })));
 
+const PrivacyPolicy = lazy(() => import(
+  /* webpackChunkName: "privacy-policy" */
+  './pages/PrivacyPolicy'
+));
+
+const TermsOfService = lazy(() => import(
+  /* webpackChunkName: "terms-of-service" */
+  './pages/TermsOfService'
+));
+
+const CookiesPolicy = lazy(() => import(
+  /* webpackChunkName: "cookies-policy" */
+  './pages/CookiesPolicy'
+));
+
 // Loading component with heart balloon and person
 const PageLoader = () => {
   return (
@@ -999,32 +1014,48 @@ function App() {
                   </div>
                 </section>
 
-                {/* Footer */}
-                <footer className="bg-gray-900 text-gray-300 py-12 px-4 sm:px-6 lg:px-8">
-                  <div className="max-w-7xl mx-auto">
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+                {/* Premium Footer */}
+                <footer className="relative overflow-hidden bg-gradient-to-b from-gray-900 via-slate-900 to-black text-gray-300">
+                  {/* Animated Background */}
+                  <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-30">
+                    <div className="absolute -top-40 -left-40 w-80 h-80 bg-pink-500/20 rounded-full blur-3xl animate-float"></div>
+                    <div className="absolute top-1/2 right-0 w-96 h-96 bg-purple-500/15 rounded-full blur-3xl animate-float-delay-1"></div>
+                  </div>
+
+                  <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
                       {/* Brand */}
-                      <div>
-                        <div className="flex items-center gap-2 mb-4">
-                          <Heart className="w-6 h-6 text-pink-500" fill="currentColor" />
-                          <span className="text-lg font-bold text-white">{t('landing.heroHighlight')}</span>
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3 group">
+                          <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl blur-md opacity-50 group-hover:opacity-75 transition-opacity"></div>
+                            <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-xl">
+                              <Heart className="w-6 h-6 text-white" fill="currentColor" />
+                            </div>
+                          </div>
+                          <span className="text-xl font-black bg-gradient-to-r from-pink-400 to-rose-400 bg-clip-text text-transparent">
+                            {t('landing.heroHighlight')}
+                          </span>
                         </div>
-                        <p className="text-sm text-gray-400">
+                        <p className="text-sm text-gray-400 leading-relaxed">
                           Lưu giữ những khoảnh khắc yêu thương của bạn mãi mãi.
                         </p>
                       </div>
 
                       {/* Quick Links */}
                       <div>
-                        <h3 className="text-white font-semibold mb-4">Quick Links</h3>
-                        <div className="space-y-2">
-                          <a href="/create-memory" className="block text-sm hover:text-pink-400 transition-colors">
+                        <h3 className="text-white font-bold mb-6 text-sm uppercase tracking-wider">Quick Links</h3>
+                        <div className="space-y-3">
+                          <a href="/create-memory" className="group flex items-center gap-2 text-sm text-gray-400 hover:text-pink-400 transition-all duration-300">
+                            <span className="w-1 h-1 rounded-full bg-pink-500 group-hover:w-2 transition-all"></span>
                             {t('nav.create')}
                           </a>
-                          <a href="/view-memory" className="block text-sm hover:text-pink-400 transition-colors">
+                          <a href="/view-memory" className="group flex items-center gap-2 text-sm text-gray-400 hover:text-pink-400 transition-all duration-300">
+                            <span className="w-1 h-1 rounded-full bg-pink-500 group-hover:w-2 transition-all"></span>
                             {t('nav.memories')}
                           </a>
-                          <a href="/anniversary-reminders" className="block text-sm hover:text-pink-400 transition-colors">
+                          <a href="/anniversary-reminders" className="group flex items-center gap-2 text-sm text-gray-400 hover:text-pink-400 transition-all duration-300">
+                            <span className="w-1 h-1 rounded-full bg-pink-500 group-hover:w-2 transition-all"></span>
                             {t('nav.anniversary')}
                           </a>
                         </div>
@@ -1032,39 +1063,80 @@ function App() {
 
                       {/* Contact */}
                       <div>
-                        <h3 className="text-white font-semibold mb-4">Contact</h3>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex items-center gap-2">
-                            <Mail size={16} className="text-pink-500" />
-                            <span>support@lovememory.com</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Phone size={16} className="text-pink-500" />
-                            <span>+84 123 456 789</span>
-                          </div>
+                        <h3 className="text-white font-bold mb-6 text-sm uppercase tracking-wider">Contact</h3>
+                        <div className="space-y-3">
+                          <a href="mailto:lovememory@gmail.com" className="group flex items-start gap-3 text-sm text-gray-400 hover:text-pink-400 transition-colors">
+                            <div className="w-8 h-8 rounded-lg bg-gray-800 group-hover:bg-pink-500/20 flex items-center justify-center flex-shrink-0 transition-colors">
+                              <Mail size={16} className="text-pink-500" />
+                            </div>
+                            <span className="pt-1">lovememory@gmail.com</span>
+                          </a>
+                          <a href="tel:+84123456789" className="group flex items-start gap-3 text-sm text-gray-400 hover:text-pink-400 transition-colors">
+                            <div className="w-8 h-8 rounded-lg bg-gray-800 group-hover:bg-pink-500/20 flex items-center justify-center flex-shrink-0 transition-colors">
+                              <Phone size={16} className="text-pink-500" />
+                            </div>
+                            <span className="pt-1">+84 123 456 789</span>
+                          </a>
                         </div>
                       </div>
 
                       {/* Social */}
                       <div>
-                        <h3 className="text-white font-semibold mb-4">Follow Us</h3>
+                        <h3 className="text-white font-bold mb-6 text-sm uppercase tracking-wider">Follow Us</h3>
                         <div className="flex gap-3">
-                          <a href="#" className="w-10 h-10 rounded-full bg-gray-800 hover:bg-pink-500 flex items-center justify-center transition-colors">
-                            <Facebook size={18} />
+                          <a 
+                            href="#" 
+                            className="group relative w-11 h-11 rounded-xl bg-gray-800 hover:bg-gradient-to-br hover:from-pink-500 hover:to-rose-500 flex items-center justify-center transition-all duration-300 overflow-hidden"
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-br from-pink-500/0 to-rose-500/0 group-hover:from-pink-500/20 group-hover:to-rose-500/20 transition-all"></div>
+                            <Facebook size={18} className="relative z-10 group-hover:scale-110 transition-transform" />
                           </a>
-                          <a href="#" className="w-10 h-10 rounded-full bg-gray-800 hover:bg-pink-500 flex items-center justify-center transition-colors">
-                            <Instagram size={18} />
+                          <a 
+                            href="#" 
+                            className="group relative w-11 h-11 rounded-xl bg-gray-800 hover:bg-gradient-to-br hover:from-pink-500 hover:to-rose-500 flex items-center justify-center transition-all duration-300 overflow-hidden"
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-br from-pink-500/0 to-rose-500/0 group-hover:from-pink-500/20 group-hover:to-rose-500/20 transition-all"></div>
+                            <Instagram size={18} className="relative z-10 group-hover:scale-110 transition-transform" />
                           </a>
-                          <a href="#" className="w-10 h-10 rounded-full bg-gray-800 hover:bg-pink-500 flex items-center justify-center transition-colors">
-                            <Twitter size={18} />
+                          <a 
+                            href="#" 
+                            className="group relative w-11 h-11 rounded-xl bg-gray-800 hover:bg-gradient-to-br hover:from-pink-500 hover:to-rose-500 flex items-center justify-center transition-all duration-300 overflow-hidden"
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-br from-pink-500/0 to-rose-500/0 group-hover:from-pink-500/20 group-hover:to-rose-500/20 transition-all"></div>
+                            <Twitter size={18} className="relative z-10 group-hover:scale-110 transition-transform" />
                           </a>
+                        </div>
+                        {/* Newsletter */}
+                        <div className="mt-6">
+                          <p className="text-xs text-gray-500 mb-3">Subscribe to updates</p>
+                          <div className="flex gap-2">
+                            <input 
+                              type="email" 
+                              placeholder="Your email" 
+                              className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-pink-500 transition-colors"
+                            />
+                            <button className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 rounded-lg text-white text-sm font-semibold transition-all hover:scale-105">
+                              →
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Copyright */}
-                    <div className="pt-8 border-t border-gray-800 text-center text-sm text-gray-500">
-                      © 2025 Love Memory. All rights reserved.
+                    {/* Bottom Bar */}
+                    <div className="pt-8 border-t border-gray-800/50">
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <p className="text-sm text-gray-500">
+                          © 2025 <span className="text-pink-400 font-semibold">Love Memory</span>. All rights reserved.
+                        </p>
+                        <div className="flex items-center gap-6 text-xs text-gray-500">
+                          <a href={ROUTES.PRIVACY_POLICY} className="hover:text-pink-400 transition-colors">Privacy Policy</a>
+                          <span className="text-gray-700">•</span>
+                          <a href={ROUTES.TERMS_OF_SERVICE} className="hover:text-pink-400 transition-colors">Terms of Service</a>
+                          <span className="text-gray-700">•</span>
+                          <a href={ROUTES.COOKIES_POLICY} className="hover:text-pink-400 transition-colors">Cookies</a>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </footer>
@@ -1077,6 +1149,9 @@ function App() {
       <Route path={ROUTES.SETTINGS} element={<SettingPage onBack={() => window.history.back()} currentTheme={currentTheme} setCurrentTheme={setCurrentTheme} />} />
       <Route path={ROUTES.COUPLE_INVITATIONS} element={userId ? <CoupleInvitationsPage userId={userId} /> : null} />
       <Route path={ROUTES.COUPLE_SETTINGS} element={userId ? <CoupleSettingsPage userId={userId} /> : null} />
+      <Route path={ROUTES.PRIVACY_POLICY} element={<PrivacyPolicy />} />
+      <Route path={ROUTES.TERMS_OF_SERVICE} element={<TermsOfService />} />
+      <Route path={ROUTES.COOKIES_POLICY} element={<CookiesPolicy />} />
       <Route 
         path={ROUTES.ADMIN} 
         element={
