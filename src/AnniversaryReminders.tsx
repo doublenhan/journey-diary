@@ -139,7 +139,7 @@ function AnniversaryReminders({ onBack, currentTheme }: AnniversaryRemindersProp
         // Save to cache
         localStorage.setItem(cacheKey, JSON.stringify({ anniversaries: data, timestamp: Date.now() }));
         syncSuccess();
-        success('Dữ liệu kỷ niệm được tải thành công');
+        success('Đã tải thành công');
       })
       .catch((error) => {
         console.error('Error fetching anniversaries:', error);

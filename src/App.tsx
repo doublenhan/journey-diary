@@ -87,6 +87,26 @@ const CookiesPolicy = lazy(() => import(
   './pages/CookiesPolicy'
 ));
 
+const Albums = lazy(() => import(
+  /* webpackChunkName: "albums" */
+  './pages/Albums'
+));
+
+const AlbumDetail = lazy(() => import(
+  /* webpackChunkName: "album-detail" */
+  './pages/AlbumDetail'
+));
+
+const Calendar = lazy(() => import(
+  /* webpackChunkName: "calendar" */
+  './pages/Calendar'
+));
+
+const PublicAlbumView = lazy(() => import(
+  /* webpackChunkName: "public-album" */
+  './pages/PublicAlbumView'
+));
+
 // Loading component with heart balloon and person
 const PageLoader = () => {
   return (
@@ -434,6 +454,10 @@ function App() {
     <Suspense fallback={<PageLoader />}>
     <PageTransition>
     <Routes>
+      {/* Public routes - no auth required */}
+      <Route path="/public/album/:albumId" element={<PublicAlbumView />} />
+      <Route path="/shared/album/:albumId" element={<PublicAlbumView />} />
+      
       <Route path={ROUTES.LOGIN} element={<LoginPage currentTheme={currentTheme} />} />
       <Route path={ROUTES.LANDING} element={
         <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-orange-50">
@@ -453,14 +477,17 @@ function App() {
 
                     {/* Desktop Navigation */}
                     <nav className="hidden md:flex items-center gap-8">
-                      <a href="/create-memory" className="text-gray-700 font-medium hover:text-red-600 transition-colors">
-                        {t('nav.create')}
+                      <a href="/calendar" className="text-gray-700 font-medium hover:text-red-600 transition-colors">
+                        {t('nav.calendar')}
                       </a>
                       <a href="/view-memory" className="text-gray-700 font-medium hover:text-red-600 transition-colors">
                         {t('nav.memories')}
                       </a>
+                      <a href="/albums" className="text-gray-700 font-medium hover:text-red-600 transition-colors">
+                        {t('nav.albums')}
+                      </a>
                       <a href="/couple/invitations" className="text-gray-700 font-medium hover:text-red-600 transition-colors flex items-center gap-2">
-                        Kết nối {couple && '💕'}
+                        {t('nav.couple')} {couple && '💕'}
                       </a>
                       <a href="/anniversary-reminders" className="text-gray-700 font-medium hover:text-red-600 transition-colors">
                         {t('nav.anniversary')}
@@ -587,9 +614,10 @@ function App() {
                     <nav className="relative z-10 px-6 py-4">
                       <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl shadow-gray-200/60 p-3 space-y-2 border border-gray-100/50">
                         {[
-                          { href: '/create-memory', icon: BookOpen, label: t('nav.create'), delay: '0ms', badge: '+', isBadgePlus: true },
+                          { href: '/calendar', icon: BookOpen, label: t('nav.calendar'), delay: '0ms', badge: '📅', isBadgeEmoji: true },
                           { href: '/view-memory', icon: Camera, label: t('nav.memories'), delay: '100ms', badge: Object.values(memoriesByYear).reduce((acc, memories) => acc + memories.length, 0).toString() },
-                          { href: '/couple/invitations', icon: Users, label: 'Kết nối', delay: '150ms', badge: couple ? '💕' : '', isBadgeEmoji: true },
+                          { href: '/albums', icon: Heart, label: t('nav.albums'), delay: '125ms' },
+                          { href: '/couple/invitations', icon: Users, label: t('nav.couple'), delay: '150ms', badge: couple ? '💕' : '', isBadgeEmoji: true },
                           { href: '/anniversary-reminders', icon: Bell, label: t('nav.anniversary'), delay: '200ms', badge: years.length.toString() },
                           { href: '/setting-page', icon: Download2, label: t('nav.settings'), delay: '300ms' }
                         ].map((item) => {
@@ -1149,6 +1177,9 @@ function App() {
       <Route path={ROUTES.SETTINGS} element={<SettingPage onBack={() => window.history.back()} currentTheme={currentTheme} setCurrentTheme={setCurrentTheme} />} />
       <Route path={ROUTES.COUPLE_INVITATIONS} element={userId ? <CoupleInvitationsPage userId={userId} /> : null} />
       <Route path={ROUTES.COUPLE_SETTINGS} element={userId ? <CoupleSettingsPage userId={userId} /> : null} />
+      <Route path={ROUTES.ALBUMS} element={<Albums currentTheme={currentTheme} />} />
+      <Route path="/albums/:albumId" element={<AlbumDetail />} />
+      <Route path={ROUTES.CALENDAR} element={<Calendar />} />
       <Route path={ROUTES.PRIVACY_POLICY} element={<PrivacyPolicy />} />
       <Route path={ROUTES.TERMS_OF_SERVICE} element={<TermsOfService />} />
       <Route path={ROUTES.COOKIES_POLICY} element={<CookiesPolicy />} />

@@ -76,10 +76,10 @@ export function CoupleInvitationsPage({ userId }: CoupleInvitationsPageProps) {
         <div className="px-4 sm:px-8 pt-6 sm:pt-8 pb-3 sm:pb-4">
           <button
             onClick={() => navigate(-1)}
-            className="group flex items-center gap-2 sm:gap-2.5 px-4 sm:px-5 py-2 sm:py-2.5 bg-white/70 backdrop-blur-xl hover:bg-white/90 rounded-xl sm:rounded-2xl transition-all duration-300 shadow-lg shadow-violet-500/10 hover:shadow-xl hover:shadow-violet-500/20 border border-white/50"
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-pink-200 hover:bg-pink-50 hover:border-pink-300 transition-all duration-300 shadow-sm hover:shadow-md active:scale-90 active:shadow-inner"
+            title={t('couple.invitations.back')}
           >
-            <ArrowLeft className="w-4 h-4 text-violet-700 group-hover:-translate-x-1 transition-transform duration-300" strokeWidth={2.5} />
-            <span className="text-violet-700 font-bold text-xs sm:text-sm">{t('couple.invitations.back')}</span>
+            <ArrowLeft className="w-5 h-5 text-pink-600" />
           </button>
         </div>
 

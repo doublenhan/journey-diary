@@ -97,10 +97,10 @@ export function CoupleSettingsPage({ userId }: CoupleSettingsPageProps) {
         <div className="mb-6">
           <button
             onClick={() => navigate(-1)}
-            className="group flex items-center gap-2.5 px-5 py-2.5 bg-white hover:bg-gray-50 rounded-2xl transition-all duration-300 shadow-md hover:shadow-lg border border-gray-200"
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-pink-200 hover:bg-pink-50 hover:border-pink-300 transition-all duration-300 shadow-sm hover:shadow-md active:scale-90 active:shadow-inner"
+            title={t('couple.invitations.back')}
           >
-            <ArrowLeft className="w-4 h-4 text-gray-700 group-hover:-translate-x-1 transition-transform duration-300" strokeWidth={2.5} />
-            <span className="text-gray-700 font-bold text-sm">{t('couple.invitations.back')}</span>
+            <ArrowLeft className="w-5 h-5 text-pink-600" />
           </button>
         </div>
 

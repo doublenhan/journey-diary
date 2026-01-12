@@ -135,6 +135,11 @@ service cloud.firestore {
       allow update: if isSysAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'statusUpdatedAt', 'statusUpdatedBy']);
       // Users can create their own doc
       allow create: if isOwner(userId) && isValidLanguage();
+      
+      // Calendar subcollection - users can manage their own calendars
+      match /calendar/{year} {
+        allow read, write: if isOwner(userId);
+      }
     }
     
     // Production Users collection
@@ -162,6 +167,11 @@ service cloud.firestore {
       allow update: if isSysAdminProd() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'statusUpdatedAt', 'statusUpdatedBy']);
       // Users can create their own doc
       allow create: if isOwner(userId) && isValidLanguage();
+      
+      // Calendar subcollection - users can manage their own calendars
+      match /calendar/{year} {
+        allow read, write: if isOwner(userId);
+      }
     }
     
     // ===========================
@@ -170,14 +180,14 @@ service cloud.firestore {
     
     // Dev Memories - Development environment
     match /dev_memories/{memoryId} {
-      allow read: if isActiveUser();
+      allow read, list: if isActiveUser();
       allow write: if isActiveUser() && request.auth.uid == request.resource.data.userId;
       allow delete: if isActiveUser() && request.auth.uid == resource.data.userId;
     }
     
     // Production Memories - Enhanced security
     match /memories/{memoryId} {
-      allow read: if isActiveUserProd();
+      allow read, list: if isActiveUserProd();
       allow write: if isActiveUserProd() && request.auth.uid == request.resource.data.userId;
       allow delete: if isActiveUserProd() && request.auth.uid == resource.data.userId;
     }
@@ -374,6 +384,56 @@ service cloud.firestore {
       // Delete: Only owner can delete (unshare)
       allow delete: if isAuthenticated() && 
         request.auth.uid == resource.data.ownerId;
+    }
+    
+    // ===========================
+    // Albums Collection - V3.1
+    // ===========================
+    
+    // Albums - Production environment
+    match /albums/{albumId} {
+      // Read: Owner can read their own albums
+      allow read: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      // Create: User can create albums for themselves
+      allow create: if isAuthenticated() && 
+        request.auth.uid == request.resource.data.userId &&
+        request.resource.data.title is string &&
+        request.resource.data.title.size() > 0 &&
+        request.resource.data.title.size() <= 100;
+      
+      // Update: Owner can update their own albums
+      allow update: if isAuthenticated() && 
+        request.auth.uid == resource.data.userId &&
+        request.auth.uid == request.resource.data.userId;
+      
+      // Delete: Owner can delete their own albums
+      allow delete: if isAuthenticated() && 
+        request.auth.uid == resource.data.userId;
+    }
+    
+    // Albums - Development environment
+    match /dev_albums/{albumId} {
+      // Read: Owner can read their own albums
+      allow read: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      // Create: User can create albums for themselves
+      allow create: if isAuthenticated() && 
+        request.auth.uid == request.resource.data.userId &&
+        request.resource.data.title is string &&
+        request.resource.data.title.size() > 0 &&
+        request.resource.data.title.size() <= 100;
+      
+      // Update: Owner can update their own albums
+      allow update: if isAuthenticated() && 
+        request.auth.uid == resource.data.userId &&
+        request.auth.uid == request.resource.data.userId;
+      
+      // Delete: Owner can delete their own albums
+      allow delete: if isAuthenticated() && 
+        request.auth.uid == resource.data.userId;
     }
     
     // ===========================

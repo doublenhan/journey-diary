@@ -12,6 +12,8 @@ export const ROUTES = {
   CREATE_MEMORY: '/create-memory',
   VIEW_MEMORY: '/view-memory',
   ANNIVERSARY_REMINDERS: '/anniversary-reminders',
+  ALBUMS: '/albums',
+  CALENDAR: '/calendar',
   SETTINGS: '/setting-page',
 
   // Couple routes
@@ -35,4 +37,5 @@ export type Route = typeof ROUTES[keyof typeof ROUTES];
 export const routeHelpers = {
   memory: (id: string) => `/memory/${id}`,
   profile: (userId: string) => `/profile/${userId}`,
+  albumDetail: (albumId: string) => `/albums/${albumId}`,
 };
